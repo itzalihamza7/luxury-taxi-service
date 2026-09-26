@@ -1,0 +1,14 @@
+# Dependencies and build output
+node_modules/
+backend/dist/
+frontend/.next/
+*.tsbuildinfo
+
+# Local settings and secrets (keep the examples)
+.env
+.env.*
+!.env.example
+
+# Misc
+.DS_Store
+*.log
