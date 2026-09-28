@@ -6,6 +6,7 @@ import { errorHandler, notFoundHandler } from './lib/errors.js'
 import { createRateLimiter } from './lib/rate-limit.js'
 import { authRouter } from './modules/auth/routes.js'
 import { attachUser } from './modules/auth/session.js'
+import { vehiclesRouter } from './modules/vehicles/routes.js'
 
 export function createApp(config: Config): Express {
   const context: AppContext = {
@@ -44,6 +45,7 @@ export function createApp(config: Config): Express {
   app.use(attachUser)
 
   app.use('/api/auth', authRouter(context))
+  app.use('/api/vehicles', vehiclesRouter())
 
   app.use(notFoundHandler)
   app.use(errorHandler)
