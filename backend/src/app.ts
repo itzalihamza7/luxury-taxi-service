@@ -7,6 +7,8 @@ import { createRouteFinder } from './lib/geo.js'
 import { createRateLimiter } from './lib/rate-limit.js'
 import { authRouter } from './modules/auth/routes.js'
 import { attachUser } from './modules/auth/session.js'
+import { bookingsRouter } from './modules/bookings/routes.js'
+import { createPayPalGateway } from './modules/payments/paypal.js'
 import { knownRoutesFromMadrid } from './modules/places/catalog.js'
 import { placesRouter } from './modules/places/routes.js'
 import { quotesRouter } from './modules/quotes/routes.js'
@@ -17,6 +19,7 @@ export function createApp(config: Config): Express {
     config,
     rateLimit: createRateLimiter(config.RATE_LIMIT_DISABLED),
     findRoute: createRouteFinder(config.ROUTER_URL, knownRoutesFromMadrid()),
+    payments: createPayPalGateway(config),
   }
 
   const app = express()
@@ -57,6 +60,7 @@ export function createApp(config: Config): Express {
       minLeadMinutes: config.MIN_LEAD_MINUTES,
       freeCancelHours: config.FREE_CANCEL_HOURS,
       quoteTtlMinutes: config.QUOTE_TTL_MINUTES,
+      onlinePayments: context.payments.enabled,
       limits: LIMITS,
     })
   })
@@ -65,6 +69,7 @@ export function createApp(config: Config): Express {
   app.use('/api/vehicles', vehiclesRouter())
   app.use('/api/places', placesRouter(context))
   app.use('/api/quotes', quotesRouter(context))
+  app.use('/api/bookings', bookingsRouter(context))
 
   app.use(notFoundHandler)
   app.use(errorHandler)
