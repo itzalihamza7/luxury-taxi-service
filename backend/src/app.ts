@@ -1,5 +1,5 @@
 import express, { type Express } from 'express'
-import type { Config } from './config.js'
+import { LIMITS, type Config } from './config.js'
 import type { AppContext } from './context.js'
 import { pool } from './db/client.js'
 import { errorHandler, notFoundHandler } from './lib/errors.js'
@@ -9,6 +9,7 @@ import { authRouter } from './modules/auth/routes.js'
 import { attachUser } from './modules/auth/session.js'
 import { knownRoutesFromMadrid } from './modules/places/catalog.js'
 import { placesRouter } from './modules/places/routes.js'
+import { quotesRouter } from './modules/quotes/routes.js'
 import { vehiclesRouter } from './modules/vehicles/routes.js'
 
 export function createApp(config: Config): Express {
@@ -48,9 +49,22 @@ export function createApp(config: Config): Express {
   app.use(express.json({ limit: '50kb' }))
   app.use(attachUser)
 
+  /** Business settings the booking screens need. Contains nothing secret. */
+  app.get('/api/config', (_req, res) => {
+    res.json({
+      currency: config.CURRENCY,
+      timeZone: config.BUSINESS_TIMEZONE,
+      minLeadMinutes: config.MIN_LEAD_MINUTES,
+      freeCancelHours: config.FREE_CANCEL_HOURS,
+      quoteTtlMinutes: config.QUOTE_TTL_MINUTES,
+      limits: LIMITS,
+    })
+  })
+
   app.use('/api/auth', authRouter(context))
   app.use('/api/vehicles', vehiclesRouter())
   app.use('/api/places', placesRouter(context))
+  app.use('/api/quotes', quotesRouter(context))
 
   app.use(notFoundHandler)
   app.use(errorHandler)
