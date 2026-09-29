@@ -3,15 +3,19 @@ import type { Config } from './config.js'
 import type { AppContext } from './context.js'
 import { pool } from './db/client.js'
 import { errorHandler, notFoundHandler } from './lib/errors.js'
+import { createRouteFinder } from './lib/geo.js'
 import { createRateLimiter } from './lib/rate-limit.js'
 import { authRouter } from './modules/auth/routes.js'
 import { attachUser } from './modules/auth/session.js'
+import { knownRoutesFromMadrid } from './modules/places/catalog.js'
+import { placesRouter } from './modules/places/routes.js'
 import { vehiclesRouter } from './modules/vehicles/routes.js'
 
 export function createApp(config: Config): Express {
   const context: AppContext = {
     config,
     rateLimit: createRateLimiter(config.RATE_LIMIT_DISABLED),
+    findRoute: createRouteFinder(config.ROUTER_URL, knownRoutesFromMadrid()),
   }
 
   const app = express()
@@ -46,6 +50,7 @@ export function createApp(config: Config): Express {
 
   app.use('/api/auth', authRouter(context))
   app.use('/api/vehicles', vehiclesRouter())
+  app.use('/api/places', placesRouter(context))
 
   app.use(notFoundHandler)
   app.use(errorHandler)
