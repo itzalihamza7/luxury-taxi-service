@@ -9,6 +9,7 @@ import { authRouter } from './modules/auth/routes.js'
 import { attachUser } from './modules/auth/session.js'
 import { bookingsRouter } from './modules/bookings/routes.js'
 import { createPayPalGateway } from './modules/payments/paypal.js'
+import { paymentsRouter } from './modules/payments/routes.js'
 import { knownRoutesFromMadrid } from './modules/places/catalog.js'
 import { placesRouter } from './modules/places/routes.js'
 import { quotesRouter } from './modules/quotes/routes.js'
@@ -70,6 +71,7 @@ export function createApp(config: Config): Express {
   app.use('/api/places', placesRouter(context))
   app.use('/api/quotes', quotesRouter(context))
   app.use('/api/bookings', bookingsRouter(context))
+  app.use('/api/payments', paymentsRouter(context))
 
   app.use(notFoundHandler)
   app.use(errorHandler)
