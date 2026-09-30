@@ -5,9 +5,11 @@ import { pool } from './db/client.js'
 import { errorHandler, notFoundHandler } from './lib/errors.js'
 import { createRouteFinder } from './lib/geo.js'
 import { createRateLimiter } from './lib/rate-limit.js'
+import { adminRouter } from './modules/admin/routes.js'
 import { authRouter } from './modules/auth/routes.js'
 import { attachUser } from './modules/auth/session.js'
 import { bookingsRouter } from './modules/bookings/routes.js'
+import { contactRouter } from './modules/contact/routes.js'
 import { createPayPalGateway } from './modules/payments/paypal.js'
 import { paymentsRouter } from './modules/payments/routes.js'
 import { knownRoutesFromMadrid } from './modules/places/catalog.js'
@@ -72,6 +74,8 @@ export function createApp(config: Config): Express {
   app.use('/api/quotes', quotesRouter(context))
   app.use('/api/bookings', bookingsRouter(context))
   app.use('/api/payments', paymentsRouter(context))
+  app.use('/api/admin', adminRouter(context))
+  app.use('/api', contactRouter(context))
 
   app.use(notFoundHandler)
   app.use(errorHandler)
