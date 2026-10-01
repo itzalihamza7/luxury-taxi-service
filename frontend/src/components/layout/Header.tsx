@@ -1,0 +1,208 @@
+'use client'
+
+import { ChevronDown, Menu, Phone, UserRound, X } from 'lucide-react'
+import NextLink from 'next/link'
+import { useEffect, useState, useSyncExternalStore } from 'react'
+import { useAuth } from '@/components/auth/AuthProvider'
+import { Wordmark } from '@/components/ui/Brand'
+import { ButtonLink } from '@/components/ui/Button'
+import { Link } from '@/components/ui/Link'
+import { phoneHref, site } from '@/content/site'
+import { useCurrentPath } from './CurrentPath'
+import { useI18n } from '@/i18n/client'
+import { href, LOCALE_COOKIE, locales, switchLocalePath, type Locale } from '@/i18n/config'
+
+interface NavService {
+  slug: string
+  title: string
+}
+
+/** Remember the chosen language, so the bare domain opens in it next time. */
+function rememberLocale(choice: Locale): void {
+  document.cookie = `${LOCALE_COOKIE}=${choice}; path=/; max-age=31536000; samesite=lax`
+}
+
+/**
+ * Switches language while staying on the same page. Until the page is interactive
+ * the links point at each language's home page.
+ */
+function LanguageSwitch({ className = '' }: { className?: string }) {
+  const { locale, t } = useI18n()
+  const pathname = useCurrentPath()
+  const target = (option: Locale) => (pathname ? switchLocalePath(pathname, option) : href(option))
+
+  return (
+    <div role="group" aria-label={t.nav.language} className={`flex items-center text-xs font-medium tracking-[0.14em] ${className}`}>
+      {locales.map((option, index) => (
+        <span key={option} className="flex items-center">
+          {index > 0 ? <span aria-hidden className="mx-1.5 opacity-30">/</span> : null}
+          <NextLink
+            href={target(option)}
+            hrefLang={option}
+            lang={option}
+            aria-current={option === locale ? 'true' : undefined}
+            onClick={() => rememberLocale(option)}
+            className={`uppercase transition-colors hover:text-gold-300 ${option === locale ? 'text-gold-300' : 'opacity-60'}`}
+          >
+            {option}
+          </NextLink>
+        </span>
+      ))}
+    </div>
+  )
+}
+
+function subscribeToScroll(onChange: () => void) {
+  window.addEventListener('scroll', onChange, { passive: true })
+  return () => window.removeEventListener('scroll', onChange)
+}
+
+export function Header({ services }: { services: NavService[] }) {
+  const { t } = useI18n()
+  const { user } = useAuth()
+  // The bar turns solid once the page has scrolled past the top of the hero.
+  const scrolled = useSyncExternalStore(
+    subscribeToScroll,
+    () => window.scrollY > 24,
+    () => false,
+  )
+  const [open, setOpen] = useState(false)
+
+  // Lock page scroll while the mobile menu is open.
+  useEffect(() => {
+    document.body.style.overflow = open ? 'hidden' : ''
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [open])
+
+  const links = [
+    { href: '/fleet', label: t.nav.fleet },
+    { href: '/routes', label: t.nav.routes },
+    { href: '/events', label: t.nav.events },
+    { href: '/journal', label: t.nav.journal },
+    { href: '/about', label: t.nav.about },
+    { href: '/contact', label: t.nav.contact },
+  ]
+  const linkClass = 'inline-flex h-10 items-center text-[0.8125rem] font-medium tracking-wide text-bone-50/80 transition-colors hover:text-gold-300'
+  const accountHref = user ? (user.role === 'admin' ? '/admin' : '/account') : '/login'
+  const accountLabel = user ? (user.role === 'admin' ? t.nav.admin : t.nav.account) : t.nav.signIn
+
+  return (
+    <header
+      className={`no-print fixed inset-x-0 top-0 z-50 text-bone-50 transition-[background-color,border-color] duration-500 ${
+        scrolled || open ? 'border-b border-white/10 bg-ink-950/90 backdrop-blur-md' : 'border-b border-transparent'
+      }`}
+    >
+      <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-10 focus:rounded-full focus:bg-gold-400 focus:px-4 focus:py-2 focus:text-sm focus:text-ink-950">
+        {t.nav.skip}
+      </a>
+
+      <div className="container-page flex h-[4.5rem] items-center justify-between gap-6">
+        <Link href="/" aria-label={`${site.name} ${site.descriptor}`} className="shrink-0">
+          <Wordmark />
+        </Link>
+
+        <nav aria-label={t.nav.main} className="hidden items-center gap-7 lg:flex">
+          <div className="group relative">
+            <Link href="/services" className={`${linkClass} gap-1`}>
+              {t.nav.services}
+              <ChevronDown aria-hidden className="size-3.5 transition-transform duration-300 group-hover:rotate-180 group-focus-within:rotate-180" />
+            </Link>
+            <div className="invisible absolute left-1/2 top-full w-72 -translate-x-1/2 pt-4 opacity-0 transition-all duration-200 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
+              <ul className="rounded-md border border-white/10 bg-ink-900/95 p-2 shadow-2xl backdrop-blur-md">
+                {services.map((service) => (
+                  <li key={service.slug}>
+                    <Link href={`/services/${service.slug}`} className="block rounded px-4 py-2.5 text-sm text-bone-50/80 transition-colors hover:bg-white/5 hover:text-gold-300">
+                      {service.title}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+          {links.map((link) => (
+            <Link key={link.href} href={link.href} className={linkClass}>
+              {link.label}
+            </Link>
+          ))}
+        </nav>
+
+        <div className="flex items-center gap-4">
+          <a href={phoneHref} className="hidden items-center gap-2 text-[0.8125rem] font-medium text-bone-50/80 transition-colors hover:text-gold-300 xl:inline-flex">
+            <Phone aria-hidden className="size-3.5" />
+            {site.phone}
+          </a>
+          {/* Wrappers own the show/hide rule, so it never competes with a component's own display class. */}
+          <div className="hidden sm:block">
+            <LanguageSwitch />
+          </div>
+          <Link href={accountHref} aria-label={accountLabel} title={accountLabel} className="hidden rounded-full p-2 text-bone-50/80 transition-colors hover:text-gold-300 sm:inline-flex">
+            <UserRound aria-hidden className="size-[1.125rem]" />
+            {user ? <span aria-hidden className="-ml-1.5 -mt-0.5 size-1.5 rounded-full bg-gold-400" /> : null}
+          </Link>
+          <div className="hidden sm:block">
+            <ButtonLink href="/booking">{t.actions.book}</ButtonLink>
+          </div>
+          <button
+            type="button"
+            onClick={() => setOpen((value) => !value)}
+            aria-expanded={open}
+            aria-controls="mobile-menu"
+            aria-label={open ? t.nav.close : t.nav.menu}
+            className="-mr-2 rounded-full p-2 lg:hidden"
+          >
+            {open ? <X aria-hidden className="size-6" /> : <Menu aria-hidden className="size-6" />}
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile menu */}
+      <div
+        id="mobile-menu"
+        hidden={!open}
+        className="h-[calc(100dvh-4.5rem)] overflow-y-auto border-t border-white/10 bg-ink-950 lg:hidden"
+      >
+        {/* Following any link in the menu closes it. */}
+        <nav
+          aria-label={t.nav.main}
+          className="container-page flex flex-col py-8"
+          onClick={(event) => {
+            if ((event.target as HTMLElement).closest('a')) setOpen(false)
+          }}
+        >
+          <Link href="/services" className="display border-b border-white/10 py-4 text-3xl">
+            {t.nav.services}
+          </Link>
+          <ul className="border-b border-white/10 py-3">
+            {services.map((service) => (
+              <li key={service.slug}>
+                <Link href={`/services/${service.slug}`} className="block py-2 pl-4 text-sm text-bone-50/70">
+                  {service.title}
+                </Link>
+              </li>
+            ))}
+          </ul>
+          {links.map((link) => (
+            <Link key={link.href} href={link.href} className="display border-b border-white/10 py-4 text-3xl">
+              {link.label}
+            </Link>
+          ))}
+          <div className="mt-8 flex flex-col gap-4">
+            <ButtonLink href="/booking" size="lg" arrow>
+              {t.actions.book}
+            </ButtonLink>
+            <div className="flex items-center justify-between pt-2 text-sm text-bone-50/70">
+              <Link href={accountHref} className="inline-flex items-center gap-2">
+                <UserRound aria-hidden className="size-4" />
+                {accountLabel}
+              </Link>
+              <Link href="/booking/track">{t.nav.track}</Link>
+              <LanguageSwitch />
+            </div>
+          </div>
+        </nav>
+      </div>
+    </header>
+  )
+}
