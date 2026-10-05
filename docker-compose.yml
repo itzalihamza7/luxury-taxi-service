@@ -1,0 +1,62 @@
+# Runs the complete site from production builds: database, API and website.
+#
+#   cp .env.example .env      # then set the passwords
+#   docker compose up --build
+#
+# The site is served on http://localhost:3000 (change APP_PORT in .env).
+# For day-to-day development use DDEV instead: `ddev start`.
+
+name: luxury-taxi
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-luxury_taxi}
+      POSTGRES_USER: ${POSTGRES_USER:-luxury_taxi}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Copy .env.example to .env and set POSTGRES_PASSWORD}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-luxury_taxi}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-luxury_taxi}
+      APP_URL: ${SITE_URL:-http://localhost:3000}
+      TRUST_PROXY: ${TRUST_PROXY:-1}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      GEOCODER_URL: ${GEOCODER_URL-https://photon.komoot.io}
+      ROUTER_URL: ${ROUTER_URL:-}
+      PAYPAL_CLIENT_ID: ${PAYPAL_CLIENT_ID:-}
+      PAYPAL_CLIENT_SECRET: ${PAYPAL_CLIENT_SECRET:-}
+      PAYPAL_API_BASE: ${PAYPAL_API_BASE:-https://api-m.sandbox.paypal.com}
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        SITE_URL: ${SITE_URL:-http://localhost:3000}
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      # The website reaches the API over the internal network; the API is not published.
+      API_URL: http://backend:4000
+      SITE_URL: ${SITE_URL:-http://localhost:3000}
+    ports:
+      - '${APP_PORT:-3000}:3000'
+
+volumes:
+  db-data:
