@@ -1,4 +1,5 @@
 import type { NextRequest } from 'next/server'
+import { apiFetch, failureReason } from '@/lib/server-api'
 
 /**
  * Same-origin gateway to the backend API.
@@ -25,15 +26,14 @@ async function forward(request: NextRequest, context: RouteContext<'/api/[...pat
   const hasBody = request.method !== 'GET' && request.method !== 'HEAD'
   let upstream: Response
   try {
-    upstream = await fetch(target, {
+    upstream = await apiFetch(target, {
       method: request.method,
       headers,
       body: hasBody ? await request.arrayBuffer() : undefined,
       redirect: 'manual',
-      signal: AbortSignal.timeout(25_000),
     })
   } catch (error) {
-    console.error(`[api-proxy] ${request.method} ${target} failed:`, error instanceof Error ? error.message : error)
+    console.error(`[api-proxy] ${request.method} ${target} failed:`, failureReason(error))
     return Response.json(
       { error: { code: 'API_UNAVAILABLE', message: 'The booking service is temporarily unavailable.' } },
       { status: 502 },

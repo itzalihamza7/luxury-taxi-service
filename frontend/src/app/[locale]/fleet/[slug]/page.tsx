@@ -15,7 +15,7 @@ import { fill } from '@/i18n/config'
 import { getCommon, getLocale, getPages } from '@/i18n/server'
 import { formatMoney } from '@/lib/format'
 import { pageMetadata } from '@/lib/seo'
-import { getVehiclesSafely } from '@/lib/server-api'
+import { getVehicles, getVehiclesSafely } from '@/lib/server-api'
 
 type Props = PageProps<'/[locale]/fleet/[slug]'>
 
@@ -49,7 +49,9 @@ export default function VehiclePage({ params }: Props) {
 
 async function VehicleDetails({ params }: Pick<Props, 'params'>) {
   const { slug } = await params
-  const [vehicles, locale, t, p] = await Promise.all([getVehiclesSafely(), getLocale(), getCommon(), getPages()])
+  // Not the "safely" variant: if the fleet cannot be loaded, show the error page
+  // rather than claiming that this vehicle does not exist.
+  const [vehicles, locale, t, p] = await Promise.all([getVehicles(), getLocale(), getCommon(), getPages()])
   const vehicle = vehicles.find((candidate) => candidate.slug === slug)
   if (!vehicle) notFound()
 
