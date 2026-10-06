@@ -12,6 +12,9 @@ interface PageMeta {
   noIndex?: boolean
 }
 
+/** Picture shown when a page is shared in a chat or on social media (`public/og.png`). */
+const previewImage = { url: `${siteUrl}/og.png`, width: 1200, height: 630, alt: `${site.name} ${site.descriptor} — ${site.city}` }
+
 /** Title, description, canonical URL, `hreflang` alternates and Open Graph tags for a page. */
 export function pageMetadata({ locale, path, title, description, noIndex }: PageMeta): Metadata {
   const url = `${siteUrl}${href(locale, path)}`
@@ -29,8 +32,9 @@ export function pageMetadata({ locale, path, title, description, noIndex }: Page
       description,
       siteName: `${site.name} ${site.descriptor}`,
       locale: localeTags[locale].replace('-', '_'),
+      images: [previewImage],
     },
-    twitter: { card: 'summary_large_image', title, description },
+    twitter: { card: 'summary_large_image', title, description, images: [previewImage] },
     robots: noIndex ? { index: false, follow: false } : undefined,
   }
 }
