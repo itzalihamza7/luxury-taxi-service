@@ -1,21 +1,21 @@
-import { Check, ChevronRight, Luggage, MessageCircle, Users } from 'lucide-react'
+import { Check, ChevronRight, Luggage, Users } from 'lucide-react'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { Suspense } from 'react'
 import { Backdrop } from '@/components/art/Backdrop'
 import { VehicleImage } from '@/components/art/VehicleArt'
 import { FleetGrid } from '@/components/fleet/FleetGrid'
+import { WhatsAppButton } from '@/components/layout/ContactButtons'
 import { CtaBand } from '@/components/layout/CtaBand'
 import { PageSkeleton } from '@/components/layout/PageSkeleton'
 import { ButtonLink } from '@/components/ui/Button'
 import { Link } from '@/components/ui/Link'
 import { Eyebrow, Section, SectionHeading } from '@/components/ui/Section'
-import { whatsappHref } from '@/content/site'
 import { fill } from '@/i18n/config'
 import { getCommon, getLocale, getPages } from '@/i18n/server'
 import { formatMoney } from '@/lib/format'
 import { pageMetadata } from '@/lib/seo'
-import { getVehicles, getVehiclesSafely } from '@/lib/server-api'
+import { loadVehicles, quietly } from '@/lib/server-api'
 
 type Props = PageProps<'/[locale]/fleet/[slug]'>
 
@@ -25,7 +25,7 @@ type Props = PageProps<'/[locale]/fleet/[slug]'>
  */
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
-  const [vehicles, locale] = await Promise.all([getVehiclesSafely(), getLocale()])
+  const [vehicles, locale] = await Promise.all([quietly('the fleet', loadVehicles(), []), getLocale()])
   const vehicle = vehicles.find((candidate) => candidate.slug === slug)
   if (!vehicle) return {}
   return pageMetadata({
@@ -49,9 +49,9 @@ export default function VehiclePage({ params }: Props) {
 
 async function VehicleDetails({ params }: Pick<Props, 'params'>) {
   const { slug } = await params
-  // Not the "safely" variant: if the fleet cannot be loaded, show the error page
+  // If the fleet cannot be loaded this fails, and the error page is shown,
   // rather than claiming that this vehicle does not exist.
-  const [vehicles, locale, t, p] = await Promise.all([getVehicles(), getLocale(), getCommon(), getPages()])
+  const [vehicles, locale, t, p] = await Promise.all([loadVehicles(), getLocale(), getCommon(), getPages()])
   const vehicle = vehicles.find((candidate) => candidate.slug === slug)
   if (!vehicle) notFound()
 
@@ -114,10 +114,7 @@ async function VehicleDetails({ params }: Pick<Props, 'params'>) {
                 <ButtonLink href={bookHref} size="lg" arrow>
                   {f.bookVehicle}
                 </ButtonLink>
-                <ButtonLink href={whatsappHref(vehicle.name)} variant="outline-light" size="lg">
-                  <MessageCircle aria-hidden className="size-4" />
-                  {t.actions.whatsapp}
-                </ButtonLink>
+                <WhatsAppButton message={vehicle.name} />
               </div>
             </div>
 

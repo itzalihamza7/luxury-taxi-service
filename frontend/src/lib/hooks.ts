@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useSyncExternalStore } from 'react'
 import { api } from './api'
-import { DEFAULT_CONFIG, type AppConfig } from './types'
+import { DEFAULT_CONFIG, type AppConfig, type SiteSettings } from './types'
 
 const noop = () => () => {}
 
@@ -42,4 +42,27 @@ export function useAppConfig(): AppConfig {
     }
   }, [])
   return config
+}
+
+let pendingSettings: Promise<SiteSettings | null> | null = null
+
+/** The business's contact details, for client components. Null until loaded, or if they cannot be loaded. */
+export function useContactDetails(): SiteSettings | null {
+  const [settings, setSettings] = useState<SiteSettings | null>(null)
+  useEffect(() => {
+    let active = true
+    pendingSettings ??= api<{ settings: SiteSettings }>('/content/settings')
+      .then((result) => result.settings)
+      .catch(() => {
+        pendingSettings = null
+        return null
+      })
+    void pendingSettings.then((loaded) => {
+      if (active) setSettings(loaded)
+    })
+    return () => {
+      active = false
+    }
+  }, [])
+  return settings
 }

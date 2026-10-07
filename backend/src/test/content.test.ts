@@ -25,7 +25,7 @@ const faqPayload = (overrides: Record<string, unknown> = {}) => ({
 
 const eventPayload = (overrides: Record<string, unknown> = {}, data: Record<string, unknown> = {}) => ({
   data: {
-    kind: 'music',
+    category: { en: 'Music festival', es: 'Festival de música' },
     title: { en: 'Mad Cool Festival', es: 'Mad Cool Festival' },
     venue: 'Iberdrola Music',
     placeId: null,
@@ -147,8 +147,8 @@ describe('managing content', () => {
     expect((await admin.put(`/api/admin/content/event/${id}`).send(eventPayload({ slug: 'mad-cool-festival-2' }))).status).toBe(409)
     expect((await admin.put(`/api/admin/content/event/${id}`).send(eventPayload({ slug: 'mad-cool-festival' }))).status).toBe(200)
 
-    const shown = (await request(app).get('/api/content/event')).body.entries as { slug: string; kind: string }[]
-    expect(shown[0]).toMatchObject({ slug: 'mad-cool-festival', kind: 'music' })
+    const shown = (await request(app).get('/api/content/event')).body.entries as { slug: string }[]
+    expect(shown[0]).toMatchObject({ slug: 'mad-cool-festival', category: { es: 'Festival de música' } })
   })
 
   it('checks each kind of content against its own rules', async () => {
@@ -158,8 +158,8 @@ describe('managing content', () => {
     expect(event.status).toBe(400)
     expect(event.body.error.fields).toMatchObject({ 'data.title.es': 'required', 'data.end': 'before_start' })
 
-    const dates = await admin.post('/api/admin/content/event').send(eventPayload({}, { start: '2027-02-30', kind: 'opera' }))
-    expect(dates.body.error.fields).toMatchObject({ 'data.start': 'invalid_date', 'data.kind': 'invalid' })
+    const dates = await admin.post('/api/admin/content/event').send(eventPayload({}, { start: '2027-02-30', category: { en: 'Opera' } }))
+    expect(dates.body.error.fields).toMatchObject({ 'data.start': 'invalid_date', 'data.category.es': 'required' })
 
     const article = await admin.post('/api/admin/content/article').send({
       data: {

@@ -5,12 +5,12 @@ import { useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useRef, useState } from 'react'
 import { ButtonLink } from '@/components/ui/Button'
 import { Accent } from '@/components/ui/Section'
-import { phoneHref, site, whatsappHref } from '@/content/site'
 import { useI18n } from '@/i18n/client'
 import { fill } from '@/i18n/config'
 import type { BookingMessages } from '@/i18n/messages/booking'
 import { api } from '@/lib/api'
-import { useAppConfig, useHydrated } from '@/lib/hooks'
+import { phoneHref, whatsappHref } from '@/lib/contact'
+import { useAppConfig, useContactDetails, useHydrated } from '@/lib/hooks'
 import type { Booking } from '@/lib/types'
 import { BookingDetails } from './BookingDetails'
 
@@ -29,6 +29,7 @@ export function PaymentReturn({ b }: { b: BookingMessages }) {
 function Outcome({ b }: { b: BookingMessages }) {
   const { t } = useI18n()
   const config = useAppConfig()
+  const details = useContactDetails()
   const query = useSearchParams()
   const [params] = useState(() => ({ reference: query.get('ref') ?? '', orderId: query.get('token'), cancelled: query.get('cancelled') === '1' }))
   const [booking, setBooking] = useState<Booking | null>(null)
@@ -47,12 +48,14 @@ function Outcome({ b }: { b: BookingMessages }) {
   const panel = 'mx-auto max-w-2xl rounded-lg border border-ink-900/10 bg-white p-6 sm:p-10'
   const contact = (
     <div className="mt-7 flex flex-wrap gap-3">
-      <ButtonLink href={whatsappHref(params.reference)} variant="dark">
+      <ButtonLink href={details ? whatsappHref(details.whatsapp, params.reference) : '/contact'} variant="dark">
         {t.actions.whatsapp}
       </ButtonLink>
-      <ButtonLink href={phoneHref} variant="outline">
-        {site.phone}
-      </ButtonLink>
+      {details ? (
+        <ButtonLink href={phoneHref(details.phone)} variant="outline">
+          {details.phone}
+        </ButtonLink>
+      ) : null}
       <ButtonLink href={`/booking/track${params.reference ? `?ref=${encodeURIComponent(params.reference)}` : ''}`} variant="outline">
         {t.nav.track}
       </ButtonLink>

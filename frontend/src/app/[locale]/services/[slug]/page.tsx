@@ -6,30 +6,26 @@ import { ServiceCard } from '@/components/content/Cards'
 import { faqJsonLd, FaqList } from '@/components/content/FaqList'
 import { JsonLd } from '@/components/content/JsonLd'
 import { FleetGrid } from '@/components/fleet/FleetGrid'
+import { WhatsAppButton } from '@/components/layout/ContactButtons'
 import { CtaBand } from '@/components/layout/CtaBand'
 import { PageHero } from '@/components/layout/PageHero'
 import { PageSkeleton } from '@/components/layout/PageSkeleton'
 import { ButtonLink } from '@/components/ui/Button'
 import { Eyebrow, Section, SectionHeading } from '@/components/ui/Section'
-import { serviceBySlug, services } from '@/content/services'
-import { whatsappHref } from '@/content/site'
 import { getCommon, getLocale, getPages } from '@/i18n/server'
 import { pageMetadata } from '@/lib/seo'
-
-export function generateStaticParams() {
-  return services.map((service) => ({ slug: service.slug }))
-}
+import { loadCollection, quietly } from '@/lib/server-api'
 
 export async function generateMetadata({ params }: PageProps<'/[locale]/services/[slug]'>): Promise<Metadata> {
   const [{ slug }, locale] = await Promise.all([params, getLocale()])
-  const service = serviceBySlug(slug)
+  const service = (await quietly('the services', loadCollection('service'), [])).find((candidate) => candidate.slug === slug)
   if (!service) return {}
   return pageMetadata({ locale, path: `/services/${service.slug}`, title: service.title[locale], description: service.summary[locale] })
 }
 
 /**
- * The address is read inside the Suspense boundary, which lets the router show
- * this page's frame immediately when a visitor follows a link to it.
+ * Services are edited in the console, so each page is rendered on request from
+ * the (cached) content. Meanwhile the router shows this page's frame.
  */
 export default function ServicePage({ params }: PageProps<'/[locale]/services/[slug]'>) {
   return (
@@ -40,13 +36,13 @@ export default function ServicePage({ params }: PageProps<'/[locale]/services/[s
 }
 
 async function ServiceContent({ params }: Pick<PageProps<'/[locale]/services/[slug]'>, 'params'>) {
-  const [{ slug }, locale, t, p] = await Promise.all([params, getLocale(), getCommon(), getPages()])
-  const service = serviceBySlug(slug)
+  const [{ slug }, locale, t, p, services] = await Promise.all([params, getLocale(), getCommon(), getPages(), loadCollection('service')])
+  const service = services.find((candidate) => candidate.slug === slug)
   if (!service) notFound()
 
   const s = p.services
   const bookHref = `/booking?type=${service.rideType}`
-  const questions = service.faqs.map((faq) => ({ question: faq.question[locale], answer: faq.answer[locale] }))
+  const questions = service.faqs[locale]
 
   return (
     <>
@@ -60,9 +56,7 @@ async function ServiceContent({ params }: Pick<PageProps<'/[locale]/services/[sl
         <ButtonLink href={bookHref} size="lg" arrow>
           {s.bookThis}
         </ButtonLink>
-        <ButtonLink href={whatsappHref(service.title[locale])} variant="outline-light" size="lg">
-          {t.actions.whatsapp}
-        </ButtonLink>
+        <WhatsAppButton message={service.title[locale]} />
       </PageHero>
 
       <Section tone="light">

@@ -2,7 +2,6 @@
 
 import { useEffect } from 'react'
 import { Button, ButtonLink } from '@/components/ui/Button'
-import { phoneHref, site } from '@/content/site'
 import { useI18n } from '@/i18n/client'
 
 /** Shown when a page fails to render. The header and footer stay in place. */
@@ -22,8 +21,8 @@ export default function ErrorPage({ error, reset }: { error: Error & { digest?: 
           <Button size="lg" onClick={reset}>
             {t.actions.retry}
           </Button>
-          <ButtonLink href={phoneHref} variant="outline-light" size="lg">
-            {site.phone}
+          <ButtonLink href="/contact" variant="outline-light" size="lg">
+            {t.nav.contact}
           </ButtonLink>
         </div>
       </div>

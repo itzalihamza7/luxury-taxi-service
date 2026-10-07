@@ -1,18 +1,20 @@
 import type { Metadata, Viewport } from 'next'
 import localFont from 'next/font/local'
+import { Suspense } from 'react'
 import { AuthProvider } from '@/components/auth/AuthProvider'
 import { CookieConsent } from '@/components/layout/CookieConsent'
+import { contactDetails } from '@/components/layout/ContactButtons'
 import { PathnameTracker } from '@/components/layout/CurrentPath'
 import { Footer } from '@/components/layout/Footer'
 import { Header } from '@/components/layout/Header'
 import { MobileBar } from '@/components/layout/MobileBar'
-import { services } from '@/content/services'
 import { site, siteUrl } from '@/content/site'
 import { I18nProvider } from '@/i18n/client'
 import { locales } from '@/i18n/config'
 import { common } from '@/i18n/messages/common'
 import { getLocale } from '@/i18n/server'
 import { currentYear } from '@/lib/clock'
+import { loadCollection, quietly } from '@/lib/server-api'
 import '../globals.css'
 
 // Fonts are bundled with the app (SIL Open Font License), so builds never depend on a font CDN.
@@ -61,12 +63,22 @@ export default async function RootLayout({ children }: LayoutProps<'/[locale]'>)
       <body className="flex min-h-dvh flex-col">
         <I18nProvider locale={locale} messages={common[locale]}>
           <AuthProvider>
-            <Header services={services.map((service) => ({ slug: service.slug, title: service.title[locale] }))} />
+            {/*
+              The page frame is sent at once. What comes from the console (the services
+              menu, phone number, footer links) follows a moment later in the same response.
+            */}
+            <Suspense fallback={<Header services={[]} phone={null} />}>
+              <SiteHeader />
+            </Suspense>
             <main id="main" className="flex-1">
               {children}
             </main>
-            <Footer year={year} />
-            <MobileBar />
+            <Suspense fallback={<div aria-hidden className="h-96 bg-ink-950" />}>
+              <Footer year={year} />
+            </Suspense>
+            <Suspense fallback={null}>
+              <SiteMobileBar />
+            </Suspense>
             <PathnameTracker />
             <CookieConsent />
           </AuthProvider>
@@ -74,4 +86,14 @@ export default async function RootLayout({ children }: LayoutProps<'/[locale]'>)
       </body>
     </html>
   )
+}
+
+async function SiteHeader() {
+  const [locale, services, settings] = await Promise.all([getLocale(), quietly('the services', loadCollection('service'), []), contactDetails()])
+  return <Header services={services.map((service) => ({ slug: service.slug, title: service.title[locale] }))} phone={settings?.phone ?? null} />
+}
+
+async function SiteMobileBar() {
+  const settings = await contactDetails()
+  return <MobileBar phone={settings?.phone ?? null} whatsapp={settings?.whatsapp ?? null} />
 }

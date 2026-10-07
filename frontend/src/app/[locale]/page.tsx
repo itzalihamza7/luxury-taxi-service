@@ -1,23 +1,21 @@
-import { BadgeCheck, CalendarClock, Check, Handshake, Languages, LockKeyhole, MapPin, MessageCircle, PlaneLanding, Quote, Tag, Wifi, type LucideIcon } from 'lucide-react'
+import { BadgeCheck, CalendarClock, Check, Handshake, Languages, LockKeyhole, MapPin, PlaneLanding, Quote, Tag, Wifi, type LucideIcon } from 'lucide-react'
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import { Backdrop } from '@/components/art/Backdrop'
 import { QuickQuote } from '@/components/booking/QuickQuote'
 import { ArticleCard, RouteCard, ServiceCard } from '@/components/content/Cards'
 import { FaqList } from '@/components/content/FaqList'
 import { JsonLd } from '@/components/content/JsonLd'
 import { FleetGrid } from '@/components/fleet/FleetGrid'
+import { contactDetails, WhatsAppButton } from '@/components/layout/ContactButtons'
 import { CtaBand } from '@/components/layout/CtaBand'
 import { ButtonLink } from '@/components/ui/Button'
 import { Accent, Eyebrow, Section, SectionHeading } from '@/components/ui/Section'
-import { faqs } from '@/content/faq'
-import { articles } from '@/content/journal'
-import { routes } from '@/content/routes'
-import { services } from '@/content/services'
-import { site, siteUrl, whatsappHref } from '@/content/site'
-import { testimonials } from '@/content/testimonials'
+import { site, siteUrl } from '@/content/site'
 import { href } from '@/i18n/config'
 import { getBooking, getCommon, getLocale, getPages } from '@/i18n/server'
 import { pageMetadata } from '@/lib/seo'
+import { loadCollection } from '@/lib/server-api'
 
 const INCLUDED_ICONS: LucideIcon[] = [Handshake, Languages, Wifi, PlaneLanding, Tag, CalendarClock]
 const STANDARD_ICONS: LucideIcon[] = [BadgeCheck, Languages, MapPin, LockKeyhole]
@@ -27,31 +25,176 @@ export async function generateMetadata(): Promise<Metadata> {
   return pageMetadata({ locale, path: '/', title: p.home.metaTitle, description: p.home.metaDescription })
 }
 
+/*
+ * The sections below read what the operator manages in the console. Each one
+ * streams in after the page frame, and is left out while it has nothing to show.
+ */
+
+/** Structured data for search engines, with the current phone number and email. */
+async function BusinessData() {
+  const [locale, p, settings] = await Promise.all([getLocale(), getPages(), contactDetails()])
+  return (
+    <JsonLd
+      data={{
+        '@context': 'https://schema.org',
+        '@type': 'TaxiService',
+        name: `${site.name} ${site.descriptor}`,
+        description: p.home.metaDescription,
+        url: `${siteUrl}${href(locale)}`,
+        ...(settings ? { telephone: settings.phone, email: settings.email } : {}),
+        areaServed: [
+          { '@type': 'City', name: 'Madrid' },
+          { '@type': 'Country', name: 'Spain' },
+        ],
+        address: { '@type': 'PostalAddress', addressLocality: 'Madrid', addressCountry: 'ES' },
+        openingHoursSpecification: { '@type': 'OpeningHoursSpecification', dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'], opens: '00:00', closes: '23:59' },
+        availableLanguage: ['English', 'Spanish'],
+      }}
+    />
+  )
+}
+
+async function ServicesSection() {
+  const [services, locale, t, p] = await Promise.all([loadCollection('service'), getLocale(), getCommon(), getPages()])
+  const h = p.home
+  if (services.length === 0) return null
+  return (
+    <Section tone="bone">
+      <SectionHeading eyebrow={h.servicesEyebrow} title={h.servicesTitle}>
+        <ButtonLink href="/services" variant="outline" arrow>
+          {t.nav.allServices}
+        </ButtonLink>
+      </SectionHeading>
+      <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {services.map((service) => (
+          <li key={service.slug} className="reveal">
+            <ServiceCard service={service} locale={locale} t={t} />
+          </li>
+        ))}
+        <li className="reveal">
+          <div className="on-dark grain flex h-full flex-col justify-between rounded-md bg-ink-950 p-7 text-bone-100 sm:p-8">
+            <div>
+              <p className="eyebrow text-gold-300">{t.cta.eyebrow}</p>
+              <p className="display mt-4 text-3xl text-bone-50">{h.widgetTitle}</p>
+              <p className="mt-3 text-[0.9375rem] leading-relaxed text-bone-100/65">{h.widgetHint}</p>
+            </div>
+            <ButtonLink href="/booking" arrow className="mt-8 self-start">
+              {t.actions.getPrice}
+            </ButtonLink>
+          </div>
+        </li>
+      </ul>
+    </Section>
+  )
+}
+
+async function RoutesSection() {
+  const [routes, locale, t, p] = await Promise.all([loadCollection('route'), getLocale(), getCommon(), getPages()])
+  const h = p.home
+  if (routes.length === 0) return null
+  return (
+    <Section tone="light">
+      <SectionHeading eyebrow={h.routesEyebrow} title={h.routesTitle}>
+        <ButtonLink href="/routes" variant="outline" arrow>
+          {t.actions.allRoutes}
+        </ButtonLink>
+      </SectionHeading>
+      <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        {routes.slice(0, 4).map((route) => (
+          <li key={route.slug} className="reveal">
+            <RouteCard route={route} locale={locale} t={t} />
+          </li>
+        ))}
+      </ul>
+    </Section>
+  )
+}
+
+async function Reviews() {
+  const [reviews, locale, p, settings] = await Promise.all([loadCollection('review'), getLocale(), getPages(), contactDetails()])
+  const h = p.home
+  if (reviews.length === 0) return null
+  return (
+    <div className="mt-24">
+      <SectionHeading eyebrow={h.reviewsEyebrow} title={h.reviewsTitle} onDark />
+      <ul className="grid gap-5 lg:grid-cols-3">
+        {reviews.map((review) => (
+          <li key={review.id} className="reveal">
+            <figure className="flex h-full flex-col rounded-md border border-white/10 bg-white/[0.025] p-7">
+              <Quote aria-hidden className="size-7 text-gold-300/70" />
+              <blockquote className="mt-5 font-display text-[1.375rem] leading-snug text-bone-50">{review.quote[locale]}</blockquote>
+              <figcaption className="mt-auto pt-7 text-sm">
+                <span className="block font-medium text-bone-50">{review.author[locale]}</span>
+                <span className="text-bone-100/55">{review.context[locale]}</span>
+              </figcaption>
+            </figure>
+          </li>
+        ))}
+      </ul>
+      {/* Said unless the operator has confirmed that the reviews are real. */}
+      {settings?.reviewsAreSamples === false ? null : <p className="mt-5 text-xs text-bone-100/55">{h.reviewsSample}</p>}
+    </div>
+  )
+}
+
+async function FaqSection() {
+  const [faqs, locale, t, p] = await Promise.all([loadCollection('faq'), getLocale(), getCommon(), getPages()])
+  const h = p.home
+  const featured = faqs.filter((faq) => faq.featured)
+  if (featured.length === 0) return null
+  return (
+    <Section tone="light">
+      <div className="grid gap-10 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-20">
+        <div className="reveal">
+          <Eyebrow>{h.faqEyebrow}</Eyebrow>
+          <h2 className="display mt-5 text-4xl sm:text-5xl lg:text-[3.5rem]">
+            <Accent text={h.faqTitle} />
+          </h2>
+          <p className="mt-5 text-base leading-relaxed text-ink-900/65">{p.faq.lead}</p>
+          <div className="mt-8">
+            <ButtonLink href="/faq" variant="outline" arrow>
+              {t.actions.allFaqs}
+            </ButtonLink>
+          </div>
+        </div>
+        <FaqList items={featured.map((faq) => ({ question: faq.question[locale], answer: faq.answer[locale] }))} />
+      </div>
+    </Section>
+  )
+}
+
+async function JournalSection() {
+  const [articles, locale, t, p] = await Promise.all([loadCollection('article'), getLocale(), getCommon(), getPages()])
+  const h = p.home
+  if (articles.length === 0) return null
+  return (
+    <Section tone="bone">
+      <SectionHeading eyebrow={h.journalEyebrow} title={h.journalTitle}>
+        <ButtonLink href="/journal" variant="outline" arrow>
+          {t.actions.allArticles}
+        </ButtonLink>
+      </SectionHeading>
+      <ul className="grid gap-5 lg:grid-cols-3">
+        {articles.slice(0, 3).map((article) => (
+          <li key={article.slug} className="reveal">
+            <ArticleCard article={article} locale={locale} t={t} p={p} />
+          </li>
+        ))}
+      </ul>
+    </Section>
+  )
+}
+
 export default async function HomePage() {
-  const [locale, t, p, b] = await Promise.all([getLocale(), getCommon(), getPages(), getBooking()])
+  const [t, p, b] = await Promise.all([getCommon(), getPages(), getBooking()])
   const h = p.home
   const promises = [t.promise.fixed, t.promise.cancel, t.promise.meet, t.promise.always]
 
   return (
     <>
-      <JsonLd
-        data={{
-          '@context': 'https://schema.org',
-          '@type': 'TaxiService',
-          name: `${site.name} ${site.descriptor}`,
-          description: h.metaDescription,
-          url: `${siteUrl}${href(locale)}`,
-          telephone: site.phone,
-          email: site.email,
-          areaServed: [
-            { '@type': 'City', name: 'Madrid' },
-            { '@type': 'Country', name: 'Spain' },
-          ],
-          address: { '@type': 'PostalAddress', addressLocality: 'Madrid', addressCountry: 'ES' },
-          openingHoursSpecification: { '@type': 'OpeningHoursSpecification', dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'], opens: '00:00', closes: '23:59' },
-          availableLanguage: ['English', 'Spanish'],
-        }}
-      />
+      <Suspense fallback={null}>
+        <BusinessData />
+      </Suspense>
 
       {/* Hero */}
       <section className="on-dark grain relative bg-ink-950 pb-20 pt-32 text-bone-100 sm:pt-40 lg:min-h-dvh lg:pb-28">
@@ -67,10 +210,7 @@ export default async function HomePage() {
               <ButtonLink href="/booking" size="lg" arrow className="lg:hidden">
                 {t.actions.getPrice}
               </ButtonLink>
-              <ButtonLink href={whatsappHref()} variant="outline-light" size="lg">
-                <MessageCircle aria-hidden className="size-4" />
-                {t.actions.whatsapp}
-              </ButtonLink>
+              <WhatsAppButton />
               <ButtonLink href="/fleet" variant="ghost" arrow className="text-bone-100/80">
                 {t.actions.viewFleet}
               </ButtonLink>
@@ -122,33 +262,9 @@ export default async function HomePage() {
         </div>
       </Section>
 
-      {/* Services */}
-      <Section tone="bone">
-        <SectionHeading eyebrow={h.servicesEyebrow} title={h.servicesTitle}>
-          <ButtonLink href="/services" variant="outline" arrow>
-            {t.nav.allServices}
-          </ButtonLink>
-        </SectionHeading>
-        <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {services.map((service) => (
-            <li key={service.slug} className="reveal">
-              <ServiceCard service={service} locale={locale} t={t} />
-            </li>
-          ))}
-          <li className="reveal">
-            <div className="on-dark grain flex h-full flex-col justify-between rounded-md bg-ink-950 p-7 text-bone-100 sm:p-8">
-              <div>
-                <p className="eyebrow text-gold-300">{t.cta.eyebrow}</p>
-                <p className="display mt-4 text-3xl text-bone-50">{h.widgetTitle}</p>
-                <p className="mt-3 text-[0.9375rem] leading-relaxed text-bone-100/65">{h.widgetHint}</p>
-              </div>
-              <ButtonLink href="/booking" arrow className="mt-8 self-start">
-                {t.actions.getPrice}
-              </ButtonLink>
-            </div>
-          </li>
-        </ul>
-      </Section>
+      <Suspense fallback={null}>
+        <ServicesSection />
+      </Suspense>
 
       {/* Fleet */}
       <Section tone="dark">
@@ -200,21 +316,9 @@ export default async function HomePage() {
         </div>
       </Section>
 
-      {/* Routes */}
-      <Section tone="light">
-        <SectionHeading eyebrow={h.routesEyebrow} title={h.routesTitle}>
-          <ButtonLink href="/routes" variant="outline" arrow>
-            {t.actions.allRoutes}
-          </ButtonLink>
-        </SectionHeading>
-        <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {routes.map((route) => (
-            <li key={route.slug} className="reveal">
-              <RouteCard route={route} locale={locale} t={t} />
-            </li>
-          ))}
-        </ul>
-      </Section>
+      <Suspense fallback={null}>
+        <RoutesSection />
+      </Suspense>
 
       {/* Chauffeur standards + reviews */}
       <Section tone="dark">
@@ -232,60 +336,18 @@ export default async function HomePage() {
           })}
         </ul>
 
-        <div className="mt-24">
-          <SectionHeading eyebrow={h.reviewsEyebrow} title={h.reviewsTitle} onDark />
-          <ul className="grid gap-5 lg:grid-cols-3">
-            {testimonials.map((review) => (
-              <li key={review.quote.en} className="reveal">
-                <figure className="flex h-full flex-col rounded-md border border-white/10 bg-white/[0.025] p-7">
-                  <Quote aria-hidden className="size-7 text-gold-300/70" />
-                  <blockquote className="mt-5 font-display text-[1.375rem] leading-snug text-bone-50">{review.quote[locale]}</blockquote>
-                  <figcaption className="mt-auto pt-7 text-sm">
-                    <span className="block font-medium text-bone-50">{review.author[locale]}</span>
-                    <span className="text-bone-100/55">{review.context[locale]}</span>
-                  </figcaption>
-                </figure>
-              </li>
-            ))}
-          </ul>
-          {site.testimonialsAreSamples ? <p className="mt-5 text-xs text-bone-100/55">{h.reviewsSample}</p> : null}
-        </div>
+        <Suspense fallback={null}>
+          <Reviews />
+        </Suspense>
       </Section>
 
-      {/* FAQ */}
-      <Section tone="light">
-        <div className="grid gap-10 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-20">
-          <div className="reveal">
-            <Eyebrow>{h.faqEyebrow}</Eyebrow>
-            <h2 className="display mt-5 text-4xl sm:text-5xl lg:text-[3.5rem]">
-              <Accent text={h.faqTitle} />
-            </h2>
-            <p className="mt-5 text-base leading-relaxed text-ink-900/65">{p.faq.lead}</p>
-            <div className="mt-8">
-              <ButtonLink href="/faq" variant="outline" arrow>
-                {t.actions.allFaqs}
-              </ButtonLink>
-            </div>
-          </div>
-          <FaqList items={faqs.filter((faq) => faq.featured).map((faq) => ({ question: faq.question[locale], answer: faq.answer[locale] }))} />
-        </div>
-      </Section>
+      <Suspense fallback={null}>
+        <FaqSection />
+      </Suspense>
 
-      {/* Journal */}
-      <Section tone="bone">
-        <SectionHeading eyebrow={h.journalEyebrow} title={h.journalTitle}>
-          <ButtonLink href="/journal" variant="outline" arrow>
-            {t.actions.allArticles}
-          </ButtonLink>
-        </SectionHeading>
-        <ul className="grid gap-5 lg:grid-cols-3">
-          {articles.slice(0, 3).map((article) => (
-            <li key={article.slug} className="reveal">
-              <ArticleCard article={article} locale={locale} t={t} p={p} />
-            </li>
-          ))}
-        </ul>
-      </Section>
+      <Suspense fallback={null}>
+        <JournalSection />
+      </Suspense>
 
       <CtaBand />
     </>

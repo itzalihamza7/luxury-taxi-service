@@ -7,10 +7,11 @@ import { useAuth } from '@/components/auth/AuthProvider'
 import { Wordmark } from '@/components/ui/Brand'
 import { ButtonLink } from '@/components/ui/Button'
 import { Link } from '@/components/ui/Link'
-import { phoneHref, site } from '@/content/site'
+import { site } from '@/content/site'
 import { useCurrentPath } from './CurrentPath'
 import { useI18n } from '@/i18n/client'
 import { href, LOCALE_COOKIE, locales, switchLocalePath, type Locale } from '@/i18n/config'
+import { phoneHref } from '@/lib/contact'
 
 interface NavService {
   slug: string
@@ -57,7 +58,8 @@ function subscribeToScroll(onChange: () => void) {
   return () => window.removeEventListener('scroll', onChange)
 }
 
-export function Header({ services }: { services: NavService[] }) {
+/** `services` and `phone` come from the console's content; they are empty for a moment while it loads. */
+export function Header({ services, phone }: { services: NavService[]; phone: string | null }) {
   const { t } = useI18n()
   const { user } = useAuth()
   // The bar turns solid once the page has scrolled past the top of the hero.
@@ -129,10 +131,15 @@ export function Header({ services }: { services: NavService[] }) {
         </nav>
 
         <div className="flex items-center gap-4">
-          <a href={phoneHref} className="hidden items-center gap-2 text-[0.8125rem] font-medium text-bone-50/80 transition-colors hover:text-gold-300 xl:inline-flex">
-            <Phone aria-hidden className="size-3.5" />
-            {site.phone}
-          </a>
+          {/* The width is reserved, so the menu does not move when the number arrives. */}
+          <div className="hidden min-w-[9.75rem] justify-end xl:flex">
+            {phone ? (
+              <a href={phoneHref(phone)} className="inline-flex items-center gap-2 text-[0.8125rem] font-medium text-bone-50/80 transition-colors hover:text-gold-300">
+                <Phone aria-hidden className="size-3.5" />
+                {phone}
+              </a>
+            ) : null}
+          </div>
           {/* Wrappers own the show/hide rule, so it never competes with a component's own display class. */}
           <div className="hidden sm:block">
             <LanguageSwitch />

@@ -1,7 +1,6 @@
-import { io } from 'next/cache'
 import { Suspense } from 'react'
 import { getCommon, getLocale } from '@/i18n/server'
-import { getVehiclesSafely } from '@/lib/server-api'
+import { loadVehicles, quietly } from '@/lib/server-api'
 import { VehicleCard, VehicleCardSkeleton } from './VehicleCard'
 
 interface Props {
@@ -16,11 +15,8 @@ const grid = 'grid gap-5 sm:grid-cols-2 lg:grid-cols-3'
 
 async function Vehicles({ slugs, exclude, limit }: Props) {
   // The fleet lives in the database, which is only reachable while the site is
-  // running. `io()` keeps this out of the build-time prerender; at request time
-  // it resolves immediately and the (cached) fleet is rendered.
-  await io()
-
-  const [all, locale, t] = await Promise.all([getVehiclesSafely(), getLocale(), getCommon()])
+  // running: it is loaded on request (from a cache), never while building.
+  const [all, locale, t] = await Promise.all([quietly('the fleet', loadVehicles(), []), getLocale(), getCommon()])
   let vehicles = slugs ? slugs.flatMap((slug) => all.filter((vehicle) => vehicle.slug === slug)) : all
   if (exclude) vehicles = vehicles.filter((vehicle) => vehicle.slug !== exclude)
   if (limit) vehicles = vehicles.slice(0, limit)

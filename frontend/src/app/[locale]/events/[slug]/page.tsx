@@ -3,32 +3,28 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { Suspense } from 'react'
 import { EventCard } from '@/components/content/Cards'
+import { WhatsAppButton } from '@/components/layout/ContactButtons'
 import { CtaBand } from '@/components/layout/CtaBand'
 import { PageHero } from '@/components/layout/PageHero'
 import { PageSkeleton } from '@/components/layout/PageSkeleton'
 import { ButtonLink } from '@/components/ui/Button'
 import { Eyebrow, Section, SectionHeading } from '@/components/ui/Section'
-import { eventBySlug, events } from '@/content/events'
-import { whatsappHref } from '@/content/site'
 import { getCommon, getLocale, getPages } from '@/i18n/server'
 import { todayInMadrid } from '@/lib/clock'
 import { formatDateRange } from '@/lib/format'
 import { pageMetadata } from '@/lib/seo'
-
-export function generateStaticParams() {
-  return events.map((event) => ({ slug: event.slug }))
-}
+import { loadCollection, quietly } from '@/lib/server-api'
 
 export async function generateMetadata({ params }: PageProps<'/[locale]/events/[slug]'>): Promise<Metadata> {
   const [{ slug }, locale] = await Promise.all([params, getLocale()])
-  const event = eventBySlug(slug)
+  const event = (await quietly('the events', loadCollection('event'), [])).find((candidate) => candidate.slug === slug)
   if (!event) return {}
   return pageMetadata({ locale, path: `/events/${event.slug}`, title: `${event.title[locale]} · ${event.venue}`, description: event.summary[locale] })
 }
 
 /**
- * The address is read inside the Suspense boundary, which lets the router show
- * this page's frame immediately when a visitor follows a link to it.
+ * Events are edited in the console, so each page is rendered on request from
+ * the (cached) content. Meanwhile the router shows this page's frame.
  */
 export default function EventPage({ params }: PageProps<'/[locale]/events/[slug]'>) {
   return (
@@ -39,18 +35,18 @@ export default function EventPage({ params }: PageProps<'/[locale]/events/[slug]
 }
 
 async function EventContent({ params }: Pick<PageProps<'/[locale]/events/[slug]'>, 'params'>) {
-  const [{ slug }, locale, t, p, today] = await Promise.all([params, getLocale(), getCommon(), getPages(), todayInMadrid()])
-  const event = eventBySlug(slug)
+  const [{ slug }, locale, t, p, today, events] = await Promise.all([params, getLocale(), getCommon(), getPages(), todayInMadrid(), loadCollection('event')])
+  const event = events.find((candidate) => candidate.slug === slug)
   if (!event) notFound()
 
   const e = p.events
   const ended = event.end < today
   const dates = formatDateRange(event.start, event.end, locale)
-  const bookHref = `/booking?to=${event.placeId}`
+  const bookHref = event.placeId ? `/booking?to=${event.placeId}` : '/booking'
 
   return (
     <>
-      <PageHero eyebrow={e.kinds[event.kind]} title={event.heading[locale]} lead={event.summary[locale]} crumbs={[{ label: t.nav.events, href: '/events' }, { label: event.title[locale] }]}>
+      <PageHero eyebrow={event.category[locale]} title={event.heading[locale]} lead={event.summary[locale]} crumbs={[{ label: t.nav.events, href: '/events' }, { label: event.title[locale] }]}>
         {ended ? (
           <p className="rounded-full border border-white/15 px-5 py-2.5 text-sm text-bone-100/70">{e.ended}</p>
         ) : (
@@ -58,9 +54,7 @@ async function EventContent({ params }: Pick<PageProps<'/[locale]/events/[slug]'
             {e.bookFor}
           </ButtonLink>
         )}
-        <ButtonLink href={whatsappHref(event.title[locale])} variant="outline-light" size="lg">
-          {t.actions.whatsapp}
-        </ButtonLink>
+        <WhatsAppButton message={event.title[locale]} />
       </PageHero>
 
       <Section tone="light">

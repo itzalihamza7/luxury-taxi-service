@@ -6,31 +6,27 @@ import { RouteCard } from '@/components/content/Cards'
 import { faqJsonLd, FaqList } from '@/components/content/FaqList'
 import { JsonLd } from '@/components/content/JsonLd'
 import { FleetGrid } from '@/components/fleet/FleetGrid'
+import { WhatsAppButton } from '@/components/layout/ContactButtons'
 import { CtaBand } from '@/components/layout/CtaBand'
 import { PageHero } from '@/components/layout/PageHero'
 import { PageSkeleton } from '@/components/layout/PageSkeleton'
 import { ButtonLink } from '@/components/ui/Button'
 import { Eyebrow, Section, SectionHeading } from '@/components/ui/Section'
-import { routeBySlug, routes } from '@/content/routes'
-import { whatsappHref } from '@/content/site'
 import { fill } from '@/i18n/config'
 import { getCommon, getLocale, getPages } from '@/i18n/server'
 import { pageMetadata } from '@/lib/seo'
-
-export function generateStaticParams() {
-  return routes.map((route) => ({ slug: route.slug }))
-}
+import { loadCollection, quietly } from '@/lib/server-api'
 
 export async function generateMetadata({ params }: PageProps<'/[locale]/routes/[slug]'>): Promise<Metadata> {
   const [{ slug }, locale] = await Promise.all([params, getLocale()])
-  const route = routeBySlug(slug)
+  const route = (await quietly('the routes', loadCollection('route'), [])).find((candidate) => candidate.slug === slug)
   if (!route) return {}
   return pageMetadata({ locale, path: `/routes/${route.slug}`, title: `Madrid – ${route.city[locale]}`, description: route.summary[locale] })
 }
 
 /**
- * The address is read inside the Suspense boundary, which lets the router show
- * this page's frame immediately when a visitor follows a link to it.
+ * Routes are edited in the console, so each page is rendered on request from
+ * the (cached) content. Meanwhile the router shows this page's frame.
  */
 export default function RoutePage({ params }: PageProps<'/[locale]/routes/[slug]'>) {
   return (
@@ -41,14 +37,14 @@ export default function RoutePage({ params }: PageProps<'/[locale]/routes/[slug]
 }
 
 async function RouteContent({ params }: Pick<PageProps<'/[locale]/routes/[slug]'>, 'params'>) {
-  const [{ slug }, locale, t, p] = await Promise.all([params, getLocale(), getCommon(), getPages()])
-  const route = routeBySlug(slug)
+  const [{ slug }, locale, t, p, routes] = await Promise.all([params, getLocale(), getCommon(), getPages(), loadCollection('route')])
+  const route = routes.find((candidate) => candidate.slug === slug)
   if (!route) notFound()
 
   const r = p.routes
-  // Opens the booking form with Madrid -> destination already filled in.
-  const bookHref = `/booking?type=city_to_city&from=cat:madrid&to=${route.destinationId}`
-  const questions = route.faqs.map((faq) => ({ question: faq.question[locale], answer: faq.answer[locale] }))
+  // Opens the booking form with Madrid -> destination already filled in, when the destination is a known place.
+  const bookHref = route.destinationId ? `/booking?type=city_to_city&from=cat:madrid&to=${route.destinationId}` : '/booking?type=city_to_city'
+  const questions = route.faqs[locale]
   const facts = [
     { label: r.distance, value: fill(t.units.km, { value: route.km }) },
     { label: r.duration, value: `${t.units.approx} ${fill(t.units.minutes, { value: route.minutes })}` },
@@ -62,9 +58,7 @@ async function RouteContent({ params }: Pick<PageProps<'/[locale]/routes/[slug]'
         <ButtonLink href={bookHref} size="lg" arrow>
           {r.seePrice}
         </ButtonLink>
-        <ButtonLink href={whatsappHref(`Madrid – ${route.city[locale]}`)} variant="outline-light" size="lg">
-          {t.actions.whatsapp}
-        </ButtonLink>
+        <WhatsAppButton message={`Madrid – ${route.city[locale]}`} />
       </PageHero>
 
       {/* Journey at a glance */}

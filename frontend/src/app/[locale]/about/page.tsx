@@ -1,22 +1,38 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import { VehicleArt } from '@/components/art/VehicleArt'
-import { ServiceCard } from '@/components/content/Cards'
+import { CardGridSkeleton, ServiceCard } from '@/components/content/Cards'
+import { WhatsAppButton } from '@/components/layout/ContactButtons'
 import { CtaBand } from '@/components/layout/CtaBand'
 import { PageHero } from '@/components/layout/PageHero'
 import { ButtonLink } from '@/components/ui/Button'
 import { Accent, Eyebrow, Section, SectionHeading } from '@/components/ui/Section'
-import { services } from '@/content/services'
-import { whatsappHref } from '@/content/site'
 import { getCommon, getLocale, getPages } from '@/i18n/server'
 import { pageMetadata } from '@/lib/seo'
+import { loadCollection } from '@/lib/server-api'
 
 export async function generateMetadata(): Promise<Metadata> {
   const [locale, p] = await Promise.all([getLocale(), getPages()])
   return pageMetadata({ locale, path: '/about', title: p.about.metaTitle, description: p.about.metaDescription })
 }
 
+const grid = 'grid gap-5 sm:grid-cols-2 lg:grid-cols-3'
+
+async function FirstServices() {
+  const [services, locale, t] = await Promise.all([loadCollection('service'), getLocale(), getCommon()])
+  return (
+    <ul className={grid}>
+      {services.slice(0, 3).map((service) => (
+        <li key={service.slug} className="reveal">
+          <ServiceCard service={service} locale={locale} t={t} />
+        </li>
+      ))}
+    </ul>
+  )
+}
+
 export default async function AboutPage() {
-  const [locale, t, p] = await Promise.all([getLocale(), getCommon(), getPages()])
+  const [t, p] = await Promise.all([getCommon(), getPages()])
   const a = p.about
 
   return (
@@ -25,9 +41,7 @@ export default async function AboutPage() {
         <ButtonLink href="/booking" size="lg" arrow>
           {t.actions.book}
         </ButtonLink>
-        <ButtonLink href={whatsappHref()} variant="outline-light" size="lg">
-          {t.actions.whatsapp}
-        </ButtonLink>
+        <WhatsAppButton />
       </PageHero>
 
       <Section tone="light">
@@ -75,13 +89,9 @@ export default async function AboutPage() {
             {t.nav.allServices}
           </ButtonLink>
         </SectionHeading>
-        <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {services.slice(0, 3).map((service) => (
-            <li key={service.slug} className="reveal">
-              <ServiceCard service={service} locale={locale} t={t} />
-            </li>
-          ))}
-        </ul>
+        <Suspense fallback={<CardGridSkeleton count={3} className={grid} />}>
+          <FirstServices />
+        </Suspense>
       </Section>
 
       <CtaBand />

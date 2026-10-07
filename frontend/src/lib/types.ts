@@ -118,3 +118,143 @@ export const DEFAULT_CONFIG: AppConfig = {
   onlinePayments: false,
   limits: { maxPassengers: 16, maxLuggage: 16, minHours: 2, maxHours: 12, maxAdvanceDays: 365, maxDistanceKm: 1500 },
 }
+
+/*
+ * Editable website content. These mirror the backend's rules for each kind of
+ * entry (`backend/src/modules/content/schemas.ts`).
+ */
+
+export interface Question {
+  question: string
+  answer: string
+}
+
+/** A block of text: an optional heading, paragraphs and an optional bullet list. */
+export interface TextSection {
+  heading?: string
+  paragraphs: string[]
+  list?: string[]
+}
+
+interface Entry {
+  id: string
+  /** Last part of the page address. */
+  slug: string
+}
+
+export interface Service extends Entry {
+  /** The ride type preselected when booking from this service's page. */
+  rideType: RideType
+  icon: 'plane' | 'clock' | 'city' | 'route' | 'map'
+  title: Localized
+  /** One or two sentences for cards and search results. */
+  summary: Localized
+  /** Page heading; `*word*` marks the italic accent. */
+  heading: Localized
+  intro: Localized<string[]>
+  includes: Localized<string[]>
+  idealFor: Localized<string[]>
+  /** Slugs of the vehicles recommended for this service, in order. */
+  vehicles: string[]
+  faqs: Localized<Question[]>
+  image: string | null
+}
+
+export interface RouteGuide extends Entry {
+  /** Place id used to prefill the booking form's drop-off. */
+  destinationId: string | null
+  city: Localized
+  /** Road distance and typical drive time from central Madrid. */
+  km: number
+  minutes: number
+  road: string
+  summary: Localized
+  heading: Localized
+  intro: Localized
+  journey: Localized<string[]>
+  highlights: Localized<string[]>
+  /** An honest comparison: when the train wins, and when the car does. */
+  train: Localized
+  car: Localized
+  vehicles: string[]
+  faqs: Localized<Question[]>
+  image: string | null
+}
+
+export interface EventGuide extends Entry {
+  /** Short label above the title, e.g. "Trade fair". */
+  category: Localized
+  title: Localized
+  venue: string
+  /** Place id used to prefill the booking form's drop-off. */
+  placeId: string | null
+  /** Dates as announced by the organiser (`YYYY-MM-DD`). */
+  start: string
+  end: string
+  summary: Localized
+  heading: Localized
+  body: Localized<string[]>
+  tips: Localized<string[]>
+  image: string | null
+}
+
+export interface Article extends Entry {
+  /** Publication date, `YYYY-MM-DD`. */
+  date: string
+  minutes: number
+  category: Localized
+  title: Localized
+  excerpt: Localized
+  body: Localized<TextSection[]>
+  /** Where the "book this" button at the end of the article leads. */
+  cta: { href: string; label: Localized }
+  image: string | null
+}
+
+export interface Faq extends Entry {
+  question: Localized
+  answer: Localized
+  /** Shown on the home page as well as the FAQ page. */
+  featured: boolean
+}
+
+export interface Review extends Entry {
+  quote: Localized
+  author: Localized
+  context: Localized
+}
+
+export interface LegalDocument extends Entry {
+  title: Localized
+  summary: Localized
+  /** `YYYY-MM-DD` */
+  updated: string
+  /** May contain `{companyName}`-style placeholders for the business details. */
+  sections: Localized<TextSection[]>
+}
+
+/** Which type each collection holds. */
+export interface ContentMap {
+  service: Service
+  route: RouteGuide
+  event: EventGuide
+  article: Article
+  faq: Faq
+  review: Review
+  legal: LegalDocument
+}
+
+export type Collection = keyof ContentMap
+
+/** Business details, edited in the console. */
+export interface SiteSettings {
+  phone: string
+  /** Digits only, with country code. */
+  whatsapp: string
+  email: string
+  /** An empty link hides its icon. */
+  social: { instagram: string; facebook: string; tripadvisor: string; google: string }
+  legal: { companyName: string; taxId: string; address: string; registry: string; licence: string }
+  /** While true, the reviews section says that the reviews are samples. */
+  reviewsAreSamples: boolean
+}

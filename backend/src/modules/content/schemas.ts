@@ -70,7 +70,8 @@ export const contentSchemas = {
   }),
   event: z
     .object({
-      kind: z.enum(['fair', 'art', 'sport', 'music', 'other']),
+      /** Short label above the title, e.g. "Trade fair". */
+      category: localizedText(60),
       title: localizedText(120),
       venue: z.string().trim().min(1).max(120),
       placeId,

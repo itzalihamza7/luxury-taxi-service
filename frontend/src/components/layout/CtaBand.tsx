@@ -1,8 +1,7 @@
-import { MessageCircle, Phone } from 'lucide-react'
 import { ButtonLink } from '@/components/ui/Button'
 import { Accent, Eyebrow } from '@/components/ui/Section'
-import { phoneHref, site, whatsappHref } from '@/content/site'
 import { getCommon } from '@/i18n/server'
+import { PhoneButton, WhatsAppButton } from './ContactButtons'
 
 /** Closing call to action shown at the end of most pages. */
 export async function CtaBand() {
@@ -26,14 +25,8 @@ export async function CtaBand() {
           <ButtonLink href="/booking" size="lg" arrow>
             {t.actions.book}
           </ButtonLink>
-          <ButtonLink href={whatsappHref()} variant="outline-light" size="lg">
-            <MessageCircle aria-hidden className="size-4" />
-            {t.actions.whatsapp}
-          </ButtonLink>
-          <ButtonLink href={phoneHref} variant="outline-light" size="lg">
-            <Phone aria-hidden className="size-4" />
-            {site.phone}
-          </ButtonLink>
+          <WhatsAppButton />
+          <PhoneButton />
         </div>
         <p className="mt-8 text-xs tracking-wide text-bone-100/55">{t.contact.notice}</p>
       </div>

@@ -1,18 +1,20 @@
 import type { MetadataRoute } from 'next'
 import { connection } from 'next/server'
-import { events } from '@/content/events'
-import { articles } from '@/content/journal'
-import { legalDocuments } from '@/content/legal'
-import { routes } from '@/content/routes'
-import { services } from '@/content/services'
 import { siteUrl } from '@/content/site'
 import { href, locales, localeTags } from '@/i18n/config'
-import { getVehiclesSafely } from '@/lib/server-api'
+import { loadCollection, loadVehicles, quietly } from '@/lib/server-api'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  // Built on request rather than at build time, so it can list the vehicles in the database.
+  // Built on request rather than at build time, so it lists what is in the database right now.
   await connection()
-  const vehicles = await getVehiclesSafely()
+  const [vehicles, services, routes, events, articles, legalDocuments] = await Promise.all([
+    quietly('the fleet', loadVehicles(), []),
+    quietly('the services', loadCollection('service'), []),
+    quietly('the routes', loadCollection('route'), []),
+    quietly('the events', loadCollection('event'), []),
+    quietly('the articles', loadCollection('article'), []),
+    quietly('the legal pages', loadCollection('legal'), []),
+  ])
 
   const pages: { path: string; priority: number; lastModified?: string }[] = [
     { path: '/', priority: 1 },

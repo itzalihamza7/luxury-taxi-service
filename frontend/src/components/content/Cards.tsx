@@ -1,13 +1,10 @@
 import { ArrowRight, Building2, Clock, Map, Plane, Route as RouteIcon, type LucideIcon } from 'lucide-react'
 import { Link } from '@/components/ui/Link'
-import type { Article } from '@/content/journal'
-import type { EventGuide } from '@/content/events'
-import type { RouteGuide } from '@/content/routes'
-import type { Service } from '@/content/services'
 import { fill, type Locale } from '@/i18n/config'
 import type { CommonMessages } from '@/i18n/messages/common'
 import type { PageMessages } from '@/i18n/messages/pages'
 import { formatDate, formatDateRange } from '@/lib/format'
+import type { Article, EventGuide, RouteGuide, Service } from '@/lib/types'
 
 const SERVICE_ICONS: Record<Service['icon'], LucideIcon> = {
   plane: Plane,
@@ -90,7 +87,7 @@ export function EventCard({ event, locale, p, ended }: { event: EventGuide; loca
   return (
     <Link href={`/events/${event.slug}`} prefetch className={`${card} ${ended ? 'opacity-70' : ''}`}>
       <div className="flex items-center justify-between gap-4">
-        <p className="eyebrow text-gold-700">{p.events.kinds[event.kind]}</p>
+        <p className="eyebrow text-gold-700">{event.category[locale]}</p>
         {ended ? <span className="rounded-full bg-ink-900/5 px-3 py-1 text-xs text-ink-900/60">{p.events.past}</span> : null}
       </div>
       <h3 className="display mt-4 text-3xl">{event.title[locale]}</h3>
@@ -101,5 +98,16 @@ export function EventCard({ event, locale, p, ended }: { event: EventGuide; loca
       <p className="mt-4 text-[0.9375rem] leading-relaxed text-ink-900/65">{event.summary[locale]}</p>
       <More label={p.events.details} />
     </Link>
+  )
+}
+
+/** Placeholders with the footprint of the cards, shown while a list loads. */
+export function CardGridSkeleton({ count, className }: { count: number; className: string }) {
+  return (
+    <div aria-hidden className={className}>
+      {Array.from({ length: count }, (_, index) => (
+        <div key={index} className="h-64 animate-pulse rounded-md border border-ink-900/10 bg-white/70" />
+      ))}
+    </div>
   )
 }

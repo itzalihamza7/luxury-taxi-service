@@ -30,6 +30,13 @@ function perLanguage(questions: Question[]): Localized<{ question: string; answe
   }
 }
 
+/** The label shown above each starting event. In the console it is free text. */
+const EVENT_LABELS = {
+  fair: { en: 'Trade fair', es: 'Feria profesional' },
+  art: { en: 'Art fair', es: 'Feria de arte' },
+  sport: { en: 'Tennis', es: 'Tenis' },
+} as const
+
 /** Slug apart, the fields of an entry become its `data`; positions leave room to insert between entries. */
 function entries<T extends { slug: string }>(items: T[], toData: (item: Omit<T, 'slug'>) => Record<string, unknown>): StartingEntry[] {
   return items.map(({ slug, ...fields }, index) => ({ slug, sortOrder: (index + 1) * 10, data: toData(fields) }))
@@ -39,7 +46,7 @@ export function startingContent(): Record<ContentCollection, StartingEntry[]> {
   return {
     service: entries(services, (service) => ({ ...service, faqs: perLanguage(service.faqs), image: null })),
     route: entries(routes, (route) => ({ ...route, faqs: perLanguage(route.faqs), image: null })),
-    event: entries(events, (event) => ({ ...event, image: null })),
+    event: entries(events, ({ kind, ...event }) => ({ ...event, category: EVENT_LABELS[kind], image: null })),
     article: entries(articles, (article) => ({ ...article, image: null })),
     faq: entries(
       faqs.map((faq, index) => ({ ...faq, slug: `faq-${index + 1}` })),

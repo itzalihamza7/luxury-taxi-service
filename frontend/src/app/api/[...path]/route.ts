@@ -1,5 +1,6 @@
+import { revalidateTag } from 'next/cache'
 import type { NextRequest } from 'next/server'
-import { apiFetch, failureReason } from '@/lib/server-api'
+import { apiFetch, CONTENT_TAG, failureReason, FLEET_TAG } from '@/lib/server-api'
 
 /**
  * Same-origin gateway to the backend API.
@@ -38,6 +39,13 @@ async function forward(request: NextRequest, context: RouteContext<'/api/[...pat
       { error: { code: 'API_UNAVAILABLE', message: 'The booking service is temporarily unavailable.' } },
       { status: 502 },
     )
+  }
+
+  // What an operator saves in the console must show on the website straight away,
+  // so the copies this server keeps of the fleet and the content are dropped.
+  if (hasBody && upstream.ok && path[0] === 'admin') {
+    if (path[1] === 'vehicles') revalidateTag(FLEET_TAG, { expire: 0 })
+    if (path[1] === 'content' || path[1] === 'settings') revalidateTag(CONTENT_TAG, { expire: 0 })
   }
 
   const responseHeaders = new Headers()
