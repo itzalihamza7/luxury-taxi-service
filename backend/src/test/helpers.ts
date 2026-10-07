@@ -17,7 +17,7 @@ export function buildApp(overrides: Partial<Config> = {}) {
 /** Empty every table and restore the starting fleet. Call in `beforeEach`. */
 export async function resetDatabase(): Promise<void> {
   await db.execute(
-    sql`truncate table bookings, quotes, sessions, users, contact_messages, newsletter_subscribers, vehicles restart identity cascade`,
+    sql`truncate table bookings, quotes, sessions, users, contact_messages, newsletter_subscribers, vehicles, content_entries, settings, media restart identity cascade`,
   )
   await db.insert(vehicles).values(INITIAL_FLEET)
 }

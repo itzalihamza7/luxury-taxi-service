@@ -2,6 +2,7 @@ import { sql } from 'drizzle-orm'
 import {
   boolean,
   check,
+  customType,
   doublePrecision,
   index,
   integer,
@@ -9,6 +10,7 @@ import {
   pgTable,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core'
 
@@ -32,7 +34,12 @@ const PAYMENT_METHODS = ['chauffeur', 'online'] as const
 const PAYMENT_STATUSES = ['unpaid', 'paid'] as const
 const ROUTE_SOURCES = ['road', 'estimate'] as const
 
+/** The kinds of editable content. Each has its own shape for `data` (see `modules/content/schemas.ts`). */
+export const CONTENT_COLLECTIONS = ['service', 'route', 'event', 'article', 'faq', 'review', 'legal'] as const
+export type ContentCollection = (typeof CONTENT_COLLECTIONS)[number]
+
 const timestamptz = (name: string) => timestamp(name, { withTimezone: true })
+const bytea = customType<{ data: Buffer }>({ dataType: () => 'bytea' })
 
 export const users = pgTable(
   'users',
@@ -215,9 +222,50 @@ export const newsletterSubscribers = pgTable('newsletter_subscribers', {
   createdAt: timestamptz('created_at').notNull().defaultNow(),
 })
 
+/**
+ * Editable website content: services, routes, events, journal articles, FAQs,
+ * reviews and legal texts. `data` holds the fields of that kind of entry.
+ */
+export const contentEntries = pgTable(
+  'content_entries',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    collection: text('collection', { enum: CONTENT_COLLECTIONS }).notNull(),
+    /** Last part of the page address; unique within a collection. */
+    slug: text('slug').notNull(),
+    sortOrder: integer('sort_order').notNull().default(0),
+    /** Unpublished entries are kept but not shown on the website. */
+    published: boolean('published').notNull().default(true),
+    data: jsonb('data').$type<Record<string, unknown>>().notNull(),
+    createdAt: timestamptz('created_at').notNull().defaultNow(),
+    updatedAt: timestamptz('updated_at').notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('content_entries_collection_slug_idx').on(table.collection, table.slug),
+    check('content_entries_collection_check', sql`${table.collection} in ('service', 'route', 'event', 'article', 'faq', 'review', 'legal')`),
+  ],
+)
+
+/** Named settings, e.g. `site` for the business details shown on the website. */
+export const settings = pgTable('settings', {
+  key: text('key').primaryKey(),
+  value: jsonb('value').$type<Record<string, unknown>>().notNull(),
+  updatedAt: timestamptz('updated_at').notNull().defaultNow(),
+})
+
+/** Images uploaded in the operations console. Served at `/api/media/:id`. */
+export const media = pgTable('media', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  contentType: text('content_type').notNull(),
+  size: integer('size').notNull(),
+  data: bytea('data').notNull(),
+  createdAt: timestamptz('created_at').notNull().defaultNow(),
+})
+
 export type User = typeof users.$inferSelect
 export type Vehicle = typeof vehicles.$inferSelect
 export type Quote = typeof quotes.$inferSelect
 export type Booking = typeof bookings.$inferSelect
+export type ContentEntry = typeof contentEntries.$inferSelect
 export type BookingStatus = (typeof BOOKING_STATUSES)[number]
 export type PaymentStatus = (typeof PAYMENT_STATUSES)[number]

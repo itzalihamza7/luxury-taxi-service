@@ -9,6 +9,10 @@ import { normalizeReference } from '../../lib/reference.js'
 import { parse } from '../../lib/validate.js'
 import { requireAdmin } from '../auth/session.js'
 import { findBookingByReference, serializeBooking } from '../bookings/service.js'
+import { contentAdminRouter } from '../content/routes.js'
+import { mediaAdminRouter } from '../media/routes.js'
+import { CATALOG } from '../places/catalog.js'
+import { vehiclesAdminRouter } from '../vehicles/admin.js'
 
 const STATUSES = ['pending', 'confirmed', 'in_progress', 'completed', 'cancelled'] as const
 
@@ -46,6 +50,15 @@ const likePattern = (term: string) => `%${term.replace(/[\\%_]/g, '\\$&')}%`
 export function adminRouter({ config }: AppContext): Router {
   const router = Router()
   router.use(requireAdmin)
+
+  router.use('/vehicles', vehiclesAdminRouter())
+  router.use('/media', mediaAdminRouter())
+  router.use(contentAdminRouter())
+
+  /** Places a route or event can point at, so "book this" opens with the destination filled in. */
+  router.get('/places', (_req, res) => {
+    res.json({ places: CATALOG.map((place) => ({ id: `cat:${place.id}`, kind: place.kind, name: place.name })) })
+  })
 
   router.get('/summary', async (_req, res) => {
     const byStatus = await db.select({ status: bookings.status, total: count() }).from(bookings).groupBy(bookings.status)
