@@ -119,7 +119,14 @@ async function VehicleDetails({ params }: Pick<Props, 'params'>) {
             </div>
 
             <div className="animate-fade">
-              <VehicleImage bodyType={vehicle.bodyType} imageUrl={vehicle.imageUrl} name={vehicle.name} className="w-full rounded-md text-bone-100" />
+              <VehicleImage
+                bodyType={vehicle.bodyType}
+                imageUrl={vehicle.imageUrl}
+                name={vehicle.name}
+                sizes="(min-width: 1024px) 50vw, 100vw"
+                eager
+                className={vehicle.imageUrl ? 'aspect-[16/10] w-full rounded-xl shadow-[0_40px_80px_-40px_rgba(0,0,0,0.9)] ring-1 ring-white/10' : 'w-full text-bone-100'}
+              />
             </div>
           </div>
         </div>

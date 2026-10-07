@@ -56,7 +56,7 @@ async function ArticleContent({ params }: Pick<PageProps<'/[locale]/journal/[slu
           publisher: { '@type': 'Organization', name: publisher },
         }}
       />
-      <PageHero eyebrow={article.category[locale]} title={article.title[locale]} lead={article.excerpt[locale]} crumbs={[{ label: t.nav.journal, href: '/journal' }, { label: article.category[locale] }]}>
+      <PageHero eyebrow={article.category[locale]} title={article.title[locale]} lead={article.excerpt[locale]} crumbs={[{ label: t.nav.journal, href: '/journal' }, { label: article.category[locale] }]} image={article.image}>
         <p className="text-sm text-bone-100/55">
           {p.journal.published} <time dateTime={article.date}>{formatDate(article.date, locale)}</time> · {fill(p.journal.minutes, { count: article.minutes })}
         </p>

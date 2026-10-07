@@ -17,6 +17,14 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   // The DDEV hostname must be allowed to load dev-only assets (hot reload).
   allowedDevOrigins: ['*.ddev.site'],
+  images: {
+    formats: ['image/avif', 'image/webp'],
+    // Only these may be resized: photos that ship with the site, and photos uploaded in the console.
+    localPatterns: [
+      { pathname: '/images/**', search: '' },
+      { pathname: '/api/media/**', search: '' },
+    ],
+  },
   turbopack: {
     rules: {
       '*.css': {

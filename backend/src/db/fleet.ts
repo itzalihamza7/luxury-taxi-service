@@ -6,12 +6,16 @@ type NewVehicle = typeof vehicles.$inferInsert
  * Starting fleet, inserted once when the `vehicles` table is empty.
  *
  * Rates are sample values in euro cents - review them before going live.
- * After the first start the database is the source of truth: edit vehicles
- * and prices there (for example with `ddev psql`), not here.
+ * After the first start the database is the source of truth: vehicles, prices
+ * and photos are then edited in the console (`/admin`), not here.
+ *
+ * The photos are in `frontend/public/images/fleet/` (sources and licences in
+ * `frontend/public/images/CREDITS.md`).
  */
 export const INITIAL_FLEET: NewVehicle[] = [
   {
     slug: 'mercedes-e-class',
+    imageUrl: '/images/fleet/mercedes-e-class.jpg',
     name: 'Mercedes-Benz E-Class',
     category: 'sedan',
     bodyType: 'sedan',
@@ -34,6 +38,7 @@ export const INITIAL_FLEET: NewVehicle[] = [
   },
   {
     slug: 'mercedes-s-class',
+    imageUrl: '/images/fleet/mercedes-s-class.jpg',
     name: 'Mercedes-Benz S-Class',
     category: 'sedan',
     bodyType: 'limousine',
@@ -56,6 +61,7 @@ export const INITIAL_FLEET: NewVehicle[] = [
   },
   {
     slug: 'mercedes-v-class',
+    imageUrl: '/images/fleet/mercedes-v-class.jpg',
     name: 'Mercedes-Benz V-Class',
     category: 'van',
     bodyType: 'van',
@@ -78,6 +84,7 @@ export const INITIAL_FLEET: NewVehicle[] = [
   },
   {
     slug: 'mercedes-maybach',
+    imageUrl: '/images/fleet/mercedes-maybach.jpg',
     name: 'Mercedes-Maybach S-Class',
     category: 'flagship',
     bodyType: 'limousine',
@@ -100,6 +107,7 @@ export const INITIAL_FLEET: NewVehicle[] = [
   },
   {
     slug: 'v-class-vip',
+    imageUrl: '/images/fleet/v-class-vip.jpg',
     name: 'Mercedes-Benz V-Class VIP',
     category: 'flagship',
     bodyType: 'van',
@@ -122,6 +130,7 @@ export const INITIAL_FLEET: NewVehicle[] = [
   },
   {
     slug: 'mercedes-sprinter',
+    imageUrl: '/images/fleet/mercedes-sprinter.jpg',
     name: 'Mercedes-Benz Sprinter',
     category: 'group',
     bodyType: 'minibus',
@@ -144,6 +153,7 @@ export const INITIAL_FLEET: NewVehicle[] = [
   },
   {
     slug: 'toyota-yaris',
+    imageUrl: '/images/fleet/toyota-yaris.jpg',
     name: 'Toyota Yaris',
     category: 'economy',
     bodyType: 'hatchback',

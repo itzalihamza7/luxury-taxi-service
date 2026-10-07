@@ -37,6 +37,28 @@ const EVENT_LABELS = {
   sport: { en: 'Tennis', es: 'Tenis' },
 } as const
 
+/**
+ * Pictures that ship with the website (`frontend/public/images/`), by entry.
+ * Entries without one are shown without a picture until the operator adds it.
+ */
+const PICTURES: Record<string, string> = {
+  'airport-transfers': '/images/services/airport.jpg',
+  'hourly-chauffeur': '/images/services/hourly.jpg',
+  'madrid-city-rides': '/images/services/city.jpg',
+  'city-to-city': '/images/services/intercity.jpg',
+  'day-trips': '/images/services/day-trips.jpg',
+  'madrid-to-toledo': '/images/routes/toledo.jpg',
+  'madrid-to-segovia': '/images/routes/segovia.jpg',
+  'madrid-to-avila': '/images/routes/avila.jpg',
+  'madrid-to-el-escorial': '/images/routes/el-escorial.jpg',
+  'arriving-at-madrid-barajas': '/images/journal/barajas.jpg',
+  'sedan-van-or-minibus': '/images/fleet/mercedes-v-class.jpg',
+  'hourly-hire-or-transfers': '/images/journal/cabin.jpg',
+  'choosing-a-day-trip-from-madrid': '/images/routes/avila.jpg',
+}
+
+const withPicture = (entry: StartingEntry): StartingEntry => ({ ...entry, data: { ...entry.data, image: PICTURES[entry.slug] ?? null } })
+
 /** Slug apart, the fields of an entry become its `data`; positions leave room to insert between entries. */
 function entries<T extends { slug: string }>(items: T[], toData: (item: Omit<T, 'slug'>) => Record<string, unknown>): StartingEntry[] {
   return items.map(({ slug, ...fields }, index) => ({ slug, sortOrder: (index + 1) * 10, data: toData(fields) }))
@@ -44,10 +66,10 @@ function entries<T extends { slug: string }>(items: T[], toData: (item: Omit<T, 
 
 export function startingContent(): Record<ContentCollection, StartingEntry[]> {
   return {
-    service: entries(services, (service) => ({ ...service, faqs: perLanguage(service.faqs), image: null })),
-    route: entries(routes, (route) => ({ ...route, faqs: perLanguage(route.faqs), image: null })),
-    event: entries(events, ({ kind, ...event }) => ({ ...event, category: EVENT_LABELS[kind], image: null })),
-    article: entries(articles, (article) => ({ ...article, image: null })),
+    service: entries(services, (service) => ({ ...service, faqs: perLanguage(service.faqs) })).map(withPicture),
+    route: entries(routes, (route) => ({ ...route, faqs: perLanguage(route.faqs) })).map(withPicture),
+    event: entries(events, ({ kind, ...event }) => ({ ...event, category: EVENT_LABELS[kind] })).map(withPicture),
+    article: entries(articles, (article) => article).map(withPicture),
     faq: entries(
       faqs.map((faq, index) => ({ ...faq, slug: `faq-${index + 1}` })),
       (faq) => ({ ...faq, featured: faq.featured ?? false }),

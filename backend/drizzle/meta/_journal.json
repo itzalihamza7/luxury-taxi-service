@@ -15,6 +15,13 @@
       "when": 1791894816259,
       "tag": "0001_content_settings_media",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791897259165,
+      "tag": "0002_starting_fleet_photos",
+      "breakpoints": true
     }
   ]
 }

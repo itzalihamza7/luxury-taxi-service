@@ -223,7 +223,7 @@ export function VehicleStep({ draft, patch, quote, error, b }: { draft: Draft; p
             <label
               key={option.vehicleId}
               className={`relative grid cursor-pointer grid-cols-[5.5rem_1fr] items-center gap-4 rounded-md border bg-white p-4 transition-all has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-gold-500 sm:grid-cols-[9rem_1fr_auto] sm:gap-6 sm:p-5 ${
-                !option.available ? 'cursor-not-allowed opacity-55' : selected ? 'border-ink-950 shadow-[0_12px_32px_-16px_rgba(13,15,19,0.45)]' : 'border-ink-900/15 hover:border-ink-900/40'
+                !option.available ? 'cursor-not-allowed opacity-55' : selected ? 'border-ink-950 shadow-[0_12px_32px_-16px_rgba(12,18,27,0.45)]' : 'border-ink-900/15 hover:border-ink-900/40'
               }`}
             >
               <input
@@ -235,7 +235,7 @@ export function VehicleStep({ draft, patch, quote, error, b }: { draft: Draft; p
                 onChange={() => patch({ vehicleSlug: vehicle.slug })}
                 className="sr-only"
               />
-              <VehicleImage bodyType={vehicle.bodyType} imageUrl={vehicle.imageUrl} name={vehicle.name} className="aspect-[40/17] w-full text-ink-900" />
+              <VehicleImage bodyType={vehicle.bodyType} imageUrl={vehicle.imageUrl} name="" sizes="144px" className="aspect-[16/10] w-full rounded text-ink-900" />
 
               <div className="min-w-0">
                 <p className="eyebrow text-gold-700">{vehicle.tagline[locale]}</p>
@@ -569,7 +569,7 @@ export function PaymentStep({
       <label
         className={`relative flex items-start gap-4 rounded-md border bg-white p-5 transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-gold-500 ${
           disabled ? 'cursor-not-allowed opacity-55' : 'cursor-pointer'
-        } ${selected ? 'border-ink-950 shadow-[0_12px_32px_-16px_rgba(13,15,19,0.45)]' : 'border-ink-900/15 hover:border-ink-900/40'}`}
+        } ${selected ? 'border-ink-950 shadow-[0_12px_32px_-16px_rgba(12,18,27,0.45)]' : 'border-ink-900/15 hover:border-ink-900/40'}`}
       >
         <input type="radio" name="paymentMethod" value={value} checked={selected} disabled={disabled} onChange={() => patch({ paymentMethod: value })} className="sr-only" />
         <span className={`flex size-11 shrink-0 items-center justify-center rounded-full ${selected ? 'bg-ink-950 text-gold-300' : 'bg-bone-100 text-ink-900/60'}`}>{icon}</span>

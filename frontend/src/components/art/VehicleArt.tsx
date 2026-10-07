@@ -1,11 +1,12 @@
+import { Photo } from '@/components/ui/Photo'
 import type { BodyType } from '@/lib/types'
 
 /**
  * Line drawings of each vehicle type, side on. They inherit the text colour, so
  * they work on light and dark surfaces alike.
  *
- * To show a photograph instead, set `image_url` on the vehicle in the database
- * (for example `/images/fleet/s-class.jpg`, with the file in `public/`).
+ * They stand in for a vehicle that has no photo yet. Photos are added in the
+ * console (`/admin`, Fleet).
  */
 
 interface Shape {
@@ -174,17 +175,25 @@ export function VehicleImage({
   bodyType,
   imageUrl,
   name,
+  sizes = '(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw',
+  eager,
   className = '',
 }: {
   bodyType: BodyType
   imageUrl: string | null
+  /** Read out as the picture's description. Leave empty where the name is shown beside it anyway. */
   name: string
+  /** How wide the photo is shown (see `Photo`). */
+  sizes?: string
+  eager?: boolean
   className?: string
 }) {
   if (imageUrl) {
-    // Plain <img>: fleet photos are added by the operator and may live anywhere.
-    // eslint-disable-next-line @next/next/no-img-element
-    return <img src={imageUrl} alt={name} loading="lazy" className={`${className} object-cover`} />
+    return (
+      <span className={`relative block overflow-hidden ${className}`}>
+        <Photo src={imageUrl} alt={name} sizes={sizes} eager={eager} className="transition-transform duration-[1400ms] ease-out-expo group-hover:scale-[1.045]" />
+      </span>
+    )
   }
-  return <VehicleArt bodyType={bodyType} className={className} title={name} />
+  return <VehicleArt bodyType={bodyType} className={className} title={name || undefined} />
 }

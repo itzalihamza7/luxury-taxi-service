@@ -1,11 +1,11 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
-import { VehicleArt } from '@/components/art/VehicleArt'
 import { CardGridSkeleton, ServiceCard } from '@/components/content/Cards'
 import { WhatsAppButton } from '@/components/layout/ContactButtons'
 import { CtaBand } from '@/components/layout/CtaBand'
 import { PageHero } from '@/components/layout/PageHero'
 import { ButtonLink } from '@/components/ui/Button'
+import { Photo } from '@/components/ui/Photo'
 import { Accent, Eyebrow, Section, SectionHeading } from '@/components/ui/Section'
 import { getCommon, getLocale, getPages } from '@/i18n/server'
 import { pageMetadata } from '@/lib/seo'
@@ -37,7 +37,7 @@ export default async function AboutPage() {
 
   return (
     <>
-      <PageHero eyebrow={a.eyebrow} title={a.title} lead={a.lead} crumbs={[{ label: t.nav.about }]}>
+      <PageHero eyebrow={a.eyebrow} title={a.title} lead={a.lead} crumbs={[{ label: t.nav.about }]} image="/images/site/metropolis.jpg">
         <ButtonLink href="/booking" size="lg" arrow>
           {t.actions.book}
         </ButtonLink>
@@ -51,7 +51,9 @@ export default async function AboutPage() {
             <h2 className="display mt-5 text-4xl sm:text-5xl lg:text-[3.5rem]">
               <Accent text={a.storyTitle} />
             </h2>
-            <VehicleArt bodyType="limousine" className="mt-12 hidden w-full max-w-md text-ink-900/70 lg:block" />
+            <div className="relative mt-12 hidden aspect-[4/5] max-w-md overflow-hidden rounded-2xl bg-ink-900 shadow-[0_40px_80px_-40px_rgba(12,18,27,0.45)] lg:block">
+              <Photo src="/images/site/chauffeur-suit.jpg" alt={a.storyImageAlt} sizes="(min-width: 1024px) 28rem, 0px" />
+            </div>
           </div>
           <div className="reveal space-y-6 text-lg leading-relaxed text-ink-900/75">
             {a.story.map((paragraph) => (

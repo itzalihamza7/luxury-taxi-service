@@ -46,7 +46,7 @@ async function EventContent({ params }: Pick<PageProps<'/[locale]/events/[slug]'
 
   return (
     <>
-      <PageHero eyebrow={event.category[locale]} title={event.heading[locale]} lead={event.summary[locale]} crumbs={[{ label: t.nav.events, href: '/events' }, { label: event.title[locale] }]}>
+      <PageHero eyebrow={event.category[locale]} title={event.heading[locale]} lead={event.summary[locale]} crumbs={[{ label: t.nav.events, href: '/events' }, { label: event.title[locale] }]} image={event.image}>
         {ended ? (
           <p className="rounded-full border border-white/15 px-5 py-2.5 text-sm text-bone-100/70">{e.ended}</p>
         ) : (

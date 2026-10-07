@@ -11,21 +11,21 @@ export function Backdrop({ variant = 'page' }: { variant?: 'home' | 'page' }) {
         className="absolute -right-[20%] h-[70rem] w-[70rem] rounded-full opacity-70 blur-3xl"
         style={{
           top: home ? '-10%' : '-45%',
-          background: 'radial-gradient(closest-side, rgba(210,173,104,0.20), rgba(210,173,104,0.06) 55%, transparent 75%)',
+          background: 'radial-gradient(closest-side, rgba(212,182,126,0.20), rgba(212,182,126,0.06) 55%, transparent 75%)',
         }}
       />
       <div
         className="absolute -left-[25%] bottom-[-40%] h-[50rem] w-[50rem] rounded-full opacity-60 blur-3xl"
-        style={{ background: 'radial-gradient(closest-side, rgba(67,73,85,0.55), transparent 70%)' }}
+        style={{ background: 'radial-gradient(closest-side, rgba(64,79,101,0.55), transparent 70%)' }}
       />
 
       {/* Light trails */}
       <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" className="absolute inset-0 h-full w-full">
         <defs>
           <linearGradient id="trail-gold" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0" stopColor="#d2ad68" stopOpacity="0" />
-            <stop offset="0.45" stopColor="#e1c68e" stopOpacity="0.55" />
-            <stop offset="1" stopColor="#f6ecd6" stopOpacity="0" />
+            <stop offset="0" stopColor="#d4b67e" stopOpacity="0" />
+            <stop offset="0.45" stopColor="#e3cc9f" stopOpacity="0.55" />
+            <stop offset="1" stopColor="#f7efdf" stopOpacity="0" />
           </linearGradient>
           <linearGradient id="trail-pale" x1="0" y1="0" x2="1" y2="0">
             <stop offset="0" stopColor="#ffffff" stopOpacity="0" />
@@ -40,7 +40,7 @@ export function Backdrop({ variant = 'page' }: { variant?: 'home' | 'page' }) {
           <path d="M-100 780C280 640 580 580 860 460S1370 190 1750 110" stroke="url(#trail-pale)" strokeWidth="0.7" />
           <path
             d="M-100 840C310 730 640 670 920 550S1415 285 1750 215"
-            stroke="#f6ecd6"
+            stroke="#f7efdf"
             strokeOpacity="0.5"
             strokeWidth="1.1"
             strokeDasharray="90 1110"

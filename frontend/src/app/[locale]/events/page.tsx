@@ -23,7 +23,7 @@ export default async function EventsPage() {
 
   return (
     <>
-      <PageHero eyebrow={e.eyebrow} title={e.title} lead={e.lead} crumbs={[{ label: t.nav.events }]}>
+      <PageHero eyebrow={e.eyebrow} title={e.title} lead={e.lead} crumbs={[{ label: t.nav.events }]} image="/images/services/city.jpg">
         <ButtonLink href="/booking" size="lg" arrow>
           {t.actions.book}
         </ButtonLink>

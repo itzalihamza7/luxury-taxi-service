@@ -1,8 +1,11 @@
+import { existsSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 import { count, eq } from 'drizzle-orm'
 import request from 'supertest'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { db } from '../db/client.js'
 import { startingContent } from '../db/content/index.js'
+import { INITIAL_FLEET } from '../db/fleet.js'
 import { CONTENT_COLLECTIONS, contentEntries, vehicles } from '../db/schema.js'
 import { seed } from '../db/seed.js'
 import { adminAgent, buildApp, registerAgent, resetDatabase } from './helpers.js'
@@ -64,6 +67,19 @@ describe('starting content', () => {
     expect((await db.select({ total: count() }).from(vehicles))[0]?.total).toBe(0)
   })
 
+  it('only points at pictures that ship with the website', () => {
+    const publicFolder = fileURLToPath(new URL('../../../frontend/public', import.meta.url))
+    // The API can be tested on its own, without the website's files beside it.
+    if (!existsSync(publicFolder)) return
+
+    const pictures = [
+      ...INITIAL_FLEET.map((vehicle) => vehicle.imageUrl),
+      ...Object.values(startingContent()).flatMap((entries) => entries.map((entry) => entry.data.image as string | null | undefined)),
+    ].filter((picture): picture is string => Boolean(picture))
+    expect(pictures.length).toBeGreaterThan(15)
+    for (const picture of pictures) expect(existsSync(`${publicFolder}${picture}`), `${picture} is missing`).toBe(true)
+  })
+
   it('serves the business details even before they are saved', async () => {
     const response = await request(app).get('/api/content/settings')
     expect(response.body.settings).toMatchObject({ phone: '+34 900 000 000', reviewsAreSamples: true })
@@ -76,7 +92,7 @@ describe('reading content', () => {
     const response = await request(app).get('/api/content/route')
     expect(response.status).toBe(200)
     expect(response.body.entries.map((entry: { slug: string }) => entry.slug)).toEqual(['madrid-to-toledo', 'madrid-to-segovia', 'madrid-to-avila', 'madrid-to-el-escorial'])
-    expect(response.body.entries[0]).toMatchObject({ km: 73, city: { en: 'Toledo' }, image: null })
+    expect(response.body.entries[0]).toMatchObject({ km: 73, city: { en: 'Toledo' }, image: '/images/routes/toledo.jpg' })
     // Questions are kept per language.
     expect(response.body.entries[0].faqs.en[0].question).toBeTypeOf('string')
     expect(response.body.entries[0].published).toBeUndefined()

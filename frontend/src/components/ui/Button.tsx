@@ -10,7 +10,7 @@ const base =
 
 const variants: Record<Variant, string> = {
   // Primary action, on any surface.
-  gold: 'bg-gold-400 text-ink-950 hover:bg-gold-300 shadow-[0_10px_30px_-12px_rgba(210,173,104,0.7)] hover:shadow-[0_14px_36px_-12px_rgba(210,173,104,0.9)]',
+  gold: 'bg-gold-400 text-ink-950 hover:bg-gold-300 shadow-[0_10px_30px_-12px_rgba(212,182,126,0.7)] hover:shadow-[0_14px_36px_-12px_rgba(212,182,126,0.9)]',
   // Primary action on light surfaces where gold would compete with the content.
   dark: 'bg-ink-950 text-bone-50 hover:bg-ink-700',
   // Secondary, on light surfaces.

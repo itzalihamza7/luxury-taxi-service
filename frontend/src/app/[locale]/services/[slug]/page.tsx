@@ -52,6 +52,7 @@ async function ServiceContent({ params }: Pick<PageProps<'/[locale]/services/[sl
         title={service.heading[locale]}
         lead={service.summary[locale]}
         crumbs={[{ label: t.nav.services, href: '/services' }, { label: service.title[locale] }]}
+        image={service.image}
       >
         <ButtonLink href={bookHref} size="lg" arrow>
           {s.bookThis}

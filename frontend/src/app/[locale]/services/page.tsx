@@ -34,7 +34,7 @@ export default async function ServicesPage() {
   const [t, p] = await Promise.all([getCommon(), getPages()])
   return (
     <>
-      <PageHero eyebrow={p.services.eyebrow} title={p.services.title} lead={p.services.lead} crumbs={[{ label: t.nav.services }]}>
+      <PageHero eyebrow={p.services.eyebrow} title={p.services.title} lead={p.services.lead} crumbs={[{ label: t.nav.services }]} image="/images/site/chauffeur-door.jpg">
         <ButtonLink href="/booking" size="lg" arrow>
           {t.actions.getPrice}
         </ButtonLink>

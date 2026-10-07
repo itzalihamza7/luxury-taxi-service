@@ -2,7 +2,8 @@ import type { ReactNode } from 'react'
 
 /**
  * Render `*word*` as an italic accent, the house style for headings:
- * `Arrive *unhurried*` -> Arrive <em>unhurried</em>.
+ * `Arrive *unhurried*` -> Arrive <em>unhurried</em>. The gold is a shade deeper
+ * on light surfaces, where the lighter one would be too faint to read.
  */
 export function Accent({ text }: { text: string }) {
   const parts = text.split(/\*(.+?)\*/g)
@@ -10,7 +11,7 @@ export function Accent({ text }: { text: string }) {
     <>
       {parts.map((part, index) =>
         index % 2 === 1 ? (
-          <em key={index} className="text-gold-500 italic">
+          <em key={index} className="text-gold-600 italic in-[.on-dark]:text-gold-400">
             {part}
           </em>
         ) : (

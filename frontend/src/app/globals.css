@@ -6,36 +6,38 @@
 }
 
 @theme {
-  /* Ink: the dark surfaces. */
-  --color-ink-950: #07080a;
-  --color-ink-900: #0d0f13;
-  --color-ink-800: #14171c;
-  --color-ink-700: #1d2128;
-  --color-ink-600: #2a2f38;
-  --color-ink-500: #434955;
-  --color-ink-400: #6b7280;
+  /* Ink: the dark surfaces, a midnight blue-black rather than a flat black. */
+  --color-ink-950: #080c13;
+  --color-ink-900: #0c121b;
+  --color-ink-800: #121a26;
+  --color-ink-700: #1a2433;
+  --color-ink-600: #273345;
+  --color-ink-500: #404f65;
+  --color-ink-400: #69778b;
 
   /* Bone: the warm light surfaces. */
-  --color-bone-50: #fbf9f5;
-  --color-bone-100: #f4efe7;
-  --color-bone-200: #e9e0d2;
-  --color-bone-300: #d8ccb9;
-  --color-bone-400: #b9ab95;
+  --color-bone-50: #faf8f4;
+  --color-bone-100: #f2eee6;
+  --color-bone-200: #e6dfd2;
+  --color-bone-300: #d5cab8;
+  --color-bone-400: #b3a791;
 
-  /* Gold: the single accent. 700 is the accessible text tone on light surfaces. */
-  --color-gold-100: #f6ecd6;
-  --color-gold-200: #eddcb6;
-  --color-gold-300: #e1c68e;
-  --color-gold-400: #d2ad68;
-  --color-gold-500: #bd934c;
-  --color-gold-600: #9c773a;
-  --color-gold-700: #765a2c;
+  /* Gold: the single accent, a soft champagne. 700 is the accessible text tone on light surfaces. */
+  --color-gold-100: #f7efdf;
+  --color-gold-200: #eee0c2;
+  --color-gold-300: #e3cc9f;
+  --color-gold-400: #d4b67e;
+  --color-gold-500: #ba985b;
+  --color-gold-600: #957743;
+  --color-gold-700: #6e572f;
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 
   --animate-rise: rise 0.9s var(--ease-out-expo) both;
   --animate-fade: fade 1.2s ease-out both;
   --animate-drift: drift 14s linear infinite;
+  /* A photograph easing back from a slight zoom as the page opens. */
+  --animate-settle: settle 2.6s var(--ease-out-expo) both;
 
   @keyframes rise {
     from {
@@ -58,6 +60,16 @@
   @keyframes drift {
     to {
       stroke-dashoffset: -1200;
+    }
+  }
+  @keyframes settle {
+    from {
+      opacity: 0;
+      transform: scale(1.07);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
     }
   }
 }
@@ -99,6 +111,23 @@
 
   p {
     text-wrap: pretty;
+  }
+
+  /* Questions open and close smoothly where the browser can animate to a natural height. */
+  @supports (interpolate-size: allow-keywords) {
+    :root {
+      interpolate-size: allow-keywords;
+    }
+    details::details-content {
+      block-size: 0;
+      overflow: clip;
+      transition:
+        block-size 0.45s var(--ease-out-expo),
+        content-visibility 0.45s allow-discrete;
+    }
+    details[open]::details-content {
+      block-size: auto;
+    }
   }
 
   /* Native date and time pickers follow the dark form surfaces. */
@@ -166,6 +195,22 @@
     opacity: 0.5;
     mix-blend-mode: soft-light;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
+  }
+}
+
+/* A line under a link that draws in from the left on hover. */
+@utility underline-grow {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  background-size: 0 1px;
+  transition:
+    background-size 0.45s var(--ease-out-expo),
+    color 0.3s;
+
+  &:hover,
+  &:focus-visible {
+    background-size: 100% 1px;
   }
 }
 

@@ -9,6 +9,8 @@ const en = {
     widgetTitle: 'Where to?',
     widgetHint: 'See the price for every vehicle in seconds.',
     introEyebrow: 'In short',
+    introImageAlt: 'A chauffeur holds the car door open for a passenger',
+    standardsImageAlt: 'A chauffeur in a dark coat beside a black saloon',
     introTitle: 'A private driver, *a price you already know*',
     introText:
       'We are a chauffeur service based in Madrid. You book a car and a professional driver for a set time; they collect you at the door and take you where you need to go. Business travellers use us for airports and meetings, families for luggage-heavy arrivals and days out, and companies for guests they want looked after.',
@@ -160,6 +162,7 @@ const en = {
     title: 'The calmest part *of your day*',
     lead: 'We are a Madrid chauffeur company built on a simple idea: the journey should be the one part of your day you do not have to think about.',
     storyEyebrow: 'How we work',
+    storyImageAlt: 'A passenger in a suit steps into a black saloon',
     storyTitle: 'Private transport, *done properly*',
     story: [
       'A chauffeur service is easy to describe and hard to do well. The car has to be there before you are. The price has to be the one you agreed. The driver has to know the city, speak your language and understand when to talk and when not to.',
@@ -215,6 +218,8 @@ const es: typeof en = {
     widgetTitle: '¿Adónde vamos?',
     widgetHint: 'Vea el precio de cada vehículo en segundos.',
     introEyebrow: 'En pocas palabras',
+    introImageAlt: 'Un chófer sujeta la puerta del coche a una pasajera',
+    standardsImageAlt: 'Un chófer con abrigo oscuro junto a una berlina negra',
     introTitle: 'Un conductor privado, *un precio que ya conoce*',
     introText:
       'Somos un servicio de chófer con sede en Madrid. Usted reserva un coche y un conductor profesional para una hora concreta; le recoge en la puerta y le lleva adonde necesite. Los viajeros de negocios nos eligen para aeropuertos y reuniones; las familias, para llegadas con mucho equipaje y excursiones; y las empresas, para los invitados a los que quieren cuidar.',
@@ -366,6 +371,7 @@ const es: typeof en = {
     title: 'La parte más tranquila *de su día*',
     lead: 'Somos una empresa madrileña de chóferes nacida de una idea sencilla: el trayecto debería ser la única parte del día en la que no tenga que pensar.',
     storyEyebrow: 'Cómo trabajamos',
+    storyImageAlt: 'Un pasajero con traje sube a una berlina negra',
     storyTitle: 'Transporte privado, *bien hecho*',
     story: [
       'Un servicio de chófer es fácil de describir y difícil de hacer bien. El coche tiene que estar antes que usted. El precio tiene que ser el acordado. El conductor tiene que conocer la ciudad, hablar su idioma y saber cuándo conversar y cuándo no.',

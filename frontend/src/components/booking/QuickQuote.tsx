@@ -46,7 +46,7 @@ export function QuickQuote({ b }: { b: BookingMessages }) {
   }
 
   return (
-    <form onSubmit={submit} noValidate className="rounded-lg bg-bone-50 p-5 text-ink-900 shadow-[0_40px_80px_-30px_rgba(0,0,0,0.8)] sm:p-7">
+    <form onSubmit={submit} noValidate className="rounded-2xl bg-bone-50 p-5 text-ink-900 shadow-[0_40px_90px_-30px_rgba(0,0,0,0.85)] ring-1 ring-white/20 sm:p-7">
       {/* A fieldset will not shrink below its content unless told to; min-w-0 lets the row scroll instead. */}
       <fieldset className="min-w-0">
         <legend className="sr-only">{r.type}</legend>

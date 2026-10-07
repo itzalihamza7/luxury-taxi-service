@@ -34,7 +34,7 @@ export default async function RoutesPage() {
   const [t, p] = await Promise.all([getCommon(), getPages()])
   return (
     <>
-      <PageHero eyebrow={p.routes.eyebrow} title={p.routes.title} lead={p.routes.lead} crumbs={[{ label: t.nav.routes }]}>
+      <PageHero eyebrow={p.routes.eyebrow} title={p.routes.title} lead={p.routes.lead} crumbs={[{ label: t.nav.routes }]} image="/images/services/intercity.jpg">
         <ButtonLink href="/booking?type=city_to_city" size="lg" arrow>
           {t.actions.getPrice}
         </ButtonLink>

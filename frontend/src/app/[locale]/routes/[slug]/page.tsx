@@ -54,7 +54,7 @@ async function RouteContent({ params }: Pick<PageProps<'/[locale]/routes/[slug]'
   return (
     <>
       <JsonLd data={faqJsonLd(questions)} />
-      <PageHero eyebrow={`Madrid — ${route.city[locale]}`} title={route.heading[locale]} lead={route.intro[locale]} crumbs={[{ label: t.nav.routes, href: '/routes' }, { label: route.city[locale] }]}>
+      <PageHero eyebrow={`Madrid — ${route.city[locale]}`} title={route.heading[locale]} lead={route.intro[locale]} crumbs={[{ label: t.nav.routes, href: '/routes' }, { label: route.city[locale] }]} image={route.image}>
         <ButtonLink href={bookHref} size="lg" arrow>
           {r.seePrice}
         </ButtonLink>
