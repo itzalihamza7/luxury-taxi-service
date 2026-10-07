@@ -14,7 +14,7 @@ export class ApiError extends Error {
 }
 
 interface RequestOptions {
-  method?: 'GET' | 'POST' | 'PATCH' | 'DELETE'
+  method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
   body?: unknown
   signal?: AbortSignal
 }
@@ -35,12 +35,27 @@ export async function api<T>(path: string, { method = 'GET', body, signal }: Req
     throw new ApiError(0, 'network', 'Network error')
   }
 
+  return readResponse<T>(response)
+}
+
+async function readResponse<T>(response: Response): Promise<T> {
   const payload: unknown = await response.json().catch(() => null)
   if (!response.ok) {
     const details = (payload as { error?: { code?: string; message?: string; fields?: Record<string, string> } } | null)?.error
     throw new ApiError(response.status, details?.code ?? 'generic', details?.message ?? 'Request failed', details?.fields ?? {})
   }
   return payload as T
+}
+
+/** Upload an image from the console; the answer carries the address to show it from. */
+export async function uploadImage(image: Blob): Promise<string> {
+  let response: Response
+  try {
+    response = await fetch('/api/admin/media', { method: 'POST', credentials: 'same-origin', headers: { Accept: 'application/json', 'Content-Type': image.type }, body: image })
+  } catch {
+    throw new ApiError(0, 'network', 'Network error')
+  }
+  return (await readResponse<{ media: { url: string } }>(response)).media.url
 }
 
 /** Translate an error into a message for the visitor. Unknown errors get a generic message. */

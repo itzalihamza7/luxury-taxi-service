@@ -11,15 +11,23 @@ import { useI18n } from '@/i18n/client'
 import { fill, href } from '@/i18n/config'
 import type { AccountMessages } from '@/i18n/messages/account'
 import type { BookingMessages } from '@/i18n/messages/booking'
+import type { ManageMessages } from '@/i18n/messages/manage'
 import { api, errorMessage } from '@/lib/api'
 import { formatDateTime, formatMoney } from '@/lib/format'
 import { useAppConfig, useHydrated } from '@/lib/hooks'
 import type { Booking, BookingStatus } from '@/lib/types'
+import { BusinessDetails } from './BusinessDetails'
+import { ContentManager } from './ContentManager'
+import { FleetManager } from './FleetManager'
 
 interface Props {
   a: AccountMessages['admin']
   b: BookingMessages
+  m: ManageMessages
 }
+
+const TABS = ['bookings', 'messages', 'fleet', 'content', 'business'] as const
+type Tab = (typeof TABS)[number]
 
 interface Summary {
   bookings: Record<BookingStatus, number>
@@ -57,13 +65,13 @@ export function AdminConsole(props: Props) {
   return useHydrated() ? <Console {...props} /> : <div aria-busy="true" className="h-96 animate-pulse rounded-lg bg-ink-900/5" />
 }
 
-function Console({ a, b }: Props) {
+function Console({ a, b, m }: Props) {
   const { t, locale } = useI18n()
   const { user, ready } = useAuth()
   const router = useRouter()
   const config = useAppConfig()
 
-  const [tab, setTab] = useState<'bookings' | 'messages'>('bookings')
+  const [tab, setTab] = useState<Tab>('bookings')
   const [summary, setSummary] = useState<Summary | null>(null)
   const [status, setStatus] = useState<BookingStatus | ''>('')
   const [search, setSearch] = useState('')
@@ -186,8 +194,8 @@ function Console({ a, b }: Props) {
       </dl>
 
       <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-b border-ink-900/10">
-        <div role="tablist" className="flex gap-1">
-          {(['bookings', 'messages'] as const).map((id) => (
+        <div role="tablist" className="flex flex-wrap gap-1">
+          {TABS.map((id) => (
             <button
               key={id}
               type="button"
@@ -196,7 +204,7 @@ function Console({ a, b }: Props) {
               onClick={() => setTab(id)}
               className={`-mb-px border-b-2 px-4 py-3 text-sm font-medium transition-colors ${tab === id ? 'border-gold-600 text-ink-900' : 'border-transparent text-ink-900/60 hover:text-ink-900'}`}
             >
-              {a.tabs[id]}
+              {id === 'bookings' || id === 'messages' ? a.tabs[id] : m.tabs[id]}
             </button>
           ))}
         </div>
@@ -211,6 +219,10 @@ function Console({ a, b }: Props) {
           <FormMessage tone="error">{error}</FormMessage>
         </div>
       ) : null}
+
+      {tab === 'fleet' ? <FleetManager m={m} /> : null}
+      {tab === 'content' ? <ContentManager m={m} /> : null}
+      {tab === 'business' ? <BusinessDetails m={m} /> : null}
 
       {tab === 'bookings' ? (
         <div className="mt-6">
@@ -340,7 +352,9 @@ function Console({ a, b }: Props) {
             </div>
           ) : null}
         </div>
-      ) : (
+      ) : null}
+
+      {tab === 'messages' ? (
         <div className="mt-6">
           {messages === null ? (
             <p className="py-10 text-sm text-ink-900/60">{t.loading}</p>
@@ -369,7 +383,7 @@ function Console({ a, b }: Props) {
             </ul>
           )}
         </div>
-      )}
+      ) : null}
     </div>
   )
 }

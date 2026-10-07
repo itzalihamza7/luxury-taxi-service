@@ -1,4 +1,4 @@
-import { cacheLife, cacheTag, io } from 'next/cache'
+import { cacheLife, io } from 'next/cache'
 import type { Collection, ContentMap, SiteSettings, Vehicle } from './types'
 
 /** Base URL of the backend API, as seen from the Next.js server. */
@@ -33,11 +33,22 @@ export function failureReason(error: unknown): string {
 }
 
 /**
- * Cache tags. The gateway (`app/api`) clears them when an operator saves
- * something in the console, so changes show on the website straight away.
+ * What an operator saves in the console must show on the website at once.
+ * Each cached reader below therefore takes a "version" that changes whenever
+ * something is saved (the gateway in `app/api` calls `markChanged`). A save
+ * makes every later read a fresh one; what was cached under the old version is
+ * never asked for again and simply expires.
+ *
+ * The versions live on `globalThis` so that pages and the gateway, which are
+ * built as separate bundles, share them. They are per server process: with
+ * several website instances, the others catch up within a minute.
  */
-export const FLEET_TAG = 'fleet'
-export const CONTENT_TAG = 'content'
+type Kind = 'fleet' | 'content'
+const versions = ((globalThis as { __siteDataVersions?: Record<Kind, number> }).__siteDataVersions ??= { fleet: 0, content: 0 })
+
+export function markChanged(kind: Kind): void {
+  versions[kind] += 1
+}
 
 async function readJson<T>(path: string): Promise<T> {
   const response = await apiFetch(`${apiBase()}${path}`, {}, 10_000)
@@ -52,43 +63,45 @@ async function readJson<T>(path: string): Promise<T> {
  * inside a <Suspense> boundary.
  */
 
-async function getVehicles(): Promise<Vehicle[]> {
+// In each reader, `version` is only there to be part of the cache key.
+
+async function getVehicles(version: number): Promise<Vehicle[]> {
   'use cache'
   cacheLife('minutes')
-  cacheTag(FLEET_TAG)
+  void version
   return (await readJson<{ vehicles: Vehicle[] }>('/api/vehicles')).vehicles
 }
 
-async function getCollection<K extends Collection>(collection: K): Promise<ContentMap[K][]> {
+async function getCollection<K extends Collection>(collection: K, version: number): Promise<ContentMap[K][]> {
   'use cache'
   cacheLife('minutes')
-  cacheTag(CONTENT_TAG)
+  void version
   return (await readJson<{ entries: ContentMap[K][] }>(`/api/content/${collection}`)).entries
 }
 
-async function getSettings(): Promise<SiteSettings> {
+async function getSettings(version: number): Promise<SiteSettings> {
   'use cache'
   cacheLife('minutes')
-  cacheTag(CONTENT_TAG)
+  void version
   return (await readJson<{ settings: SiteSettings }>('/api/content/settings')).settings
 }
 
 /** The bookable fleet, in display order. */
 export async function loadVehicles(): Promise<Vehicle[]> {
   await io()
-  return getVehicles()
+  return getVehicles(versions.fleet)
 }
 
 /** The published entries of one kind of content, in display order. */
 export async function loadCollection<K extends Collection>(collection: K): Promise<ContentMap[K][]> {
   await io()
-  return getCollection(collection)
+  return getCollection(collection, versions.content)
 }
 
 /** The business details (phone, email, company data). */
 export async function loadSettings(): Promise<SiteSettings> {
   await io()
-  return getSettings()
+  return getSettings(versions.content)
 }
 
 /** For parts of a page that should simply be left out, rather than fail the page, when the API is down. */

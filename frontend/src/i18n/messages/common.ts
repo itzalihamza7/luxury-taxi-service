@@ -178,6 +178,12 @@ const en = {
     BOOKING_NOT_FOUND: 'We could not find a booking with that reference and email.',
     CANCEL_WINDOW_PASSED: 'Online cancellation closes 24 hours before pickup. Please call or message us.',
     INVALID_STATUS_CHANGE: 'That status change is not possible for this booking.',
+    SLUG_TAKEN: 'Another entry already uses this web address.',
+    VEHICLE_IN_USE: 'This vehicle has bookings, so it cannot be deleted. Hide it instead.',
+    VEHICLE_NOT_FOUND: 'This vehicle no longer exists.',
+    ENTRY_NOT_FOUND: 'This entry no longer exists.',
+    UNSUPPORTED_IMAGE: 'Please choose a JPEG, PNG or WebP image.',
+    PAYLOAD_TOO_LARGE: 'This is too large to save.',
   },
   fields: {
     required: 'This field is required.',
@@ -198,6 +204,12 @@ const en = {
     select_place: 'Choose a location from the list.',
     password_short: 'Use at least 8 characters.',
     accept_terms: 'Please accept the terms to continue.',
+    taken: 'This is already in use.',
+    invalid_slug: 'Use lower-case letters, numbers and hyphens only.',
+    invalid_image: 'Choose an image again.',
+    invalid_link: 'Enter a valid link.',
+    invalid_date: 'Enter a valid date.',
+    before_start: 'The last day cannot be before the first day.',
   },
 }
 
@@ -380,6 +392,12 @@ const es: typeof en = {
     BOOKING_NOT_FOUND: 'No encontramos ninguna reserva con esa referencia y ese email.',
     CANCEL_WINDOW_PASSED: 'La cancelación online se cierra 24 horas antes de la recogida. Llámenos o escríbanos.',
     INVALID_STATUS_CHANGE: 'Ese cambio de estado no es posible para esta reserva.',
+    SLUG_TAKEN: 'Otra entrada ya usa esta dirección web.',
+    VEHICLE_IN_USE: 'Este vehículo tiene reservas y no se puede eliminar. Ocúltelo en su lugar.',
+    VEHICLE_NOT_FOUND: 'Este vehículo ya no existe.',
+    ENTRY_NOT_FOUND: 'Esta entrada ya no existe.',
+    UNSUPPORTED_IMAGE: 'Elija una imagen JPEG, PNG o WebP.',
+    PAYLOAD_TOO_LARGE: 'Es demasiado grande para guardarlo.',
   },
   fields: {
     required: 'Este campo es obligatorio.',
@@ -400,6 +418,12 @@ const es: typeof en = {
     select_place: 'Elija una ubicación de la lista.',
     password_short: 'Use al menos 8 caracteres.',
     accept_terms: 'Acepte las condiciones para continuar.',
+    taken: 'Ya está en uso.',
+    invalid_slug: 'Use solo minúsculas, números y guiones.',
+    invalid_image: 'Vuelva a elegir una imagen.',
+    invalid_link: 'Introduzca un enlace válido.',
+    invalid_date: 'Introduzca una fecha válida.',
+    before_start: 'El último día no puede ser anterior al primero.',
   },
 }
 

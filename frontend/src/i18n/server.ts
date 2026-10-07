@@ -4,6 +4,7 @@ import { isLocale, type Locale } from './config'
 import { account } from './messages/account'
 import { booking } from './messages/booking'
 import { common } from './messages/common'
+import { manage } from './messages/manage'
 import { pages } from './messages/pages'
 
 /**
@@ -34,4 +35,9 @@ export async function getBooking() {
 /** Copy for sign-in, the customer account and the operations console. */
 export async function getAccount() {
   return account[await getLocale()]
+}
+
+/** Copy for managing the fleet, the content and the business details in the console. */
+export async function getManage() {
+  return manage[await getLocale()]
 }

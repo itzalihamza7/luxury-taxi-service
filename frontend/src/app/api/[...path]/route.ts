@@ -1,6 +1,5 @@
-import { revalidateTag } from 'next/cache'
 import type { NextRequest } from 'next/server'
-import { apiFetch, CONTENT_TAG, failureReason, FLEET_TAG } from '@/lib/server-api'
+import { apiFetch, failureReason, markChanged } from '@/lib/server-api'
 
 /**
  * Same-origin gateway to the backend API.
@@ -42,10 +41,10 @@ async function forward(request: NextRequest, context: RouteContext<'/api/[...pat
   }
 
   // What an operator saves in the console must show on the website straight away,
-  // so the copies this server keeps of the fleet and the content are dropped.
+  // so the copies this server keeps of the fleet and the content are set aside.
   if (hasBody && upstream.ok && path[0] === 'admin') {
-    if (path[1] === 'vehicles') revalidateTag(FLEET_TAG, { expire: 0 })
-    if (path[1] === 'content' || path[1] === 'settings') revalidateTag(CONTENT_TAG, { expire: 0 })
+    if (path[1] === 'vehicles') markChanged('fleet')
+    if (path[1] === 'content' || path[1] === 'settings') markChanged('content')
   }
 
   const responseHeaders = new Headers()
