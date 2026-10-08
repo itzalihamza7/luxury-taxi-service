@@ -145,6 +145,12 @@ export const siteSettingsSchema = z.object({
   }),
   /** While true, the reviews section is labelled as showing sample reviews. */
   reviewsAreSamples: z.boolean(),
+  /**
+   * Whether a customer who signs up sees the bookings an operator took for the
+   * same email address or phone number. Convenient, but neither is verified at
+   * sign-up, so anyone who knows them could see those bookings by signing up first.
+   */
+  linkBookingsOnSignup: z.boolean().default(true),
 })
 
 export type SiteSettings = z.infer<typeof siteSettingsSchema>

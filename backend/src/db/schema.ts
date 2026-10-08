@@ -33,6 +33,8 @@ const BOOKING_STATUSES = ['pending', 'confirmed', 'in_progress', 'completed', 'c
 const PAYMENT_METHODS = ['chauffeur', 'online'] as const
 const PAYMENT_STATUSES = ['unpaid', 'paid'] as const
 const ROUTE_SOURCES = ['road', 'estimate'] as const
+/** Who entered a booking: the customer on the website, or an operator on their behalf (phone, WhatsApp). */
+const BOOKING_SOURCES = ['website', 'operator'] as const
 
 /** The kinds of editable content. Each has its own shape for `data` (see `modules/content/schemas.ts`). */
 export const CONTENT_COLLECTIONS = ['service', 'route', 'event', 'article', 'faq', 'review', 'legal'] as const
@@ -139,6 +141,7 @@ export const bookings = pgTable(
     quoteId: uuid('quote_id')
       .unique()
       .references(() => quotes.id, { onDelete: 'set null' }),
+    source: text('source', { enum: BOOKING_SOURCES }).notNull().default('website'),
     status: text('status', { enum: BOOKING_STATUSES }).notNull().default('pending'),
     rideType: text('ride_type', { enum: RIDE_TYPES }).notNull(),
 
@@ -177,9 +180,12 @@ export const bookings = pgTable(
     paidAt: timestamptz('paid_at'),
 
     contactName: text('contact_name').notNull(),
-    /** Always stored lower-cased. */
-    contactEmail: text('contact_email').notNull(),
-    contactPhone: text('contact_phone').notNull(),
+    /**
+     * Website bookings have both. A booking taken by an operator may have only
+     * one of them: whichever the customer gave. The email is stored lower-cased.
+     */
+    contactEmail: text('contact_email'),
+    contactPhone: text('contact_phone'),
     company: text('company'),
     notes: text('notes'),
     locale: text('locale').notNull().default('en'),
@@ -201,6 +207,8 @@ export const bookings = pgTable(
     check('bookings_payment_method_check', sql`${table.paymentMethod} in ('chauffeur', 'online')`),
     check('bookings_payment_status_check', sql`${table.paymentStatus} in ('unpaid', 'paid')`),
     check('bookings_total_check', sql`${table.totalCents} >= 0`),
+    check('bookings_source_check', sql`${table.source} in ('website', 'operator')`),
+    check('bookings_contact_check', sql`${table.contactEmail} is not null or ${table.contactPhone} is not null`),
   ],
 )
 

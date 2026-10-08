@@ -61,87 +61,101 @@ export function serializeQuote(quote: Quote, fleet: Vehicle[]) {
   }
 }
 
-export function quotesRouter({ config, rateLimit, findRoute }: AppContext): Router {
+/** How far in the past an operator may still enter a pickup (a ride that is just leaving). */
+const OPERATOR_GRACE_MINUTES = 15
+
+/**
+ * Price a journey for every vehicle and store the result as a quote.
+ *
+ * Customers must give the minimum notice. An operator taking a booking by
+ * phone may not: they can enter a ride that leaves right away.
+ */
+export async function createQuote({ config, findRoute }: AppContext, body: unknown, { byOperator = false } = {}) {
+  const input = parse(quoteSchema, body)
+  const isHourly = input.rideType === 'hourly'
+  const now = Date.now()
+
+  // --- When ---------------------------------------------------------------
+  const pickupAt = zonedDateTimeToUtc(input.pickupDate, input.pickupTime, config.BUSINESS_TIMEZONE)
+  if (!pickupAt) throw fieldError('pickupDate', 'invalid')
+  const earliest = byOperator ? now - OPERATOR_GRACE_MINUTES * 60_000 : now + config.MIN_LEAD_MINUTES * 60_000
+  if (pickupAt.getTime() < earliest) throw fieldError('pickupTime', byOperator ? 'in_past' : 'lead_time')
+  if (pickupAt.getTime() - now > LIMITS.maxAdvanceDays * 86_400_000) throw fieldError('pickupDate', 'too_far_ahead')
+
+  let returnAt: Date | null = null
+  if (input.rideType === 'return') {
+    if (!input.returnDate) throw fieldError('returnDate', 'required')
+    if (!input.returnTime) throw fieldError('returnTime', 'required')
+    returnAt = zonedDateTimeToUtc(input.returnDate, input.returnTime, config.BUSINESS_TIMEZONE)
+    if (!returnAt) throw fieldError('returnDate', 'invalid')
+    if (returnAt.getTime() <= pickupAt.getTime()) throw fieldError('returnTime', 'before_pickup')
+  }
+
+  let hours: number | null = null
+  if (isHourly) {
+    if (!input.hours) throw fieldError('hours', 'required')
+    hours = input.hours
+  }
+
+  // --- Who ----------------------------------------------------------------
+  const passengers = input.adults + input.children
+  if (passengers > LIMITS.maxPassengers) throw fieldError('adults', 'too_many_passengers')
+
+  // --- Where --------------------------------------------------------------
+  if (!isInServiceArea(input.pickup)) throw fieldError('pickup', 'outside_area')
+  const dropoff = input.dropoff ?? null
+  if (!isHourly && !dropoff) throw fieldError('dropoff', 'required')
+  if (dropoff && !isInServiceArea(dropoff)) throw fieldError('dropoff', 'outside_area')
+
+  let route: RouteResult | null = null
+  if (!isHourly && dropoff) {
+    if (haversineM(input.pickup, dropoff) < 100) throw fieldError('dropoff', 'same_as_pickup')
+    route = await findRoute(input.pickup, dropoff)
+    if (route.distanceM > LIMITS.maxDistanceKm * 1000) throw fieldError('dropoff', 'too_far')
+  }
+
+  // --- Price every vehicle ------------------------------------------------
+  const fleet = await listActiveVehicles()
+  const options: QuoteOption[] = fleet.map((vehicle) => {
+    const reason = passengers > vehicle.passengers ? 'passengers' : input.luggage > vehicle.luggage ? 'luggage' : undefined
+    return {
+      vehicleId: vehicle.id,
+      totalCents: fareCents(vehicle, { rideType: input.rideType, distanceM: route?.distanceM ?? 0, hours: hours ?? 0 }),
+      available: !reason,
+      ...(reason ? { reason } : {}),
+    }
+  })
+
+  const [quote] = await db
+    .insert(quotes)
+    .values({
+      rideType: input.rideType,
+      pickup: input.pickup,
+      dropoff,
+      pickupAt,
+      returnAt,
+      hours,
+      adults: input.adults,
+      children: input.children,
+      luggage: input.luggage,
+      distanceM: route?.distanceM ?? null,
+      durationS: route?.durationS ?? null,
+      routeSource: route?.source ?? null,
+      options,
+      currency: config.CURRENCY,
+      expiresAt: new Date(now + config.QUOTE_TTL_MINUTES * 60_000),
+    })
+    .returning()
+  if (!quote) throw new Error('quote insert returned no row')
+
+  return serializeQuote(quote, fleet)
+}
+
+export function quotesRouter(context: AppContext): Router {
   const router = Router()
 
-  router.post('/', rateLimit({ name: 'quotes', windowMs: 60_000, limit: 30 }), async (req, res) => {
-    const input = parse(quoteSchema, req.body)
-    const isHourly = input.rideType === 'hourly'
-    const now = Date.now()
-
-    // --- When ---------------------------------------------------------------
-    const pickupAt = zonedDateTimeToUtc(input.pickupDate, input.pickupTime, config.BUSINESS_TIMEZONE)
-    if (!pickupAt) throw fieldError('pickupDate', 'invalid')
-    if (pickupAt.getTime() - now < config.MIN_LEAD_MINUTES * 60_000) throw fieldError('pickupTime', 'lead_time')
-    if (pickupAt.getTime() - now > LIMITS.maxAdvanceDays * 86_400_000) throw fieldError('pickupDate', 'too_far_ahead')
-
-    let returnAt: Date | null = null
-    if (input.rideType === 'return') {
-      if (!input.returnDate) throw fieldError('returnDate', 'required')
-      if (!input.returnTime) throw fieldError('returnTime', 'required')
-      returnAt = zonedDateTimeToUtc(input.returnDate, input.returnTime, config.BUSINESS_TIMEZONE)
-      if (!returnAt) throw fieldError('returnDate', 'invalid')
-      if (returnAt.getTime() <= pickupAt.getTime()) throw fieldError('returnTime', 'before_pickup')
-    }
-
-    let hours: number | null = null
-    if (isHourly) {
-      if (!input.hours) throw fieldError('hours', 'required')
-      hours = input.hours
-    }
-
-    // --- Who ----------------------------------------------------------------
-    const passengers = input.adults + input.children
-    if (passengers > LIMITS.maxPassengers) throw fieldError('adults', 'too_many_passengers')
-
-    // --- Where --------------------------------------------------------------
-    if (!isInServiceArea(input.pickup)) throw fieldError('pickup', 'outside_area')
-    const dropoff = input.dropoff ?? null
-    if (!isHourly && !dropoff) throw fieldError('dropoff', 'required')
-    if (dropoff && !isInServiceArea(dropoff)) throw fieldError('dropoff', 'outside_area')
-
-    let route: RouteResult | null = null
-    if (!isHourly && dropoff) {
-      if (haversineM(input.pickup, dropoff) < 100) throw fieldError('dropoff', 'same_as_pickup')
-      route = await findRoute(input.pickup, dropoff)
-      if (route.distanceM > LIMITS.maxDistanceKm * 1000) throw fieldError('dropoff', 'too_far')
-    }
-
-    // --- Price every vehicle ------------------------------------------------
-    const fleet = await listActiveVehicles()
-    const options: QuoteOption[] = fleet.map((vehicle) => {
-      const reason = passengers > vehicle.passengers ? 'passengers' : input.luggage > vehicle.luggage ? 'luggage' : undefined
-      return {
-        vehicleId: vehicle.id,
-        totalCents: fareCents(vehicle, { rideType: input.rideType, distanceM: route?.distanceM ?? 0, hours: hours ?? 0 }),
-        available: !reason,
-        ...(reason ? { reason } : {}),
-      }
-    })
-
-    const [quote] = await db
-      .insert(quotes)
-      .values({
-        rideType: input.rideType,
-        pickup: input.pickup,
-        dropoff,
-        pickupAt,
-        returnAt,
-        hours,
-        adults: input.adults,
-        children: input.children,
-        luggage: input.luggage,
-        distanceM: route?.distanceM ?? null,
-        durationS: route?.durationS ?? null,
-        routeSource: route?.source ?? null,
-        options,
-        currency: config.CURRENCY,
-        expiresAt: new Date(now + config.QUOTE_TTL_MINUTES * 60_000),
-      })
-      .returning()
-    if (!quote) throw new Error('quote insert returned no row')
-
-    res.status(201).json({ quote: serializeQuote(quote, fleet) })
+  router.post('/', context.rateLimit({ name: 'quotes', windowMs: 60_000, limit: 30 }), async (req, res) => {
+    res.status(201).json({ quote: await createQuote(context, req.body) })
   })
 
   return router

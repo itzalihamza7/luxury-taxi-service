@@ -13,6 +13,7 @@ import { contentAdminRouter } from '../content/routes.js'
 import { mediaAdminRouter } from '../media/routes.js'
 import { CATALOG } from '../places/catalog.js'
 import { vehiclesAdminRouter } from '../vehicles/admin.js'
+import { operatorBookingsRouter } from './operator-bookings.js'
 
 const STATUSES = ['pending', 'confirmed', 'in_progress', 'completed', 'cancelled'] as const
 
@@ -47,13 +48,15 @@ const pageSchema = z.object({
 /** Escape LIKE wildcards so a search for "50%" matches literally. */
 const likePattern = (term: string) => `%${term.replace(/[\\%_]/g, '\\$&')}%`
 
-export function adminRouter({ config }: AppContext): Router {
+export function adminRouter(context: AppContext): Router {
+  const { config } = context
   const router = Router()
   router.use(requireAdmin)
 
   router.use('/vehicles', vehiclesAdminRouter())
   router.use('/media', mediaAdminRouter())
   router.use(contentAdminRouter())
+  router.use(operatorBookingsRouter(context))
 
   /** Places a route or event can point at, so "book this" opens with the destination filled in. */
   router.get('/places', (_req, res) => {

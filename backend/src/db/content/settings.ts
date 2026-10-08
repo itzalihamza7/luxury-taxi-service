@@ -19,4 +19,5 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
     licence: '[VTC licence number]',
   },
   reviewsAreSamples: true,
+  linkBookingsOnSignup: true,
 }

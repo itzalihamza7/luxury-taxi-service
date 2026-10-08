@@ -22,6 +22,13 @@
       "when": 1791897259165,
       "tag": "0002_starting_fleet_photos",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1791910874022,
+      "tag": "0003_operator_bookings",
+      "breakpoints": true
     }
   ]
 }

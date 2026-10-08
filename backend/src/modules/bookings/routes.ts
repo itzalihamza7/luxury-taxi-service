@@ -3,11 +3,12 @@ import { z } from 'zod'
 import type { AppContext } from '../../context.js'
 import { conflict, forbidden, notFound } from '../../lib/errors.js'
 import { normalizeReference } from '../../lib/reference.js'
-import { email, locale, optionalText, parse, personName, phone } from '../../lib/validate.js'
+import { blankAsMissing, email, locale, optionalText, parse, personName, phone } from '../../lib/validate.js'
 import { requireUser } from '../auth/session.js'
 import {
   cancelBooking,
   canCancel,
+  contactMatches,
   createBooking,
   findBookingByReference,
   listBookingsForUser,
@@ -30,18 +31,23 @@ const createSchema = z.object({
   locale,
 })
 
-const lookupSchema = z.object({
-  reference: z.string().trim().min(4).max(20),
-  email,
-})
+/** A guest names the booking and proves it is theirs with the email or the phone number it was made with. */
+const lookupSchema = z
+  .object({
+    reference: z.string().trim().min(4).max(20),
+    email: blankAsMissing(email),
+    phone: blankAsMissing(phone),
+  })
+  .refine((value) => value.email !== undefined || value.phone !== undefined, { message: 'required', path: ['email'] })
 
 const cancelSchema = z.object({
-  /** Required for guests; signed-in owners are identified by their session. */
-  email: email.optional(),
+  /** One of these is required for guests; signed-in owners are identified by their session. */
+  email: blankAsMissing(email),
+  phone: blankAsMissing(phone),
 })
 
 const bookingNotFound = () =>
-  notFound('BOOKING_NOT_FOUND', 'We could not find a booking with that reference and email.')
+  notFound('BOOKING_NOT_FOUND', 'We could not find a booking with that reference and email or phone number.')
 
 export function bookingsRouter(context: AppContext): Router {
   const { config, rateLimit } = context
@@ -65,13 +71,14 @@ export function bookingsRouter(context: AppContext): Router {
   })
 
   /**
-   * Guest tracking: the reference alone is not enough, the booking email must
-   * match too. Both failures look identical so references cannot be probed.
+   * Guest tracking: the reference alone is not enough, the booking's email or
+   * phone number must match too. Both failures look identical so references
+   * cannot be probed.
    */
   router.post('/lookup', rateLimit({ name: 'lookup', windowMs: 60_000, limit: 10 }), async (req, res) => {
     const input = parse(lookupSchema, req.body)
     const booking = await findBookingByReference(normalizeReference(input.reference))
-    if (!booking || booking.contactEmail !== input.email) throw bookingNotFound()
+    if (!booking || !contactMatches(booking, input)) throw bookingNotFound()
     res.json({ booking: serializeBooking(booking, config) })
   })
 
@@ -87,8 +94,7 @@ export function bookingsRouter(context: AppContext): Router {
     const booking = await findBookingByReference(normalizeReference(String(req.params.reference)))
 
     const isOwner = Boolean(booking && req.user && booking.userId === req.user.id)
-    const emailMatches = Boolean(booking && input.email && booking.contactEmail === input.email)
-    if (!booking || !(isOwner || emailMatches)) throw bookingNotFound()
+    if (!booking || !(isOwner || contactMatches(booking, input))) throw bookingNotFound()
 
     if (booking.status === 'cancelled') {
       res.json({ booking: serializeBooking(booking, config) })

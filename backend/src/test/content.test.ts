@@ -223,6 +223,7 @@ describe('business details', () => {
     social: { instagram: 'https://instagram.com/example', facebook: '', tripadvisor: '', google: '' },
     legal: { companyName: 'Example Chauffeurs SL', taxId: 'B12345678', address: 'Calle Mayor 1, 28013 Madrid', registry: 'Registro Mercantil de Madrid', licence: 'VTC-M-0000' },
     reviewsAreSamples: false,
+    linkBookingsOnSignup: true,
   }
 
   it('saves them for the whole website', async () => {

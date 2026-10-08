@@ -1,9 +1,10 @@
-import { desc, eq } from 'drizzle-orm'
+import { and, desc, eq, isNull, or, type SQL } from 'drizzle-orm'
 import type { Config } from '../../config.js'
 import type { AppContext } from '../../context.js'
 import { db } from '../../db/client.js'
 import { bookings, quotes, vehicles, type Booking } from '../../db/schema.js'
 import { badRequest, conflict, HttpError, notFound } from '../../lib/errors.js'
+import { phoneMatches, samePhone } from '../../lib/phone.js'
 import { generateReference } from '../../lib/reference.js'
 import type { SessionUser } from '../auth/session.js'
 import { PaymentError } from '../payments/paypal.js'
@@ -52,6 +53,8 @@ export function serializeBooking(booking: Booking, config: Config) {
       notes: booking.notes,
     },
     isGuest: booking.userId === null,
+    /** `operator` when the business entered it for the customer (phone, WhatsApp). */
+    source: booking.source,
     canCancel: canCancel(booking, config),
     createdAt: booking.createdAt.toISOString(),
   }
@@ -62,10 +65,19 @@ export type PublicBooking = ReturnType<typeof serializeBooking>
 export interface CreateBookingInput {
   quoteId: string
   vehicleId: string
-  contact: { name: string; email: string; phone: string; company: string | null; notes: string | null }
+  /** A customer booking on the website gives both email and phone; an operator may have only one. */
+  contact: { name: string; email: string | null; phone: string | null; company: string | null; notes: string | null }
   flightNumber: string | null
   paymentMethod: 'chauffeur' | 'online'
   locale: 'en' | 'es'
+}
+
+/** Set when an operator enters the booking for a customer. */
+export interface OperatorOptions {
+  /** The customer's account, when they have one and the booking should appear in it. */
+  userId: string | null
+  /** A price agreed with the customer, replacing the calculated one. */
+  totalCents?: number | null
 }
 
 /** Postgres unique-violation details, whether thrown directly or wrapped by drizzle. */
@@ -78,6 +90,7 @@ export async function createBooking(
   { config, payments }: AppContext,
   input: CreateBookingInput,
   user: SessionUser | undefined,
+  operator?: OperatorOptions,
 ): Promise<{ booking: Booking; approveUrl: string | null; created: boolean }> {
   const [quote] = await db.select().from(quotes).where(eq(quotes.id, input.quoteId))
   if (!quote) throw notFound('QUOTE_NOT_FOUND', 'This price is no longer available. Please request a new quote.')
@@ -90,7 +103,8 @@ export async function createBooking(
   if (quote.expiresAt.getTime() < now) {
     throw new HttpError(410, 'QUOTE_EXPIRED', 'This price has expired. Please request a new quote.')
   }
-  if (quote.pickupAt.getTime() - now < config.MIN_LEAD_MINUTES * 60_000) {
+  // The minimum notice is for customers; an operator may enter a ride that leaves right away.
+  if (!operator && quote.pickupAt.getTime() - now < config.MIN_LEAD_MINUTES * 60_000) {
     throw conflict('LEAD_TIME', 'The pickup time is now too close. Please choose a later time.')
   }
 
@@ -135,8 +149,11 @@ export async function createBooking(
         .insert(bookings)
         .values({
           reference,
-          userId: user?.id ?? null,
+          userId: operator ? operator.userId : (user?.id ?? null),
           quoteId: quote.id,
+          source: operator ? 'operator' : 'website',
+          // An operator who enters a booking has already agreed it with the customer.
+          status: operator ? 'confirmed' : 'pending',
           rideType: quote.rideType,
           pickupLabel: quote.pickup.label,
           pickupLat: quote.pickup.lat,
@@ -156,7 +173,7 @@ export async function createBooking(
           distanceM: quote.distanceM,
           durationS: quote.durationS,
           routeSource: quote.routeSource,
-          totalCents: option.totalCents,
+          totalCents: operator?.totalCents ?? option.totalCents,
           currency: quote.currency,
           paymentMethod: input.paymentMethod,
           paymentRef: payment?.orderId ?? null,
@@ -202,4 +219,29 @@ export async function cancelBooking(booking: Booking): Promise<Booking> {
     .returning()
   if (!updated) throw notFound('BOOKING_NOT_FOUND', 'Booking not found.')
   return updated
+}
+
+/** Whether a guest proved the booking is theirs: by its email, or by its phone number. */
+export function contactMatches(booking: Booking, contact: { email?: string; phone?: string }): boolean {
+  if (contact.email && booking.contactEmail === contact.email) return true
+  return samePhone(booking.contactPhone, contact.phone)
+}
+
+/**
+ * Give an account the bookings an operator took for its email address or phone
+ * number while the customer had no account. Returns how many were added.
+ *
+ * Neither the email nor the phone number of a new account is verified, so this
+ * trusts whoever signs up with them. It can be switched off in the console
+ * (Business details).
+ */
+export async function claimOperatorBookings(user: Pick<SessionUser, 'id' | 'email' | 'phone'>): Promise<number> {
+  const mine: SQL[] = [eq(bookings.contactEmail, user.email)]
+  if (user.phone) mine.push(phoneMatches(bookings.contactPhone, user.phone))
+  const claimed = await db
+    .update(bookings)
+    .set({ userId: user.id, updatedAt: new Date() })
+    .where(and(isNull(bookings.userId), eq(bookings.source, 'operator'), or(...mine)))
+    .returning({ id: bookings.id })
+  return claimed.length
 }

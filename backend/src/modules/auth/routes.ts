@@ -7,6 +7,8 @@ import { users } from '../../db/schema.js'
 import { conflict, unauthorized } from '../../lib/errors.js'
 import { DUMMY_HASH, hashPassword, verifyPassword } from '../../lib/password.js'
 import { email, parse, personName, phone } from '../../lib/validate.js'
+import { claimOperatorBookings } from '../bookings/service.js'
+import { getSiteSettings } from '../content/routes.js'
 import { endSession, publicUser, requireUser, startSession } from './session.js'
 
 const optionalPhone = z.preprocess((value) => (value === '' || value === null ? undefined : value), phone.optional())
@@ -52,8 +54,11 @@ export function authRouter({ config, rateLimit }: AppContext): Router {
     }
     if (!user) throw new Error('user insert returned no row')
 
+    // Bookings the business took for this customer by phone or WhatsApp join the new account.
+    const linkedBookings = (await getSiteSettings()).linkBookingsOnSignup ? await claimOperatorBookings(user) : 0
+
     await startSession(req, res, user.id, config.SESSION_TTL_DAYS)
-    res.status(201).json({ user: publicUser(user) })
+    res.status(201).json({ user: publicUser(user), linkedBookings })
   })
 
   router.post('/login', rateLimit({ name: 'login', windowMs: 60_000, limit: 10 }), async (req, res) => {

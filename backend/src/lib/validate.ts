@@ -55,6 +55,9 @@ export const phone = z
   })
 export const locale = z.enum(['en', 'es']).default('en')
 
+/** For a field a form may leave empty: an empty value counts as not given. */
+export const blankAsMissing = <T extends z.ZodType>(schema: T) => z.preprocess((value) => (value === '' || value === null ? undefined : value), schema.optional())
+
 /** Optional free text: trims, and stores an empty value as null. */
 export const optionalText = (max: number) =>
   z
