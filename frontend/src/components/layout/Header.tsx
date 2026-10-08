@@ -1,8 +1,8 @@
 'use client'
 
-import { ChevronDown, Menu, Phone, UserRound, X } from 'lucide-react'
+import { ChevronDown, Menu, UserRound, X } from 'lucide-react'
 import NextLink from 'next/link'
-import { useEffect, useState, useSyncExternalStore } from 'react'
+import { useEffect, useState, useSyncExternalStore, type ReactNode } from 'react'
 import { useAuth } from '@/components/auth/AuthProvider'
 import { Wordmark } from '@/components/ui/Brand'
 import { ButtonLink } from '@/components/ui/Button'
@@ -11,12 +11,6 @@ import { site } from '@/content/site'
 import { useCurrentPath } from './CurrentPath'
 import { useI18n } from '@/i18n/client'
 import { href, LOCALE_COOKIE, locales, switchLocalePath, type Locale } from '@/i18n/config'
-import { phoneHref } from '@/lib/contact'
-
-interface NavService {
-  slug: string
-  title: string
-}
 
 /** Remember the chosen language, so the bare domain opens in it next time. */
 function rememberLocale(choice: Locale): void {
@@ -58,8 +52,19 @@ function subscribeToScroll(onChange: () => void) {
   return () => window.removeEventListener('scroll', onChange)
 }
 
-/** `services` and `phone` come from the console's content; they are empty for a moment while it loads. */
-export function Header({ services, phone }: { services: NavService[]; phone: string | null }) {
+interface Props {
+  /** The services as menu entries (`<li>`s), for the drop-down and for the phone menu. */
+  serviceLinks: ReactNode
+  mobileServiceLinks: ReactNode
+  phone: ReactNode
+}
+
+/**
+ * The three props come from the console's content and arrive a moment after
+ * the header itself (see `HeaderData.tsx`). The header does not wait for them:
+ * its buttons must work straight away.
+ */
+export function Header({ serviceLinks, mobileServiceLinks, phone }: Props) {
   const { t } = useI18n()
   const { user } = useAuth()
   // The bar turns solid once the page has scrolled past the top of the hero.
@@ -112,15 +117,7 @@ export function Header({ services, phone }: { services: NavService[]; phone: str
               <ChevronDown aria-hidden className="size-3.5 transition-transform duration-300 group-hover:rotate-180 group-focus-within:rotate-180" />
             </Link>
             <div className="invisible absolute left-1/2 top-full w-72 -translate-x-1/2 pt-4 opacity-0 transition-all duration-200 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
-              <ul className="rounded-md border border-white/10 bg-ink-900/95 p-2 shadow-2xl backdrop-blur-md">
-                {services.map((service) => (
-                  <li key={service.slug}>
-                    <Link href={`/services/${service.slug}`} className="block rounded px-4 py-2.5 text-sm text-bone-50/80 transition-colors hover:bg-white/5 hover:text-gold-300">
-                      {service.title}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+              <ul className="rounded-md border border-white/10 bg-ink-900/95 p-2 shadow-2xl backdrop-blur-md empty:hidden">{serviceLinks}</ul>
             </div>
           </div>
           {links.map((link) => (
@@ -132,14 +129,7 @@ export function Header({ services, phone }: { services: NavService[]; phone: str
 
         <div className="flex items-center gap-4">
           {/* The width is reserved, so the menu does not move when the number arrives. */}
-          <div className="hidden min-w-[9.75rem] justify-end xl:flex">
-            {phone ? (
-              <a href={phoneHref(phone)} className="inline-flex items-center gap-2 text-[0.8125rem] font-medium text-bone-50/80 transition-colors hover:text-gold-300">
-                <Phone aria-hidden className="size-3.5" />
-                {phone}
-              </a>
-            ) : null}
-          </div>
+          <div className="hidden min-w-[9.75rem] justify-end xl:flex">{phone}</div>
           {/* Wrappers own the show/hide rule, so it never competes with a component's own display class. */}
           <div className="hidden sm:block">
             <LanguageSwitch />
@@ -181,15 +171,7 @@ export function Header({ services, phone }: { services: NavService[]; phone: str
           <Link href="/services" className="display border-b border-white/10 py-4 text-3xl">
             {t.nav.services}
           </Link>
-          <ul className="border-b border-white/10 py-3">
-            {services.map((service) => (
-              <li key={service.slug}>
-                <Link href={`/services/${service.slug}`} className="block py-2 pl-4 text-sm text-bone-50/70">
-                  {service.title}
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <ul className="border-b border-white/10 py-3 empty:hidden">{mobileServiceLinks}</ul>
           {links.map((link) => (
             <Link key={link.href} href={link.href} className="display border-b border-white/10 py-4 text-3xl">
               {link.label}

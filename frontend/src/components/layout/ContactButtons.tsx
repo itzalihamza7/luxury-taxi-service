@@ -8,7 +8,7 @@ import { loadSettings, quietly } from '@/lib/server-api'
 type Look = Pick<Parameters<typeof ButtonLink>[0], 'variant' | 'size' | 'className'>
 
 /** The business details, or null if they cannot be loaded right now. */
-export const contactDetails = () => quietly('the business details', loadSettings(), null)
+export const contactDetails = () => quietly('the business details', () => loadSettings(), null)
 
 async function WhatsApp({ message, known, ...look }: Look & { message?: string; known: boolean }) {
   const t = await getCommon()

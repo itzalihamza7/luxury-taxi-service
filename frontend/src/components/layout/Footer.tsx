@@ -19,8 +19,8 @@ export async function Footer({ year }: { year: number }) {
   const [locale, t, services, legal, settings] = await Promise.all([
     getLocale(),
     getCommon(),
-    quietly('the services', loadCollection('service'), []),
-    quietly('the legal pages', loadCollection('legal'), []),
+    quietly('the services', () => loadCollection('service'), []),
+    quietly('the legal pages', () => loadCollection('legal'), []),
     contactDetails(),
   ])
 

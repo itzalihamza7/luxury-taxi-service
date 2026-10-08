@@ -105,9 +105,12 @@ export async function loadSettings(): Promise<SiteSettings> {
 }
 
 /** For parts of a page that should simply be left out, rather than fail the page, when the API is down. */
-export async function quietly<T>(what: string, load: Promise<T>, fallback: T): Promise<T> {
+export async function quietly<T>(what: string, load: () => Promise<T>, fallback: T): Promise<T> {
+  // Waiting for a real request happens out here, not inside the `try`: while the
+  // site is being built this never completes, and that must not be mistaken for a failure.
+  await io()
   try {
-    return await load
+    return await load()
   } catch (error) {
     // A visitor who leaves mid-load aborts the request; that is not a failure worth reporting.
     if (!(error instanceof Error && error.name === 'AbortError')) console.error(`[site] could not load ${what}:`, failureReason(error))

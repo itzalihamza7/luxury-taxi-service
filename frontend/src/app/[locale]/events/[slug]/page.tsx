@@ -17,7 +17,7 @@ import { loadCollection, quietly } from '@/lib/server-api'
 
 export async function generateMetadata({ params }: PageProps<'/[locale]/events/[slug]'>): Promise<Metadata> {
   const [{ slug }, locale] = await Promise.all([params, getLocale()])
-  const event = (await quietly('the events', loadCollection('event'), [])).find((candidate) => candidate.slug === slug)
+  const event = (await quietly('the events', () => loadCollection('event'), [])).find((candidate) => candidate.slug === slug)
   if (!event) return {}
   return pageMetadata({ locale, path: `/events/${event.slug}`, title: `${event.title[locale]} · ${event.venue}`, description: event.summary[locale] })
 }

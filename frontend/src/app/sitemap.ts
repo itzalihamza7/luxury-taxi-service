@@ -8,12 +8,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Built on request rather than at build time, so it lists what is in the database right now.
   await connection()
   const [vehicles, services, routes, events, articles, legalDocuments] = await Promise.all([
-    quietly('the fleet', loadVehicles(), []),
-    quietly('the services', loadCollection('service'), []),
-    quietly('the routes', loadCollection('route'), []),
-    quietly('the events', loadCollection('event'), []),
-    quietly('the articles', loadCollection('article'), []),
-    quietly('the legal pages', loadCollection('legal'), []),
+    quietly('the fleet', () => loadVehicles(), []),
+    quietly('the services', () => loadCollection('service'), []),
+    quietly('the routes', () => loadCollection('route'), []),
+    quietly('the events', () => loadCollection('event'), []),
+    quietly('the articles', () => loadCollection('article'), []),
+    quietly('the legal pages', () => loadCollection('legal'), []),
   ])
 
   const pages: { path: string; priority: number; lastModified?: string }[] = [

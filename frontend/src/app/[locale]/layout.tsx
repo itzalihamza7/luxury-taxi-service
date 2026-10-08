@@ -7,6 +7,7 @@ import { contactDetails } from '@/components/layout/ContactButtons'
 import { PathnameTracker } from '@/components/layout/CurrentPath'
 import { Footer } from '@/components/layout/Footer'
 import { Header } from '@/components/layout/Header'
+import { HeaderPhone, ServiceLinks } from '@/components/layout/HeaderData'
 import { MobileBar } from '@/components/layout/MobileBar'
 import { site, siteUrl } from '@/content/site'
 import { I18nProvider } from '@/i18n/client'
@@ -14,7 +15,6 @@ import { locales } from '@/i18n/config'
 import { common } from '@/i18n/messages/common'
 import { getLocale } from '@/i18n/server'
 import { currentYear } from '@/lib/clock'
-import { loadCollection, quietly } from '@/lib/server-api'
 import '../globals.css'
 
 // Fonts are bundled with the app (SIL Open Font License), so builds never depend on a font CDN.
@@ -67,9 +67,23 @@ export default async function RootLayout({ children }: LayoutProps<'/[locale]'>)
               The page frame is sent at once. What comes from the console (the services
               menu, phone number, footer links) follows a moment later in the same response.
             */}
-            <Suspense fallback={<Header services={[]} phone={null} />}>
-              <SiteHeader />
-            </Suspense>
+            <Header
+              serviceLinks={
+                <Suspense fallback={null}>
+                  <ServiceLinks />
+                </Suspense>
+              }
+              mobileServiceLinks={
+                <Suspense fallback={null}>
+                  <ServiceLinks mobile />
+                </Suspense>
+              }
+              phone={
+                <Suspense fallback={null}>
+                  <HeaderPhone />
+                </Suspense>
+              }
+            />
             <main id="main" className="flex-1">
               {children}
             </main>
@@ -86,11 +100,6 @@ export default async function RootLayout({ children }: LayoutProps<'/[locale]'>)
       </body>
     </html>
   )
-}
-
-async function SiteHeader() {
-  const [locale, services, settings] = await Promise.all([getLocale(), quietly('the services', loadCollection('service'), []), contactDetails()])
-  return <Header services={services.map((service) => ({ slug: service.slug, title: service.title[locale] }))} phone={settings?.phone ?? null} />
 }
 
 async function SiteMobileBar() {

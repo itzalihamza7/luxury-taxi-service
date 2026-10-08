@@ -17,7 +17,7 @@ import { loadCollection, quietly } from '@/lib/server-api'
 
 export async function generateMetadata({ params }: PageProps<'/[locale]/journal/[slug]'>): Promise<Metadata> {
   const [{ slug }, locale] = await Promise.all([params, getLocale()])
-  const article = (await quietly('the articles', loadCollection('article'), [])).find((candidate) => candidate.slug === slug)
+  const article = (await quietly('the articles', () => loadCollection('article'), [])).find((candidate) => candidate.slug === slug)
   if (!article) return {}
   const meta = pageMetadata({ locale, path: `/journal/${article.slug}`, title: article.title[locale], description: article.excerpt[locale] })
   return { ...meta, openGraph: { ...meta.openGraph, type: 'article', publishedTime: article.date } }

@@ -16,7 +16,7 @@ const grid = 'grid gap-5 sm:grid-cols-2 lg:grid-cols-3'
 async function Vehicles({ slugs, exclude, limit }: Props) {
   // The fleet lives in the database, which is only reachable while the site is
   // running: it is loaded on request (from a cache), never while building.
-  const [all, locale, t] = await Promise.all([quietly('the fleet', loadVehicles(), []), getLocale(), getCommon()])
+  const [all, locale, t] = await Promise.all([quietly('the fleet', () => loadVehicles(), []), getLocale(), getCommon()])
   let vehicles = slugs ? slugs.flatMap((slug) => all.filter((vehicle) => vehicle.slug === slug)) : all
   if (exclude) vehicles = vehicles.filter((vehicle) => vehicle.slug !== exclude)
   if (limit) vehicles = vehicles.slice(0, limit)
