@@ -30,7 +30,7 @@ it prints `Ready` when the site can be opened:
 
 - Website: <https://luxury-taxi-service.ddev.site>
 - Operations console: <https://luxury-taxi-service.ddev.site/en/admin> —
-  sign in with `admin@alteza.example` / `admin-dev-password` (development only, set in
+  sign in with `admin@viacentralmobility.example` / `admin-dev-password` (development only, set in
   [`.ddev/config.yaml`](.ddev/config.yaml))
 
 If the browser warns about the certificate, run `mkcert -install` once and restart the browser.

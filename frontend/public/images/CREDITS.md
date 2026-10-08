@@ -30,6 +30,7 @@ Replace any of them with your own photographs in the operations console
 | `journal/barajas.jpg` | Madrid–Barajas Terminal 4, inside | [16292057](https://www.pexels.com/photo/modern-airport-terminal-16292057/) | radubradu |
 | `journal/cabin.jpg` | Rear seats of a luxury car | [9651478](https://www.pexels.com/photo/a-luxurious-car-interior-9651478/) | ammy-k |
 | `site/hero.jpg` | Gran Vía and the Metropolis building at night | [165637](https://www.pexels.com/photo/vehicle-on-road-with-high-rise-building-time-lapse-photography-165637/) | carlosr |
+| `../og.jpg` | Link-preview picture, composed from `site/hero.jpg` | [165637](https://www.pexels.com/photo/vehicle-on-road-with-high-rise-building-time-lapse-photography-165637/) | carlosr |
 | `site/metropolis.jpg` | The Metropolis building from above | [3254729](https://www.pexels.com/photo/yellow-and-beige-high-rise-building-3254729/) | alexazabache |
 | `site/chauffeur-door.jpg` | Chauffeur opening a car door | [15774577](https://www.pexels.com/photo/man-opening-car-door-for-woman-15774577/) | Pexels contributor |
 | `site/chauffeur-coat.jpg` | Chauffeur beside a saloon | [7594130](https://www.pexels.com/photo/a-man-going-inside-the-car-7594130/) | pavel-danilyuk |

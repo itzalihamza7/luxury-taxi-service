@@ -12,8 +12,8 @@ interface PageMeta {
   noIndex?: boolean
 }
 
-/** Picture shown when a page is shared in a chat or on social media (`public/og.png`). */
-const previewImage = { url: `${siteUrl}/og.png`, width: 1200, height: 630, alt: `${site.name} ${site.descriptor} — ${site.city}` }
+/** Picture shown when a page is shared in a chat or on social media (`public/og.jpg`). */
+const previewImage = { url: `${siteUrl}/og.jpg`, width: 1200, height: 630, alt: `${site.name} ${site.descriptor} — ${site.city}` }
 
 /** Title, description, canonical URL, `hreflang` alternates and Open Graph tags for a page. */
 export function pageMetadata({ locale, path, title, description, noIndex }: PageMeta): Metadata {

@@ -9,7 +9,7 @@ import type { SiteSettings } from '../../modules/content/schemas.js'
 export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   phone: '+34 900 000 000',
   whatsapp: '34900000000',
-  email: 'hello@alteza.example',
+  email: 'hello@viacentralmobility.example',
   social: { instagram: '', facebook: '', tripadvisor: '', google: '' },
   legal: {
     companyName: '[Company legal name]',

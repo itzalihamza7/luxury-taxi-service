@@ -4,13 +4,13 @@
  * Contact details, company data and all page content are edited in the
  * operations console (`/admin`), not here.
  *
- * PLACEHOLDER: the brand name is an example. If it changes, also replace the
- * images that carry it (see "Before going live" in the README).
+ * If the name changes, also replace the images that carry it (see "Before
+ * going live" in the README).
  */
 export const site = {
-  name: 'Alteza',
+  name: 'ViaCentral',
   /** Shown next to the name in the logo and page titles. */
-  descriptor: 'Chauffeurs',
+  descriptor: 'Mobility',
   city: 'Madrid',
   country: 'Spain',
 } as const
