@@ -3,8 +3,11 @@
 A bilingual (English / Spanish) website for a chauffeur company, with online booking.
 
 Visitors enter a journey, see a fixed price for every vehicle, and book — as a guest or with an
-account. They can then track or cancel the booking with their reference. The operator confirms and
-manages bookings in a small console at `/admin`.
+account. They can then track or cancel the booking with their reference.
+
+The operator runs everything from a console at `/admin`: bookings, the fleet (prices, photos, the
+order vehicles are shown in), the website's content and the business's contact details. No
+developer is needed for day-to-day changes.
 
 | Part | Technology | Folder |
 | --- | --- | --- |
@@ -79,7 +82,7 @@ data (the fleet, and the admin account from `.env`), so deploying a new version 
   sitemap and payment return links.
 - If the proxy buffers responses, let it stream instead (the site sends `X-Accel-Buffering: no`
   for nginx); pages are delivered in parts.
-- Back up the `db-data` volume.
+- Back up the `db-data` volume. It holds everything: bookings, accounts, content and uploaded photos.
 
 ## Project layout
 
@@ -93,20 +96,22 @@ backend/
   src/app.ts             Routes and middleware
   src/config.ts          Environment variables and business limits
   src/db/schema.ts       Database tables        -> `npm run db:generate` writes drizzle/*.sql
-  src/db/fleet.ts        Starting fleet and prices (used once, when the table is empty)
+  src/db/fleet.ts        Starting fleet and prices  (written once, to a new database)
+  src/db/content/        Starting content           (written once, to a new database)
   src/lib/pricing.ts     Fare calculation
   src/lib/geo.ts         Distance: routing server, or the built-in estimate
-  src/modules/           auth, vehicles, places, quotes, bookings, payments, contact, admin
+  src/modules/           auth, vehicles, places, quotes, bookings, payments, content, media,
+                         contact, admin
   src/test/              API tests against a real PostgreSQL database
   drizzle/               SQL migrations (committed)
 
 frontend/
   src/app/[locale]/      Pages (`/en/...`, `/es/...`)
   src/app/api/           Gateway that forwards `/api/*` to the backend
-  src/content/           Editable content: site details, services, routes, events, journal, FAQ, legal
+  src/content/site.ts    The brand name, as built into the logo and page titles
   src/i18n/messages/     Interface text in both languages
-  src/components/        UI: booking wizard, account, admin console, layout
-  public/images/fleet/   Put vehicle photos here (see the README inside)
+  src/components/        UI: booking form, account, operations console, layout
+  public/images/         Photographs that ship with the site (sources in CREDITS.md)
 ```
 
 ## How it works
@@ -136,15 +141,30 @@ hashed with scrypt; the session is an HttpOnly cookie.
 before pickup, and must book at least 2 hours ahead. Both limits are settings.
 
 **Languages.** Every page exists under `/en` and `/es`. The bare address redirects to the visitor's
-language. Interface text is in `frontend/src/i18n/messages/`, long-form content in
-`frontend/src/content/`.
+language. Interface text (buttons, labels, the fixed parts of pages) is in
+`frontend/src/i18n/messages/`; everything else is content, edited in the console in both languages.
 
-**Vehicles.** The fleet comes from the database, so price or capacity changes appear on the site
-within about a minute, with no rebuild:
+**The console.** At `/admin`, an operator manages:
 
-```sql
-update vehicles set min_fare_cents = 6500, per_km_cents = 200 where slug = 'mercedes-e-class';
-```
+| Tab | What it changes |
+| --- | --- |
+| Bookings, Messages | Confirm rides, record payments, read contact messages |
+| Fleet | Vehicles: name, capacity, the four rates, photo, position, shown or hidden |
+| Content | Services, routes, events, journal articles, questions, reviews, legal pages |
+| Business details | Phone, WhatsApp, email, social profiles, company details |
+
+A save shows on the website straight away. Lists and long texts are typed as plain text: one item
+per line, an empty line between paragraphs, `## ` before a heading and `- ` before a bullet point.
+Legal texts may contain `{companyName}`, `{taxId}`, `{address}`, `{registry}`, `{licence}`,
+`{email}`, `{phone}` and `{brand}`, which are replaced with the saved business details.
+
+**Photos.** Pictures uploaded in the console are made smaller in the browser, stored in the
+database and served at `/api/media/…`, so a database backup contains them. The website resizes
+every photo for the visitor's screen. A vehicle without a photo is shown as a line drawing.
+
+**Starting data.** A new database is filled with the fleet and content in `backend/src/db/`. That
+happens once: afterwards the console is where things change, and what an operator deletes does not
+come back.
 
 ## Changing the database
 
