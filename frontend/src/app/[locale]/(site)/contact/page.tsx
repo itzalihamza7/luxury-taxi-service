@@ -15,7 +15,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return pageMetadata({ locale, path: '/contact', title: p.contact.metaTitle, description: p.contact.metaDescription })
 }
 
-/** How to reach the business. The phone, WhatsApp and email lines come from the console. */
+/** How to reach the business. The phone, WhatsApp and email lines come from the admin panel. */
 async function Details() {
   const [t, settings] = await Promise.all([getCommon(), contactDetails()])
   const details = [
@@ -37,9 +37,9 @@ async function Details() {
           <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-bone-100 text-gold-700">
             <detail.icon aria-hidden strokeWidth={1.5} className="size-[1.125rem]" />
           </span>
-          <div>
+          <div className="min-w-0">
             <dt className="eyebrow text-ink-900/60">{detail.label}</dt>
-            <dd className="mt-1 font-medium">
+            <dd className="mt-1 font-medium break-words">
               {detail.href ? (
                 <a href={detail.href} {...(detail.href.startsWith('http') ? { target: '_blank', rel: 'noopener noreferrer' } : {})} className="underline-offset-4 hover:text-gold-700 hover:underline">
                   {detail.value}
@@ -67,7 +67,7 @@ export default async function ContactPage() {
       </PageHero>
 
       <Section tone="bone">
-        <div className="grid gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] lg:gap-16">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] lg:gap-16">
           <ContactForm c={c} />
 
           <div className="space-y-6">
