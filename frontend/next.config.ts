@@ -19,6 +19,11 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: ['*.ddev.site'],
   images: {
     formats: ['image/avif', 'image/webp'],
+    // Laptop screens get a picture of their own size instead of the 1920px one.
+    deviceSizes: [640, 750, 828, 1080, 1200, 1440, 1680, 1920, 2048, 3840],
+    // Resized photos are kept for a month, by the server and by browsers. A photo
+    // replaced in the admin panel gets a new address, so nothing stale is shown.
+    minimumCacheTTL: 2_592_000,
     // Only these may be resized: photos that ship with the site, and photos uploaded in the console.
     localPatterns: [
       { pathname: '/images/**', search: '' },
