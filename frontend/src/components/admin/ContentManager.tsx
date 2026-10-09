@@ -11,6 +11,7 @@ import { api, errorMessage } from '@/lib/api'
 import type { Collection } from '@/lib/types'
 import { blankEntry, contentFields, entryDetail, entryTitle, PAGE_PATHS, type Choices } from './definitions'
 import { EntryForm, type Draft } from './EntryForm'
+import { Lead } from './ui'
 
 interface AdminEntry {
   id: string
@@ -89,10 +90,10 @@ export function ContentManager({ m }: { m: ManageMessages }) {
   const pagePath = PAGE_PATHS[collection]
 
   return (
-    <div className="mt-6">
-      <p className="max-w-3xl text-sm leading-relaxed text-ink-900/65">{m.content.lead}</p>
+    <div>
+      <Lead>{m.content.lead}</Lead>
 
-      <div role="tablist" aria-label={m.tabs.content} className="mt-5 flex flex-wrap gap-2">
+      <div role="tablist" aria-label={m.nav.content} className="mt-5 flex flex-wrap gap-2">
         {COLLECTIONS.map((id) => (
           <button
             key={id}
@@ -160,8 +161,8 @@ export function ContentManager({ m }: { m: ManageMessages }) {
               )
             }
             return (
-              <li key={entry.id} className="flex items-center gap-4 rounded-md border border-ink-900/10 bg-white p-4">
-                <span className="w-10 shrink-0 text-center font-display text-xl text-ink-900/60" title={m.position}>
+              <li key={entry.id} className="flex items-center gap-4 rounded-xl border border-ink-900/10 bg-white p-4">
+                <span className="w-10 shrink-0 text-center text-sm font-semibold text-ink-900/60 tabular-nums" title={m.position}>
                   {entry.sortOrder}
                 </span>
                 <div className="min-w-0 flex-1">

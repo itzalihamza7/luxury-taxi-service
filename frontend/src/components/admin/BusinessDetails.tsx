@@ -7,6 +7,7 @@ import type { ManageMessages } from '@/i18n/messages/manage'
 import { api, errorMessage } from '@/lib/api'
 import { settingsFields } from './definitions'
 import { EntryForm, type Draft } from './EntryForm'
+import { Lead } from './ui'
 
 /** Phone, WhatsApp, email, social profiles and the company details used in the legal pages. */
 export function BusinessDetails({ m }: { m: ManageMessages }) {
@@ -29,8 +30,8 @@ export function BusinessDetails({ m }: { m: ManageMessages }) {
   }, [t])
 
   return (
-    <div className="mt-6">
-      <p className="max-w-3xl text-sm leading-relaxed text-ink-900/65">{m.business.lead}</p>
+    <div>
+      <Lead>{m.business.lead}</Lead>
       {error ? (
         <div className="mt-5">
           <FormMessage tone="error">{error}</FormMessage>
@@ -39,7 +40,7 @@ export function BusinessDetails({ m }: { m: ManageMessages }) {
       {settings ? (
         <div className="mt-5">
           <EntryForm
-            title={m.tabs.business}
+            title={m.nav.settings}
             fields={settingsFields(m)}
             initial={settings}
             m={m}

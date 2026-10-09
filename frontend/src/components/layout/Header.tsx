@@ -1,51 +1,14 @@
 'use client'
 
-import { ChevronDown, Menu, UserRound, X } from 'lucide-react'
-import NextLink from 'next/link'
+import { ChevronDown, Menu, X } from 'lucide-react'
 import { useEffect, useState, useSyncExternalStore, type ReactNode } from 'react'
-import { useAuth } from '@/components/auth/AuthProvider'
 import { Wordmark } from '@/components/ui/Brand'
 import { ButtonLink } from '@/components/ui/Button'
 import { Link } from '@/components/ui/Link'
 import { site } from '@/content/site'
-import { useCurrentPath } from './CurrentPath'
 import { useI18n } from '@/i18n/client'
-import { href, LOCALE_COOKIE, locales, switchLocalePath, type Locale } from '@/i18n/config'
-
-/** Remember the chosen language, so the bare domain opens in it next time. */
-function rememberLocale(choice: Locale): void {
-  document.cookie = `${LOCALE_COOKIE}=${choice}; path=/; max-age=31536000; samesite=lax`
-}
-
-/**
- * Switches language while staying on the same page. Until the page is interactive
- * the links point at each language's home page.
- */
-function LanguageSwitch({ className = '' }: { className?: string }) {
-  const { locale, t } = useI18n()
-  const pathname = useCurrentPath()
-  const target = (option: Locale) => (pathname ? switchLocalePath(pathname, option) : href(option))
-
-  return (
-    <div role="group" aria-label={t.nav.language} className={`flex items-center text-xs font-medium tracking-[0.14em] ${className}`}>
-      {locales.map((option, index) => (
-        <span key={option} className="flex items-center">
-          {index > 0 ? <span aria-hidden className="mx-1.5 opacity-30">/</span> : null}
-          <NextLink
-            href={target(option)}
-            hrefLang={option}
-            lang={option}
-            aria-current={option === locale ? 'true' : undefined}
-            onClick={() => rememberLocale(option)}
-            className={`uppercase transition-colors hover:text-gold-300 ${option === locale ? 'text-gold-300' : 'opacity-60'}`}
-          >
-            {option}
-          </NextLink>
-        </span>
-      ))}
-    </div>
-  )
-}
+import { AccountMenu, MobileAccount } from './AccountMenu'
+import { LanguageSwitch } from './LanguageSwitch'
 
 function subscribeToScroll(onChange: () => void) {
   window.addEventListener('scroll', onChange, { passive: true })
@@ -66,7 +29,6 @@ interface Props {
  */
 export function Header({ serviceLinks, mobileServiceLinks, phone }: Props) {
   const { t } = useI18n()
-  const { user } = useAuth()
   // The bar turns solid once the page has scrolled past the top of the hero.
   const scrolled = useSyncExternalStore(
     subscribeToScroll,
@@ -92,8 +54,6 @@ export function Header({ serviceLinks, mobileServiceLinks, phone }: Props) {
     { href: '/contact', label: t.nav.contact },
   ]
   const linkClass = 'inline-flex h-10 items-center text-[0.8125rem] font-medium tracking-wide text-bone-50/80 transition-colors hover:text-gold-300'
-  const accountHref = user ? (user.role === 'admin' ? '/admin' : '/account') : '/login'
-  const accountLabel = user ? (user.role === 'admin' ? t.nav.admin : t.nav.account) : t.nav.signIn
 
   return (
     <header
@@ -134,10 +94,9 @@ export function Header({ serviceLinks, mobileServiceLinks, phone }: Props) {
           <div className="hidden sm:block">
             <LanguageSwitch />
           </div>
-          <Link href={accountHref} aria-label={accountLabel} title={accountLabel} className="hidden rounded-full p-2 text-bone-50/80 transition-colors hover:text-gold-300 sm:inline-flex">
-            <UserRound aria-hidden className="size-[1.125rem]" />
-            {user ? <span aria-hidden className="-ml-1.5 -mt-0.5 size-1.5 rounded-full bg-gold-400" /> : null}
-          </Link>
+          <div className="hidden sm:block">
+            <AccountMenu />
+          </div>
           <div className="hidden sm:block">
             <ButtonLink href="/booking">{t.actions.book}</ButtonLink>
           </div>
@@ -181,11 +140,8 @@ export function Header({ serviceLinks, mobileServiceLinks, phone }: Props) {
             <ButtonLink href="/booking" size="lg" arrow>
               {t.actions.book}
             </ButtonLink>
+            <MobileAccount onDone={() => setOpen(false)} />
             <div className="flex items-center justify-between pt-2 text-sm text-bone-50/70">
-              <Link href={accountHref} className="inline-flex items-center gap-2">
-                <UserRound aria-hidden className="size-4" />
-                {accountLabel}
-              </Link>
               <Link href="/booking/track">{t.nav.track}</Link>
               <LanguageSwitch />
             </div>

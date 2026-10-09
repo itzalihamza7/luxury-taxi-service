@@ -247,5 +247,7 @@ export function settingsFields(m: ManageMessages): FieldDef[] {
     { kind: 'text', path: 'legal.address', label: b.address },
     heading(b.reviews),
     { kind: 'boolean', path: 'reviewsAreSamples', label: b.reviewsAreSamples, hint: b.reviewsHint },
+    heading(b.phoneBookings),
+    { kind: 'boolean', path: 'linkBookingsOnSignup', label: b.linkBookingsOnSignup, hint: b.linkBookingsHint },
   ]
 }

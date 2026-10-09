@@ -119,7 +119,7 @@ function Outcome({ b }: { b: BookingMessages }) {
       </h2>
       <p className="mt-4 text-[0.9375rem] leading-relaxed text-ink-900/65">{b.pay.successText}</p>
       <div className="mt-8 border-t border-ink-900/10 pt-8">
-        <BookingDetails booking={booking} b={b} timeZone={config.timeZone} email={booking.contact.email} onChange={setBooking} />
+        <BookingDetails booking={booking} b={b} timeZone={config.timeZone} proof={{ email: booking.contact.email ?? undefined }} onChange={setBooking} />
       </div>
     </div>
   )

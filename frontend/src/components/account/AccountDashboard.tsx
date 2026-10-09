@@ -1,8 +1,8 @@
 'use client'
 
 import { ChevronDown, LogOut } from 'lucide-react'
-import { useRouter } from 'next/navigation'
-import { useEffect, useState, type FormEvent } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { Suspense, useEffect, useState, type FormEvent } from 'react'
 import { useAuth } from '@/components/auth/AuthProvider'
 import { BookingDetails, StatusBadge } from '@/components/booking/BookingDetails'
 import { Button, ButtonLink } from '@/components/ui/Button'
@@ -23,7 +23,14 @@ interface Props {
 }
 
 export function AccountDashboard(props: Props) {
-  return useHydrated() ? <Dashboard {...props} /> : <div aria-busy="true" className="h-96 animate-pulse rounded-lg bg-ink-900/5" />
+  const placeholder = <div aria-busy="true" className="h-96 animate-pulse rounded-lg bg-ink-900/5" />
+  return useHydrated() ? (
+    <Suspense fallback={placeholder}>
+      <Dashboard {...props} />
+    </Suspense>
+  ) : (
+    placeholder
+  )
 }
 
 function Dashboard({ a, b }: Props) {
@@ -32,7 +39,12 @@ function Dashboard({ a, b }: Props) {
   const router = useRouter()
   const config = useAppConfig()
   const [now] = useState(() => Date.now())
-  const [tab, setTab] = useState<'bookings' | 'profile'>('bookings')
+  // The address says which tab is open, so the account menu can link straight to "My details".
+  const searchParams = useSearchParams()
+  const tab = searchParams.get('tab') === 'profile' ? 'profile' : 'bookings'
+  const setTab = (next: 'bookings' | 'profile') => window.history.replaceState(null, '', next === 'profile' ? `${window.location.pathname}?tab=profile` : window.location.pathname)
+  /** Bookings taken by phone that joined the account when it was created. */
+  const linked = Number(searchParams.get('linked')) || 0
   const [bookings, setBookings] = useState<Booking[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [openReference, setOpenReference] = useState<string | null>(null)
@@ -134,6 +146,12 @@ function Dashboard({ a, b }: Props) {
           </button>
         ))}
       </div>
+
+      {linked > 0 && tab === 'bookings' ? (
+        <div className="mt-8">
+          <FormMessage tone="success">{linked === 1 ? a.linkedOne : fill(a.linkedMany, { count: linked })}</FormMessage>
+        </div>
+      ) : null}
 
       <div className="mt-8">
         {tab === 'profile' ? (

@@ -40,6 +40,7 @@ export function RideStep({
   config,
   now,
   b,
+  byOperator = false,
 }: {
   draft: Draft
   patch: Patch
@@ -48,6 +49,8 @@ export function RideStep({
   /** The time the form was opened, used to offer sensible pickup shortcuts. */
   now: number
   b: BookingMessages
+  /** The business entering a ride for a customer: it may leave right away, so the notice period does not apply. */
+  byOperator?: boolean
 }) {
   const { t } = useI18n()
   const r = b.ride
@@ -56,11 +59,12 @@ export function RideStep({
   const message = (key: string) => fieldMessage(errors[key], t)
 
   // Shortcuts for the pickup time, all in Madrid local time and never sooner than the notice period.
-  const soonest = earliestPickup(now, config.timeZone, config.minLeadMinutes + 60)
+  const leadMinutes = byOperator ? 0 : config.minLeadMinutes + 60
+  const soonest = earliestPickup(now, config.timeZone, leadMinutes)
   const today = zonedFormValues(now, config.timeZone).date
   const tomorrow = zonedFormValues(now + 86_400_000, config.timeZone).date
   const quick = [
-    { label: fill(r.quick.inHours, { count: Math.round((config.minLeadMinutes + 60) / 60) }), ...soonest },
+    { label: byOperator ? r.quick.now : fill(r.quick.inHours, { count: Math.round(leadMinutes / 60) }), ...soonest },
     ...(soonest.date === today && soonest.time < '18:00' ? [{ label: fill(r.quick.today, { time: '18:00' }), date: today, time: '18:00' }] : []),
     { label: fill(r.quick.tomorrow, { time: '09:00' }), date: tomorrow, time: '09:00' },
     { label: fill(r.quick.tomorrow, { time: '18:00' }), date: tomorrow, time: '18:00' },
@@ -182,7 +186,7 @@ export function RideStep({
       </div>
 
       <p className="text-xs leading-relaxed text-ink-900/60">
-        {r.timezone} {r.notice}
+        {r.timezone} {byOperator ? null : r.notice}
       </p>
     </div>
   )

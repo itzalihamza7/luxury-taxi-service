@@ -36,8 +36,11 @@ function Tracker({ b }: { b: BookingMessages }) {
   const [form, setForm] = useState(() => {
     const recent = lastBooking()
     const fromLink = searchParams.get('ref')
-    return { reference: fromLink ?? recent?.reference ?? '', email: recent && (!fromLink || fromLink === recent.reference) ? recent.email : '' }
+    return { reference: fromLink ?? recent?.reference ?? '', contact: recent && (!fromLink || fromLink === recent.reference) ? recent.email : '' }
   })
+  // One field takes either: an email address has an @, a phone number does not.
+  const contact = form.contact.trim()
+  const proof = contact.includes('@') ? { email: contact } : { phone: contact }
   const [booking, setBooking] = useState<Booking | null>(null)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [error, setError] = useState<string | null>(null)
@@ -49,7 +52,7 @@ function Tracker({ b }: { b: BookingMessages }) {
     setError(null)
     setErrors({})
     try {
-      const result = await api<{ booking: Booking }>('/bookings/lookup', { method: 'POST', body: form })
+      const result = await api<{ booking: Booking }>('/bookings/lookup', { method: 'POST', body: { reference: form.reference, ...proof } })
       setBooking(result.booking)
     } catch (caught) {
       if (caught instanceof ApiError && caught.code === 'VALIDATION') setErrors(caught.fields)
@@ -63,7 +66,7 @@ function Tracker({ b }: { b: BookingMessages }) {
     return (
       <div className="mx-auto max-w-3xl">
         <div className="rounded-lg border border-ink-900/10 bg-white p-6 sm:p-10">
-          <BookingDetails booking={booking} b={b} timeZone={config.timeZone} email={form.email} onChange={setBooking} />
+          <BookingDetails booking={booking} b={b} timeZone={config.timeZone} proof={proof} onChange={setBooking} />
         </div>
         <div className="no-print mt-6 flex flex-wrap items-center justify-between gap-4">
           <button type="button" onClick={() => setBooking(null)} className="text-sm font-medium text-ink-900/60 underline-offset-4 hover:text-ink-900 hover:underline">
@@ -93,14 +96,15 @@ function Tracker({ b }: { b: BookingMessages }) {
           error={fieldMessage(errors.reference, t)}
         />
         <TextField
-          id="track-email"
-          type="email"
-          label={b.track.email}
+          id="track-contact"
+          label={b.track.contact}
           autoComplete="email"
           inputMode="email"
-          value={form.email}
-          onChange={(event) => setForm({ ...form, email: event.target.value })}
-          error={fieldMessage(errors.email, t)}
+          autoCapitalize="none"
+          spellCheck={false}
+          value={form.contact}
+          onChange={(event) => setForm({ ...form, contact: event.target.value })}
+          error={fieldMessage(errors.email ?? errors.phone, t)}
         />
         {error ? <FormMessage tone="error">{error}</FormMessage> : null}
         <Button type="submit" variant="dark" size="lg" loading={busy} className="w-full">

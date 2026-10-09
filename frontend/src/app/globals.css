@@ -38,6 +38,8 @@
   --animate-drift: drift 14s linear infinite;
   /* A photograph easing back from a slight zoom as the page opens. */
   --animate-settle: settle 2.6s var(--ease-out-expo) both;
+  /* A menu opening under the button that owns it. */
+  --animate-pop: pop 0.18s var(--ease-out-expo) both;
 
   @keyframes rise {
     from {
@@ -70,6 +72,16 @@
     to {
       opacity: 1;
       transform: scale(1);
+    }
+  }
+  @keyframes pop {
+    from {
+      opacity: 0;
+      transform: translateY(-6px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
     }
   }
 }

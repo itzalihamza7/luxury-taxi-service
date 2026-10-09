@@ -11,17 +11,14 @@ import { useI18n } from '@/i18n/client'
 import { fill } from '@/i18n/config'
 import type { BookingMessages } from '@/i18n/messages/booking'
 import { api, ApiError, errorMessage } from '@/lib/api'
-import { clearDraft, emptyDraft, loadDraft, rememberBooking, saveDraft, type Draft } from '@/lib/booking-draft'
+import { clearDraft, clearFieldErrors, emptyDraft, loadDraft, normalizeFields, quoteRequest, rememberBooking, RIDE_FIELDS, saveDraft, validateRide, type Draft } from '@/lib/booking-draft'
 import { formatBags, formatDistance, formatDuration, formatFormDateTime, formatMoney, formatPassengers } from '@/lib/format'
 import { useAppConfig, useHydrated } from '@/lib/hooks'
-import { RIDE_TYPES, type Booking, type Place, type Quote, type QuoteOption, type RideType } from '@/lib/types'
+import { RIDE_TYPES, type Booking, type Quote, type QuoteOption, type RideType } from '@/lib/types'
 import { BookingDetails } from './BookingDetails'
 import { STEP_ORDER, StepIndicator, type StepId } from './controls'
 import { findPlace } from './PlaceInput'
 import { ContactStep, PaymentStep, ReviewStep, RideStep, VehicleStep, withProfile, type AuthMode, type Errors } from './steps'
-
-/** Changing any of these means the price has to be worked out again. */
-const RIDE_FIELDS: (keyof Draft)[] = ['rideType', 'pickup', 'dropoff', 'date', 'time', 'returnDate', 'returnTime', 'hours', 'adults', 'children', 'luggage']
 
 /** Values carried in the link that opened the form, e.g. `/booking?type=airport&vehicle=mercedes-s-class`. */
 function readPrefill(params: URLSearchParams) {
@@ -36,38 +33,6 @@ function readPrefill(params: URLSearchParams) {
   }
 }
 
-const placeLabel = (place: Place) => (place.sublabel ? `${place.label}, ${place.sublabel}` : place.label)
-const toPoint = (place: Place) => ({ label: placeLabel(place), lat: place.lat, lng: place.lng })
-
-function quoteRequest(draft: Draft) {
-  return {
-    rideType: draft.rideType,
-    pickup: draft.pickup ? toPoint(draft.pickup) : null,
-    dropoff: draft.dropoff ? toPoint(draft.dropoff) : null,
-    pickupDate: draft.date,
-    pickupTime: draft.time,
-    returnDate: draft.rideType === 'return' ? draft.returnDate : null,
-    returnTime: draft.rideType === 'return' ? draft.returnTime : null,
-    hours: draft.rideType === 'hourly' ? draft.hours : null,
-    adults: draft.adults,
-    children: draft.children,
-    luggage: draft.luggage,
-  }
-}
-
-function validateRide(draft: Draft): Errors {
-  const errors: Errors = {}
-  if (!draft.pickup) errors.pickup = 'select_place'
-  if (draft.rideType !== 'hourly' && !draft.dropoff) errors.dropoff = 'select_place'
-  if (!draft.date) errors.pickupDate = 'required'
-  if (!draft.time) errors.pickupTime = 'required'
-  if (draft.rideType === 'return') {
-    if (!draft.returnDate) errors.returnDate = 'required'
-    if (!draft.returnTime) errors.returnTime = 'required'
-  }
-  return errors
-}
-
 function validateContact(contact: Draft['contact']): Errors {
   const errors: Errors = {}
   const digits = contact.phone.replace(/\D/g, '').length
@@ -76,16 +41,6 @@ function validateContact(contact: Draft['contact']): Errors {
   else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact.email.trim())) errors['contact.email'] = 'invalid_email'
   if (!contact.phone.trim()) errors['contact.phone'] = 'required'
   else if (!/^\+?[\d\s().-]+$/.test(contact.phone.trim()) || digits < 7 || digits > 15) errors['contact.phone'] = 'invalid_phone'
-  return errors
-}
-
-/** The API reports `pickup.lat` and the like; the form shows one message per location field. */
-function normalizeFields(fields: Record<string, string>): Errors {
-  const errors: Errors = {}
-  for (const [key, code] of Object.entries(fields)) {
-    const field = key.startsWith('pickup.') ? 'pickup' : key.startsWith('dropoff.') ? 'dropoff' : key
-    errors[field] ??= field === 'pickup' || field === 'dropoff' ? (code === 'required' ? 'select_place' : code) : code
-  }
   return errors
 }
 
@@ -154,16 +109,7 @@ function Wizard({ b }: { b: BookingMessages }) {
       setQuote(null)
       setReached('ride')
     }
-    setErrors((current) => {
-      const next = { ...current }
-      for (const key of keys) {
-        delete next[key === 'date' ? 'pickupDate' : key === 'time' ? 'pickupTime' : key]
-        if (key === 'contact') for (const field of Object.keys(next)) if (field.startsWith('contact.')) delete next[field]
-        if (key === 'vehicleSlug') delete next.vehicle
-        if (key === 'adults' || key === 'children') delete next.adults
-      }
-      return next
-    })
+    setErrors((current) => clearFieldErrors(current, keys))
   }
 
   /** Step 1 -> 2: ask the API to price the journey for every vehicle. */
@@ -252,7 +198,7 @@ function Wizard({ b }: { b: BookingMessages }) {
         result = await send(fresh.id, same.vehicleId)
       }
 
-      rememberBooking(result.booking.reference, result.booking.contact.email)
+      rememberBooking(result.booking.reference, result.booking.contact.email ?? draft.contact.email)
       clearDraft()
       if (result.payment) {
         setRedirecting(true)
@@ -347,7 +293,7 @@ function Wizard({ b }: { b: BookingMessages }) {
           </p>
 
           <div className="mt-9 border-t border-ink-900/10 pt-8">
-            <BookingDetails booking={done} b={b} timeZone={config.timeZone} email={done.contact.email} onChange={setDone} />
+            <BookingDetails booking={done} b={b} timeZone={config.timeZone} proof={{ email: done.contact.email ?? undefined }} onChange={setDone} />
           </div>
 
           <div className="no-print mt-9 flex flex-wrap gap-3">

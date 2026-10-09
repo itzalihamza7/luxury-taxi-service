@@ -118,3 +118,62 @@ export function lastBooking(): { reference: string; email: string } | null {
     return null
   }
 }
+
+/** Changing any of these means the price has to be worked out again. */
+export const RIDE_FIELDS: (keyof Draft)[] = ['rideType', 'pickup', 'dropoff', 'date', 'time', 'returnDate', 'returnTime', 'hours', 'adults', 'children', 'luggage']
+
+const placeLabel = (place: Place) => (place.sublabel ? `${place.label}, ${place.sublabel}` : place.label)
+const toPoint = (place: Place) => ({ label: placeLabel(place), lat: place.lat, lng: place.lng })
+
+/** The journey of a draft, as the API prices it. */
+export function quoteRequest(draft: Draft) {
+  return {
+    rideType: draft.rideType,
+    pickup: draft.pickup ? toPoint(draft.pickup) : null,
+    dropoff: draft.dropoff ? toPoint(draft.dropoff) : null,
+    pickupDate: draft.date,
+    pickupTime: draft.time,
+    returnDate: draft.rideType === 'return' ? draft.returnDate : null,
+    returnTime: draft.rideType === 'return' ? draft.returnTime : null,
+    hours: draft.rideType === 'hourly' ? draft.hours : null,
+    adults: draft.adults,
+    children: draft.children,
+    luggage: draft.luggage,
+  }
+}
+
+/** What is still missing before the journey can be priced, as field error codes. */
+export function validateRide(draft: Draft): Record<string, string> {
+  const errors: Record<string, string> = {}
+  if (!draft.pickup) errors.pickup = 'select_place'
+  if (draft.rideType !== 'hourly' && !draft.dropoff) errors.dropoff = 'select_place'
+  if (!draft.date) errors.pickupDate = 'required'
+  if (!draft.time) errors.pickupTime = 'required'
+  if (draft.rideType === 'return') {
+    if (!draft.returnDate) errors.returnDate = 'required'
+    if (!draft.returnTime) errors.returnTime = 'required'
+  }
+  return errors
+}
+
+/** The API reports `pickup.lat` and the like; the form shows one message per location field. */
+export function normalizeFields(fields: Record<string, string>): Record<string, string> {
+  const errors: Record<string, string> = {}
+  for (const [key, code] of Object.entries(fields)) {
+    const field = key.startsWith('pickup.') ? 'pickup' : key.startsWith('dropoff.') ? 'dropoff' : key
+    errors[field] ??= field === 'pickup' || field === 'dropoff' ? (code === 'required' ? 'select_place' : code) : code
+  }
+  return errors
+}
+
+/** Drop the errors of the fields that were just edited. The form and the API name some of them differently. */
+export function clearFieldErrors(errors: Record<string, string | undefined>, changed: (keyof Draft)[]): Record<string, string | undefined> {
+  const next = { ...errors }
+  for (const key of changed) {
+    delete next[key === 'date' ? 'pickupDate' : key === 'time' ? 'pickupTime' : key]
+    if (key === 'contact') for (const field of Object.keys(next)) if (field.startsWith('contact.')) delete next[field]
+    if (key === 'vehicleSlug') delete next.vehicle
+    if (key === 'adults' || key === 'children') delete next.adults
+  }
+  return next
+}

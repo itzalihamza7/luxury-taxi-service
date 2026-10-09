@@ -1,24 +1,13 @@
-import type { Metadata } from 'next'
-import { AdminConsole } from '@/components/admin/AdminConsole'
-import { PageHero } from '@/components/layout/PageHero'
-import { getAccount, getBooking, getLocale, getManage } from '@/i18n/server'
-import { pageMetadata } from '@/lib/seo'
+import { adminMetadata } from '@/components/admin/metadata'
+import { Overview } from '@/components/admin/Overview'
+import { getAccount, getManage } from '@/i18n/server'
 
-export async function generateMetadata(): Promise<Metadata> {
-  const [locale, a] = await Promise.all([getLocale(), getAccount()])
-  return pageMetadata({ locale, path: '/admin', title: a.admin.metaTitle, description: a.admin.lead, noIndex: true })
-}
+// Shown only once the browser knows an administrator is signed in, so there is no instant state to validate.
+export const instant = false
 
-export default async function AdminPage() {
-  const [a, b, m] = await Promise.all([getAccount(), getBooking(), getManage()])
-  return (
-    <>
-      <PageHero compact eyebrow={a.admin.eyebrow} title={a.admin.title} lead={a.admin.lead} crumbs={[{ label: a.admin.metaTitle }]} />
-      <section className="bg-bone-50 py-12 sm:py-16">
-        <div className="container-page">
-          <AdminConsole a={a.admin} b={b} m={m} />
-        </div>
-      </section>
-    </>
-  )
+export const generateMetadata = () => adminMetadata('overview', '/admin')
+
+export default async function AdminOverviewPage() {
+  const [a, m] = await Promise.all([getAccount(), getManage()])
+  return <Overview a={a.admin} m={m} />
 }

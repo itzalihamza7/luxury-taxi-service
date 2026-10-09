@@ -261,7 +261,7 @@ function FieldControl({ def, draft, errors, m, formId, change }: { def: FieldDef
     case 'heading':
       return (
         <div className="col-span-full mt-4 border-t border-ink-900/10 pt-7 first:mt-0 first:border-0 first:pt-0">
-          <h4 className="font-display text-2xl">{def.label}</h4>
+          <h4 className="text-base font-semibold tracking-tight">{def.label}</h4>
           {def.hint ? <p className="mt-1.5 max-w-3xl text-sm leading-relaxed text-ink-900/60">{def.hint}</p> : null}
         </div>
       )
@@ -455,9 +455,9 @@ export function EntryForm({ title, fields, initial, m, onSave, onCancel, onDelet
         event.preventDefault()
         void run('save', () => onSave(draft), m.saved)
       }}
-      className="rounded-lg border border-ink-900/10 bg-white p-5 sm:p-8"
+      className="rounded-xl border border-ink-900/10 bg-white p-5 shadow-[0_1px_2px_rgba(12,18,27,0.04)] sm:p-8"
     >
-      <h3 className="font-display text-3xl">{title}</h3>
+      <h3 className="text-xl font-semibold tracking-tight">{title}</h3>
 
       <div className="mt-7 grid gap-x-5 gap-y-6 sm:grid-cols-2 lg:grid-cols-4">
         {fields.map((def, index) => (

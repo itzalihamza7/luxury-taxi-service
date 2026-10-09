@@ -13,7 +13,7 @@ import { useCurrentPath } from './CurrentPath'
 export function MobileBar({ phone, whatsapp }: { phone: string | null; whatsapp: string | null }) {
   const { t } = useI18n()
   const pathname = useCurrentPath()
-  if (pathname === null || /\/(booking|login|register|account|admin)(\/|$)/.test(pathname)) return null
+  if (pathname === null || /\/(booking|login|register|account)(\/|$)/.test(pathname)) return null
 
   const item = 'flex flex-1 flex-col items-center justify-center gap-1 text-[0.6875rem] font-medium tracking-wide text-bone-100/80'
   return (

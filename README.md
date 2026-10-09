@@ -5,9 +5,9 @@ A bilingual (English / Spanish) website for a chauffeur company, with online boo
 Visitors enter a journey, see a fixed price for every vehicle, and book — as a guest or with an
 account. They can then track or cancel the booking with their reference.
 
-The operator runs everything from a console at `/admin`: bookings, the fleet (prices, photos, the
-order vehicles are shown in), the website's content and the business's contact details. No
-developer is needed for day-to-day changes.
+The operator runs everything from an admin panel at `/admin`: bookings (including ones taken by
+phone or WhatsApp), the fleet (prices, photos, the order vehicles are shown in), the website's
+content and the business's contact details. No developer is needed for day-to-day changes.
 
 | Part | Technology | Folder |
 | --- | --- | --- |
@@ -29,7 +29,7 @@ adds the starting fleet, and runs both apps with hot reload. The first start tak
 it prints `Ready` when the site can be opened:
 
 - Website: <https://luxury-taxi-service.ddev.site>
-- Operations console: <https://luxury-taxi-service.ddev.site/en/admin> —
+- Admin panel: <https://luxury-taxi-service.ddev.site/en/admin> —
   sign in with `admin@viacentralmobility.example` / `admin-dev-password` (development only, set in
   [`.ddev/config.yaml`](.ddev/config.yaml))
 
@@ -106,11 +106,11 @@ backend/
   drizzle/               SQL migrations (committed)
 
 frontend/
-  src/app/[locale]/      Pages (`/en/...`, `/es/...`)
+  src/app/[locale]/      Pages (`/en/...`, `/es/...`): `(site)/` is the public website, `admin/` the panel
   src/app/api/           Gateway that forwards `/api/*` to the backend
   src/content/site.ts    The brand name, as built into the logo and page titles
   src/i18n/messages/     Interface text in both languages
-  src/components/        UI: booking form, account, operations console, layout
+  src/components/        UI: booking form, account, admin panel, layout
   public/images/         Photographs that ship with the site (sources in CREDITS.md)
 ```
 
@@ -133,8 +133,20 @@ Photon-compatible geocoder (OpenStreetMap data). The default is the public Photo
 fine for light use; run your own for a busy site.
 
 **Accounts.** Booking never requires an account. Guests track or cancel a booking with its
-reference **and** the email used to book. Accounts keep a profile and list bookings. Passwords are
-hashed with scrypt; the session is an HttpOnly cookie.
+reference **and** the email address or phone number it was made with. Accounts keep a profile and
+list bookings. Passwords are hashed with scrypt; the session is an HttpOnly cookie. The account
+button in the header opens a menu: *My bookings*, *My details*, *Sign out*, and *Admin panel* for
+administrators.
+
+**Bookings by phone or WhatsApp.** In the admin panel, *New booking* enters a ride for a customer
+who called or wrote: a name and a phone number or email address are enough, the ride may leave
+right away, a price agreed with the customer can replace the calculated one, and the booking is
+confirmed at once. The panel then offers a ready-made confirmation message to send on WhatsApp.
+If the customer already has an account the booking appears in it; if not, it joins the account
+they create later with the same email address or phone number. New accounts do not prove that an
+address or number is theirs, so this trusts whoever signs up with it. Switch it off under
+*Business details → Bookings taken by phone* if that is not acceptable; such bookings are then
+reachable only with their reference.
 
 **Bookings.** New bookings are `pending` until the operator confirms them in `/admin`, then
 `confirmed → in_progress → completed` (or `cancelled`). Customers can cancel online until 24 hours
@@ -144,11 +156,14 @@ before pickup, and must book at least 2 hours ahead. Both limits are settings.
 language. Interface text (buttons, labels, the fixed parts of pages) is in
 `frontend/src/i18n/messages/`; everything else is content, edited in the console in both languages.
 
-**The console.** At `/admin`, an operator manages:
+**The admin panel.** At `/admin`, with its own menu instead of the website's header and footer.
+To restart development with a clean compiler cache, stop DDEV and delete `frontend/.next/dev`.
 
-| Tab | What it changes |
+| Page | What it does |
 | --- | --- |
+| Overview | Counts, the next rides, what is waiting for confirmation |
 | Bookings, Messages | Confirm rides, record payments, read contact messages |
+| New booking | Enter a booking for a customer who phoned or wrote |
 | Fleet | Vehicles: name, capacity, the four rates, photo, position, shown or hidden |
 | Content | Services, routes, events, journal articles, questions, reviews, legal pages |
 | Business details | Phone, WhatsApp, email, social profiles, company details |

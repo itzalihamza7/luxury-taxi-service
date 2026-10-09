@@ -43,15 +43,15 @@ export function BookingDetails({
   booking,
   b,
   timeZone,
-  /** Needed to cancel as a guest; signed-in owners are recognised by their session. */
-  email,
+  /** Needed to cancel as a guest: the email address or phone number the booking was made with. Signed-in owners are recognised by their session. */
+  proof,
   onChange,
   hideCancel,
 }: {
   booking: Booking
   b: BookingMessages
   timeZone: string
-  email?: string
+  proof?: { email?: string; phone?: string }
   onChange?: (booking: Booking) => void
   hideCancel?: boolean
 }) {
@@ -68,7 +68,7 @@ export function BookingDetails({
     setBusy(true)
     setError(null)
     try {
-      const result = await api<{ booking: Booking }>(`/bookings/${booking.reference}/cancel`, { method: 'POST', body: email ? { email } : {} })
+      const result = await api<{ booking: Booking }>(`/bookings/${booking.reference}/cancel`, { method: 'POST', body: proof ?? {} })
       dialog.current?.close()
       onChange?.(result.booking)
     } catch (caught) {
@@ -85,7 +85,10 @@ export function BookingDetails({
         <p className="font-display text-3xl tracking-wide">{booking.reference}</p>
         <StatusBadge status={booking.status} />
       </div>
-      <p className="mt-3 text-sm leading-relaxed text-ink-900/65">{b.details.statusText[booking.status]}</p>
+      <p className="mt-3 text-sm leading-relaxed text-ink-900/65">
+        {b.details.statusText[booking.status]}
+        {booking.source === 'operator' ? ` ${b.details.byOperator}` : null}
+      </p>
 
       {cancelled ? null : (
         <ol className="mt-7 flex items-start" aria-label={b.details.status}>
@@ -127,9 +130,7 @@ export function BookingDetails({
         <Row label={b.review.vehicle}>{booking.vehicleName}</Row>
         <Row label={b.review.contact}>
           {booking.contact.name}
-          <span className="block font-normal text-ink-900/60">
-            {booking.contact.email} · {booking.contact.phone}
-          </span>
+          <span className="block font-normal text-ink-900/60">{[booking.contact.email, booking.contact.phone].filter(Boolean).join(' · ')}</span>
         </Row>
         {booking.contact.company ? <Row label={b.review.company}>{booking.contact.company}</Row> : null}
         {booking.contact.notes ? <Row label={b.review.notes}>{booking.contact.notes}</Row> : null}

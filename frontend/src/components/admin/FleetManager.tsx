@@ -14,6 +14,7 @@ import { formatMoney } from '@/lib/format'
 import type { BodyType } from '@/lib/types'
 import { blankVehicle, vehicleFields } from './definitions'
 import { EntryForm, type Draft } from './EntryForm'
+import { Lead } from './ui'
 
 /** A vehicle as the console sees it: everything, including rates and hidden vehicles. */
 interface AdminVehicle extends Draft {
@@ -69,9 +70,9 @@ export function FleetManager({ m }: { m: ManageMessages }) {
   const nextPosition = (vehicles?.reduce((highest, vehicle) => Math.max(highest, vehicle.sortOrder), 0) ?? 0) + 10
 
   return (
-    <div className="mt-6">
+    <div>
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <p className="max-w-3xl text-sm leading-relaxed text-ink-900/65">{m.fleet.lead}</p>
+        <Lead>{m.fleet.lead}</Lead>
         {open !== 'new' ? (
           <Button variant="dark" onClick={() => setOpen('new')}>
             <Plus aria-hidden className="size-4" />
@@ -122,8 +123,8 @@ export function FleetManager({ m }: { m: ManageMessages }) {
               )
             }
             return (
-              <li key={vehicle.id} className={`flex items-center gap-4 rounded-md border border-ink-900/10 bg-white p-3 pr-4 ${vehicle.active ? '' : 'opacity-70'}`}>
-                <span className="w-10 shrink-0 text-center font-display text-xl text-ink-900/60" title={m.position}>
+              <li key={vehicle.id} className={`flex items-center gap-4 rounded-xl border border-ink-900/10 bg-white p-3 pr-4 ${vehicle.active ? '' : 'opacity-70'}`}>
+                <span className="w-10 shrink-0 text-center text-sm font-semibold text-ink-900/60 tabular-nums" title={m.position}>
                   {vehicle.sortOrder}
                 </span>
                 <VehicleImage bodyType={vehicle.bodyType} imageUrl={vehicle.imageUrl} name="" sizes="112px" className="hidden aspect-[16/10] w-28 shrink-0 rounded bg-ink-900/[0.03] text-ink-900/70 sm:block" />

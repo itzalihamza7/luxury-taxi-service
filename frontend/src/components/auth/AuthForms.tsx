@@ -9,6 +9,7 @@ import { useI18n } from '@/i18n/client'
 import { href } from '@/i18n/config'
 import type { AccountMessages } from '@/i18n/messages/account'
 import { api, ApiError, errorMessage, fieldMessage } from '@/lib/api'
+import { useContactDetails } from '@/lib/hooks'
 import type { User } from '@/lib/types'
 import { useAuth } from './AuthProvider'
 
@@ -85,6 +86,7 @@ export function RegisterForm({ a }: { a: AccountMessages['register'] }) {
   const { t, locale } = useI18n()
   const { setUser } = useAuth()
   const router = useRouter()
+  const settings = useContactDetails()
   const [form, setForm] = useState({ name: '', email: '', phone: '', password: '' })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [error, setError] = useState<string | null>(null)
@@ -100,9 +102,11 @@ export function RegisterForm({ a }: { a: AccountMessages['register'] }) {
     setError(null)
     setErrors({})
     try {
-      const { user } = await api<{ user: User }>('/auth/register', { method: 'POST', body: form })
+      const { user, linkedBookings } = await api<{ user: User; linkedBookings: number }>('/auth/register', { method: 'POST', body: form })
       setUser(user)
-      router.replace(destination(user, locale))
+      const target = destination(user, locale)
+      // Bookings the team took for this customer are now in the account: say so there.
+      router.replace(linkedBookings > 0 && target === href(locale, '/account') ? `${target}?linked=${linkedBookings}` : target)
     } catch (caught) {
       setBusy(false)
       if (caught instanceof ApiError && caught.code === 'VALIDATION') setErrors(caught.fields)
@@ -115,7 +119,7 @@ export function RegisterForm({ a }: { a: AccountMessages['register'] }) {
       <form onSubmit={submit} noValidate className="space-y-5">
         <TextField id="register-name" label={a.name} autoComplete="name" value={form.name} onChange={set('name')} error={fieldMessage(errors.name, t)} />
         <TextField id="register-email" type="email" label={a.email} autoComplete="email" inputMode="email" value={form.email} onChange={set('email')} error={fieldMessage(errors.email, t)} />
-        <TextField id="register-phone" type="tel" label={a.phone} hint={a.phoneHint} autoComplete="tel" inputMode="tel" value={form.phone} onChange={set('phone')} error={fieldMessage(errors.phone, t)} />
+        <TextField id="register-phone" type="tel" label={a.phone} hint={settings?.linkBookingsOnSignup ? a.phoneHintLinked : a.phoneHint} autoComplete="tel" inputMode="tel" value={form.phone} onChange={set('phone')} error={fieldMessage(errors.phone, t)} />
         <TextField
           id="register-password"
           type="password"

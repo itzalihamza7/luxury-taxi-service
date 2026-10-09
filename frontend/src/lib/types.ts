@@ -84,8 +84,11 @@ export interface Booking {
   currency: string
   paymentMethod: PaymentMethod
   paymentStatus: PaymentStatus
-  contact: { name: string; email: string; phone: string; company: string | null; notes: string | null }
+  /** A booking made on the website has both an email address and a phone number; one taken by phone may have only one. */
+  contact: { name: string; email: string | null; phone: string | null; company: string | null; notes: string | null }
   isGuest: boolean
+  /** `operator` when the business entered the booking for a customer who phoned or wrote. */
+  source: 'website' | 'operator'
   canCancel: boolean
   createdAt: string
 }
@@ -257,4 +260,6 @@ export interface SiteSettings {
   legal: { companyName: string; taxId: string; address: string; registry: string; licence: string }
   /** While true, the reviews section says that the reviews are samples. */
   reviewsAreSamples: boolean
+  /** Whether bookings taken by phone join the account of a customer who signs up later with the same email or number. */
+  linkBookingsOnSignup: boolean
 }

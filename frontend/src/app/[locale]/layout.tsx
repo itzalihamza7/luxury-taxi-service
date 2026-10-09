@@ -1,20 +1,12 @@
 import type { Metadata, Viewport } from 'next'
 import localFont from 'next/font/local'
-import { Suspense } from 'react'
 import { AuthProvider } from '@/components/auth/AuthProvider'
-import { CookieConsent } from '@/components/layout/CookieConsent'
-import { contactDetails } from '@/components/layout/ContactButtons'
 import { PathnameTracker } from '@/components/layout/CurrentPath'
-import { Footer } from '@/components/layout/Footer'
-import { Header } from '@/components/layout/Header'
-import { HeaderPhone, ServiceLinks } from '@/components/layout/HeaderData'
-import { MobileBar } from '@/components/layout/MobileBar'
 import { site, siteUrl } from '@/content/site'
 import { I18nProvider } from '@/i18n/client'
 import { locales } from '@/i18n/config'
 import { common } from '@/i18n/messages/common'
 import { getLocale } from '@/i18n/server'
-import { currentYear } from '@/lib/clock'
 import '../globals.css'
 
 // Fonts are bundled with the app (SIL Open Font License), so builds never depend on a font CDN.
@@ -54,55 +46,24 @@ export const viewport: Viewport = {
   colorScheme: 'light',
 }
 
+/**
+ * What every page shares: the document, fonts, language and who is signed in.
+ * The public pages add their header and footer in `(site)/layout.tsx`; the
+ * admin panel has its own frame in `admin/layout.tsx`.
+ */
 export default async function RootLayout({ children }: LayoutProps<'/[locale]'>) {
   const locale = await getLocale()
-  const year = await currentYear()
 
   return (
     <html lang={locale} className={`${inter.variable} ${instrumentSerif.variable}`}>
       <body className="flex min-h-dvh flex-col">
         <I18nProvider locale={locale} messages={common[locale]}>
           <AuthProvider>
-            {/*
-              The page frame is sent at once. What comes from the console (the services
-              menu, phone number, footer links) follows a moment later in the same response.
-            */}
-            <Header
-              serviceLinks={
-                <Suspense fallback={null}>
-                  <ServiceLinks />
-                </Suspense>
-              }
-              mobileServiceLinks={
-                <Suspense fallback={null}>
-                  <ServiceLinks mobile />
-                </Suspense>
-              }
-              phone={
-                <Suspense fallback={null}>
-                  <HeaderPhone />
-                </Suspense>
-              }
-            />
-            <main id="main" className="flex-1">
-              {children}
-            </main>
-            <Suspense fallback={<div aria-hidden className="h-96 bg-ink-950" />}>
-              <Footer year={year} />
-            </Suspense>
-            <Suspense fallback={null}>
-              <SiteMobileBar />
-            </Suspense>
+            {children}
             <PathnameTracker />
-            <CookieConsent />
           </AuthProvider>
         </I18nProvider>
       </body>
     </html>
   )
-}
-
-async function SiteMobileBar() {
-  const settings = await contactDetails()
-  return <MobileBar phone={settings?.phone ?? null} whatsapp={settings?.whatsapp ?? null} />
 }
