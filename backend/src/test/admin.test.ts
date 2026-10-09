@@ -2,7 +2,7 @@ import request from 'supertest'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { db } from '../db/client.js'
 import { contactMessages, newsletterSubscribers } from '../db/schema.js'
-import { adminAgent, bookRide, buildApp, CONTACT, registerAgent, resetDatabase } from './helpers.js'
+import { adminAgent, bookRide, buildApp, CONTACT, localDateTime, registerAgent, resetDatabase } from './helpers.js'
 
 const app = buildApp()
 
@@ -47,6 +47,28 @@ describe('admin bookings', () => {
     const page = await admin.get('/api/admin/bookings').query({ page: 2, pageSize: 2 })
     expect(page.body.bookings).toHaveLength(1)
     expect(page.body.total).toBe(3)
+  })
+
+  it('lists the rides still to come, soonest first', async () => {
+    const admin = await adminAgent(app)
+    const book = async (daysAhead: number) => {
+      const when = localDateTime(daysAhead)
+      return (await bookRide(app, { quote: { pickupDate: when.date, pickupTime: when.time } })).response.body.booking.reference as string
+    }
+    const later = await book(9)
+    const sooner = await book(2)
+    const cancelled = await book(4)
+    const finished = await book(5)
+    await admin.patch(`/api/admin/bookings/${cancelled}`).send({ status: 'cancelled' })
+    await admin.patch(`/api/admin/bookings/${finished}`).send({ status: 'confirmed' })
+    await admin.patch(`/api/admin/bookings/${finished}`).send({ status: 'completed' })
+
+    const upcoming = await admin.get('/api/admin/bookings').query({ view: 'upcoming' })
+    expect(upcoming.body.total).toBe(2)
+    expect(upcoming.body.bookings.map((booking: { reference: string }) => booking.reference)).toEqual([sooner, later])
+    // Without the view, the newest booking comes first.
+    expect((await admin.get('/api/admin/bookings')).body.bookings[0].reference).toBe(finished)
+    expect((await admin.get('/api/admin/bookings').query({ view: 'everything' })).status).toBe(400)
   })
 
   it('moves a booking through its lifecycle and blocks impossible changes', async () => {

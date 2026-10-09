@@ -1,4 +1,4 @@
-import { and, count, desc, eq, gte, ilike, or, type SQL } from 'drizzle-orm'
+import { and, asc, count, desc, eq, gte, ilike, or, type SQL } from 'drizzle-orm'
 import { Router } from 'express'
 import { z } from 'zod'
 import type { AppContext } from '../../context.js'
@@ -29,6 +29,8 @@ const TRANSITIONS: Record<BookingStatus, BookingStatus[]> = {
 const listSchema = z.object({
   status: z.enum(STATUSES).optional(),
   q: z.string().trim().max(100).optional(),
+  /** `upcoming` lists the rides still to come, soonest first, instead of the newest bookings first. */
+  view: z.enum(['upcoming']).optional(),
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(100).default(20),
 })
@@ -44,6 +46,9 @@ const pageSchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(100).default(20),
 })
+
+/** Rides that are still to come: not started, completed or cancelled. */
+const upcomingRides = () => and(gte(bookings.pickupAt, new Date()), or(eq(bookings.status, 'pending'), eq(bookings.status, 'confirmed')))
 
 /** Escape LIKE wildcards so a search for "50%" matches literally. */
 const likePattern = (term: string) => `%${term.replace(/[\\%_]/g, '\\$&')}%`
@@ -65,10 +70,7 @@ export function adminRouter(context: AppContext): Router {
 
   router.get('/summary', async (_req, res) => {
     const byStatus = await db.select({ status: bookings.status, total: count() }).from(bookings).groupBy(bookings.status)
-    const [upcoming] = await db
-      .select({ total: count() })
-      .from(bookings)
-      .where(and(gte(bookings.pickupAt, new Date()), or(eq(bookings.status, 'pending'), eq(bookings.status, 'confirmed'))))
+    const [upcoming] = await db.select({ total: count() }).from(bookings).where(upcomingRides())
     const [messages] = await db.select({ total: count() }).from(contactMessages)
     const [subscribers] = await db.select({ total: count() }).from(newsletterSubscribers)
 
@@ -84,10 +86,12 @@ export function adminRouter(context: AppContext): Router {
   })
 
   router.get('/bookings', async (req, res) => {
-    const { status, q, page, pageSize } = parse(listSchema, req.query)
+    const { status, q, view, page, pageSize } = parse(listSchema, req.query)
 
     const filters: SQL[] = []
     if (status) filters.push(eq(bookings.status, status))
+    const upcoming = view === 'upcoming' ? upcomingRides() : undefined
+    if (upcoming) filters.push(upcoming)
     if (q) {
       const pattern = likePattern(q)
       const search = or(
@@ -105,7 +109,7 @@ export function adminRouter(context: AppContext): Router {
       .select()
       .from(bookings)
       .where(where)
-      .orderBy(desc(bookings.createdAt))
+      .orderBy(view === 'upcoming' ? asc(bookings.pickupAt) : desc(bookings.createdAt))
       .limit(pageSize)
       .offset((page - 1) * pageSize)
 
