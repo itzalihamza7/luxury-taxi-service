@@ -26,8 +26,8 @@ export function Wordmark({ className = '' }: { className?: string }) {
     <span className={`inline-flex items-center gap-3 ${className}`}>
       <Monogram className="size-9 text-gold-300" />
       <span className="flex flex-col leading-none">
-        <span className="font-display text-[1.375rem] tracking-[0.18em] uppercase">{site.name}</span>
-        <span className="mt-1 text-[0.5625rem] font-medium tracking-[0.42em] uppercase opacity-60">{site.descriptor}</span>
+        <span className="font-display text-[1.25rem] tracking-[0.12em] uppercase">{site.name}</span>
+        <span className="mt-1 text-[0.5625rem] font-medium tracking-[0.3em] uppercase opacity-60">{site.descriptor}</span>
       </span>
     </span>
   )

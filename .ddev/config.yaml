@@ -28,7 +28,7 @@ web_environment:
     - API_URL=http://127.0.0.1:4000
     - APP_URL=https://luxury-taxi-service.ddev.site
     - SITE_URL=https://luxury-taxi-service.ddev.site
-    - ADMIN_EMAIL=admin@viacentralmobility.example
+    - ADMIN_EMAIL=admin@signaturemile.com
     - ADMIN_PASSWORD=admin-dev-password
     - NEXT_TELEMETRY_DISABLED=1
 

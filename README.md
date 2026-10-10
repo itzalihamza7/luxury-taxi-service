@@ -30,10 +30,16 @@ it prints `Ready` when the site can be opened:
 
 - Website: <https://luxury-taxi-service.ddev.site>
 - Admin panel: <https://luxury-taxi-service.ddev.site/en/admin> —
-  sign in with `admin@viacentralmobility.example` / `admin-dev-password` (development only, set in
+  sign in with `admin@signaturemile.com` / `admin-dev-password` (development only, set in
   [`.ddev/config.yaml`](.ddev/config.yaml))
 
 If the browser warns about the certificate, run `mkcert -install` once and restart the browser.
+
+Development mode compiles each page the first time it is opened (a second or two); after that it
+is quick. It is not a measure of the real site's speed: for that, run the production build below.
+The website's build output (`frontend/.next`) stays inside the container and is not synced to
+your machine ([`.ddev/mutagen/mutagen.yml`](.ddev/mutagen/mutagen.yml)); syncing it made
+development very slow.
 
 Useful commands:
 
@@ -157,7 +163,7 @@ language. Interface text (buttons, labels, the fixed parts of pages) is in
 `frontend/src/i18n/messages/`; everything else is content, edited in the console in both languages.
 
 **The admin panel.** At `/admin`, with its own menu instead of the website's header and footer.
-To restart development with a clean compiler cache, stop DDEV and delete `frontend/.next/dev`.
+If pages ever hang while developing, clear the compiler cache: `ddev exec rm -rf frontend/.next/dev && ddev restart`.
 
 | Page | What it does |
 | --- | --- |

@@ -13,7 +13,7 @@ interface PageMeta {
 }
 
 /** Picture shown when a page is shared in a chat or on social media (`public/og.jpg`). */
-const previewImage = { url: `${siteUrl}/og.jpg`, width: 1200, height: 630, alt: `${site.name} ${site.descriptor} — ${site.city}` }
+const previewImage = { url: `${siteUrl}/og.jpg`, width: 1200, height: 630, alt: `${site.name} — ${site.city}` }
 
 /** Title, description, canonical URL, `hreflang` alternates and Open Graph tags for a page. */
 export function pageMetadata({ locale, path, title, description, noIndex }: PageMeta): Metadata {
@@ -30,7 +30,7 @@ export function pageMetadata({ locale, path, title, description, noIndex }: Page
       url,
       title,
       description,
-      siteName: `${site.name} ${site.descriptor}`,
+      siteName: site.name,
       locale: localeTags[locale].replace('-', '_'),
       images: [previewImage],
     },

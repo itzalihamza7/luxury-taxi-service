@@ -38,7 +38,7 @@ async function BusinessData() {
       data={{
         '@context': 'https://schema.org',
         '@type': 'TaxiService',
-        name: `${site.name} ${site.descriptor}`,
+        name: site.name,
         description: p.home.metaDescription,
         url: `${siteUrl}${href(locale)}`,
         ...(settings ? { telephone: settings.phone, email: settings.email } : {}),

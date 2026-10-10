@@ -56,7 +56,7 @@ function validateCustomer(contact: Draft['contact']): Record<string, string> {
 function confirmationMessage(booking: Booking, language: Locale, text: ManageMessages['newBooking']['confirmation'], timeZone: string): string {
   const c = text[language]
   const lines = [
-    fill(c.hello, { name: booking.contact.name.split(' ')[0] ?? booking.contact.name, brand: `${site.name} ${site.descriptor}` }),
+    fill(c.hello, { name: booking.contact.name.split(' ')[0] ?? booking.contact.name, brand: site.name }),
     '',
     `${c.reference}: ${booking.reference}`,
     `${c.pickup}: ${formatDateTime(booking.pickupAt, language, timeZone)}`,

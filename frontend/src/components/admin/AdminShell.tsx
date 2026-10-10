@@ -181,7 +181,7 @@ export function AdminShell({ nav, shell, children }: Props) {
               <Monogram className="size-8 shrink-0 text-gold-300" />
               <span className="min-w-0 leading-tight">
                 <span className="block truncate text-sm font-semibold tracking-wide">
-                  {site.name} {site.descriptor}
+                  {site.name}
                 </span>
                 <span className="block text-[0.6875rem] font-medium tracking-[0.14em] text-bone-50/50 uppercase">{shell.title}</span>
               </span>

@@ -34,10 +34,10 @@ export function generateStaticParams() {
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: `${site.name} ${site.descriptor} — ${site.city}`,
-    template: `%s · ${site.name} ${site.descriptor}`,
+    default: `${site.name} — ${site.city}`,
+    template: `%s · ${site.name}`,
   },
-  applicationName: `${site.name} ${site.descriptor}`,
+  applicationName: site.name,
   formatDetection: { telephone: false },
 }
 

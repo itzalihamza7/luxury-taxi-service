@@ -3,13 +3,13 @@ import type { SiteSettings } from '../../modules/content/schemas.js'
 /**
  * Business details a new database starts with.
  *
- * PLACEHOLDERS: the phone number, email address and company details are
+ * PLACEHOLDERS: the phone number and company details are
  * examples. Replace them in the console ("Business details") before launch.
  */
 export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   phone: '+34 900 000 000',
   whatsapp: '34900000000',
-  email: 'hello@viacentralmobility.example',
+  email: 'booking@signaturemile.com',
   social: { instagram: '', facebook: '', tripadvisor: '', google: '' },
   legal: {
     companyName: '[Company legal name]',

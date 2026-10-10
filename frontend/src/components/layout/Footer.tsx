@@ -132,7 +132,7 @@ export async function Footer({ year }: { year: number }) {
 
       <div className="border-t border-white/10">
         <div className="container-page flex flex-col gap-4 py-7 text-xs text-bone-100/55 lg:flex-row lg:items-center lg:justify-between">
-          <p>{fill(t.footer.rights, { year, name: `${site.name} ${site.descriptor}` })}</p>
+          <p>{fill(t.footer.rights, { year, name: site.name })}</p>
           <ul className="flex flex-wrap gap-x-6 gap-y-2">
             {legal.map((document) => (
               <li key={document.slug}>

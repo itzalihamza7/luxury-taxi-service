@@ -65,12 +65,12 @@ export function Header({ serviceLinks, mobileServiceLinks, phone }: Props) {
         {t.nav.skip}
       </a>
 
-      <div className="container-page flex h-[4.5rem] items-center justify-between gap-6">
-        <Link href="/" aria-label={`${site.name} ${site.descriptor}`} className="shrink-0">
+      <div className="container-page flex h-[4.5rem] items-center justify-between gap-4 xl:gap-6">
+        <Link href="/" aria-label={site.name} className="shrink-0">
           <Wordmark />
         </Link>
 
-        <nav aria-label={t.nav.main} className="hidden items-center gap-7 lg:flex">
+        <nav aria-label={t.nav.main} className="hidden items-center gap-4 lg:flex xl:gap-7">
           <div className="group relative">
             <Link href="/services" className={`${linkClass} gap-1`}>
               {t.nav.services}
@@ -87,9 +87,9 @@ export function Header({ serviceLinks, mobileServiceLinks, phone }: Props) {
           ))}
         </nav>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 xl:gap-4">
           {/* The width is reserved, so the menu does not move when the number arrives. */}
-          <div className="hidden min-w-[9.75rem] justify-end xl:flex">{phone}</div>
+          <div className="hidden min-w-[9.75rem] justify-end 2xl:flex">{phone}</div>
           {/* Wrappers own the show/hide rule, so it never competes with a component's own display class. */}
           <div className="hidden sm:block">
             <LanguageSwitch />

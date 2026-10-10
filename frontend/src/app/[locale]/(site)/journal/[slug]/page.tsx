@@ -40,7 +40,7 @@ async function ArticleContent({ params }: Pick<PageProps<'/[locale]/journal/[slu
   const article = articles.find((candidate) => candidate.slug === slug)
   if (!article) notFound()
 
-  const publisher = `${site.name} ${site.descriptor}`
+  const publisher = site.name
   return (
     <>
       <JsonLd

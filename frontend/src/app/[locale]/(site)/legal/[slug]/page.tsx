@@ -40,8 +40,8 @@ async function LegalContent({ params }: Pick<PageProps<'/[locale]/legal/[slug]'>
 
   // The texts say `{companyName}`, `{email}` and so on; the business details saved in the console go in their place.
   const details: Record<string, string> = settings
-    ? { ...settings.legal, email: settings.email, phone: settings.phone, brand: `${site.name} ${site.descriptor}` }
-    : { brand: `${site.name} ${site.descriptor}` }
+    ? { ...settings.legal, email: settings.email, phone: settings.phone, brand: site.name }
+    : { brand: site.name }
   const text = (value: string) => fill(value, details)
 
   return (
