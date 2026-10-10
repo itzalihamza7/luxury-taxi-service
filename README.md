@@ -1,211 +1,168 @@
-# Luxury Taxi Service
+# SignatureMile
 
-A bilingual (English / Spanish) website for a chauffeur company, with online booking.
+A booking platform for a private chauffeur service in Madrid, in English and Spanish.
 
-Visitors enter a journey, see a fixed price for every vehicle, and book — as a guest or with an
-account. They can then track or cancel the booking with their reference.
-
-The operator runs everything from an admin panel at `/admin`: bookings (including ones taken by
-phone or WhatsApp), the fleet (prices, photos, the order vehicles are shown in), the website's
-content and the business's contact details. No developer is needed for day-to-day changes.
+Customers price a journey, compare every vehicle at a fixed fare and book in a couple of minutes,
+as a guest or with an account. The business runs everything from its own admin panel: bookings
+(including those taken by phone or WhatsApp), the fleet and its rates, the website's content and
+the company's contact details.
 
 | Part | Technology | Folder |
 | --- | --- | --- |
-| Website | Next.js 16, React 19, Tailwind CSS 4 | [`frontend/`](frontend/) |
-| API | Node.js 24, Express 5, Drizzle ORM | [`backend/`](backend/) |
+| Website | Next.js 16 (App Router, Cache Components), React 19, Tailwind CSS 4 | [`frontend/`](frontend/) |
+| API | Node.js 24, Express 5, Drizzle ORM, Zod | [`backend/`](backend/) |
 | Database | PostgreSQL 17 | — |
+| Environments | DDEV for development, Docker Compose for production | [`.ddev/`](.ddev/), [`docker-compose.yml`](docker-compose.yml) |
 
+## Features
 
-## Start developing (DDEV)
+**Website**
 
-You need [DDEV](https://ddev.com) and Docker. Then:
+- Instant fixed-price quotes for one-way, return, hourly, city-to-city and airport rides, with
+  airport, station and address suggestions.
+- A five-step booking flow that keeps the customer's progress on the device, prefills details for
+  signed-in customers and handles an expired price without losing the booking.
+- Booking tracking and cancellation with the reference and the email address or phone number.
+- Customer accounts with their bookings and profile, and an account menu in the header.
+- Service, fleet, route, event and journal pages, all edited from the admin panel.
+- Optional online payment through PayPal Checkout.
+- Search-friendly: server-rendered pages, `hreflang` alternates, canonical links, structured data,
+  sitemap and link previews.
+
+**Admin panel** (`/admin`)
+
+| Page | Purpose |
+| --- | --- |
+| Overview | Pending confirmations, the next rides and the day's numbers |
+| Bookings | Search and filter, confirm, start and complete rides, record payments, cancel |
+| New booking | Enter a ride for a customer who phoned or wrote, with an agreed price and a ready-to-send WhatsApp confirmation |
+| Messages | Contact-form messages |
+| Fleet | Vehicles, capacities, rates, photos, display order and visibility |
+| Content | Services, routes, events, journal articles, questions, reviews and legal pages, in both languages |
+| Business details | Phone, WhatsApp, email, social profiles, company details and booking options |
+
+## Architecture
+
+```text
+Browser ──► Next.js (frontend:3000) ──/api/*──► Express API (backend:4000) ──► PostgreSQL
+               │  server-rendered pages              │  quotes, bookings, accounts,
+               │  image optimisation                  │  content, media, admin
+               └─ gateway: the browser never talks to the API directly
+```
+
+- **One origin.** The website forwards `/api/*` to the API, so cookies stay first-party and the
+  API and database are never exposed to the internet.
+- **Rendering.** Pages are prerendered as static shells and stream their data-driven parts. Data
+  read from the API is cached for a few minutes and refreshed immediately after an edit in the
+  admin panel.
+- **Prices are computed on the server.** A booking is always made from a stored *quote*: the API
+  works out the distance, prices every vehicle (`base fare + per km`, never below the minimum;
+  hourly hire is `hours × rate`; a return is two journeys) and keeps the quote for 30 minutes. The
+  browser never sends a price.
+- **Distances.** Journeys between central Madrid and the airport or a listed city use measured road
+  distances; other journeys are estimated from the straight-line distance. Setting `ROUTER_URL` to
+  an [OSRM](https://project-osrm.org)-compatible server gives exact door-to-door distances.
+- **Addresses.** A built-in catalogue of airports, stations, venues and cities is combined with
+  street addresses from a Photon-compatible geocoder (OpenStreetMap data).
+- **Content in the database.** Pages are stored as typed, validated JSON per collection, so the
+  admin panel needs no developer for day-to-day changes. Uploaded photos are resized in the
+  browser, stored in PostgreSQL and served immutably, so one database backup holds everything.
+- **Accounts and security.** scrypt password hashing, HttpOnly session cookies, role-based access
+  to the admin API, rate limits on sensitive endpoints, input validation with stable error codes
+  that the website translates.
+- **Phone bookings and accounts.** A booking entered by the team joins the customer's account when
+  they sign up with the same email address or phone number. This is a setting in *Business
+  details*.
+- **Languages.** Every page exists under `/en` and `/es`; the bare domain redirects to the
+  visitor's language. Interface text lives in `frontend/src/i18n/messages/`, content in the database.
+
+## Getting started
+
+Requirements: [DDEV](https://ddev.com) and Docker.
 
 ```bash
 ddev start
 ```
 
-That is the only command. It starts PostgreSQL, installs dependencies, creates the database tables,
-adds the starting fleet, and runs both apps with hot reload. The first start takes a few minutes;
-it prints `Ready` when the site can be opened:
+This starts PostgreSQL, installs dependencies, applies migrations, loads the starting data and runs
+both apps with hot reload.
 
 - Website: <https://luxury-taxi-service.ddev.site>
-- Admin panel: <https://luxury-taxi-service.ddev.site/en/admin> —
-  sign in with `admin@signaturemile.com` / `admin-dev-password` (development only, set in
-  [`.ddev/config.yaml`](.ddev/config.yaml))
-
-If the browser warns about the certificate, run `mkcert -install` once and restart the browser.
-
-Development mode compiles each page the first time it is opened (a second or two); after that it
-is quick. It is not a measure of the real site's speed: for that, run the production build below.
-The website's build output (`frontend/.next`) stays inside the container and is not synced to
-your machine ([`.ddev/mutagen/mutagen.yml`](.ddev/mutagen/mutagen.yml)); syncing it made
-development very slow.
-
-Useful commands:
+- Admin panel: <https://luxury-taxi-service.ddev.site/en/admin>, with the development account
+  `admin@signaturemile.com` / `admin-dev-password` (set in [`.ddev/config.yaml`](.ddev/config.yaml))
 
 ```bash
-ddev logs -f                                             # output of both apps
-ddev psql                                                # SQL prompt on the development database
-ddev exec -d /var/www/html/backend npm test              # API tests (use their own database)
+ddev logs -f                                          # output of both apps
+ddev psql                                             # SQL prompt on the development database
+ddev exec -d /var/www/html/backend npm test           # API test suite (separate test database)
 ddev exec -d /var/www/html/backend npm run typecheck
 ddev exec -d /var/www/html/frontend npm run lint
 ddev exec -d /var/www/html/frontend npm run typecheck
-ddev exec -d /var/www/html/frontend npm run build        # production build check
-ddev restart                                             # restart everything
-ddev stop
+ddev exec -d /var/www/html/frontend npm run build     # production build
 ```
 
-Install packages inside the container, not on your machine, so the right binaries are installed:
-`ddev exec -d /var/www/html/frontend npm install <package>`.
+Install packages inside the container so platform-specific binaries match:
+`ddev exec -d /var/www/html/frontend npm install <package>`. The website's build output stays in
+the container and is excluded from file sync ([`.ddev/mutagen/mutagen.yml`](.ddev/mutagen/mutagen.yml)).
 
-## Run the production build (Docker)
-
-The same images are meant for deployment.
+## Production
 
 ```bash
-cp .env.example .env        # then set POSTGRES_PASSWORD, ADMIN_EMAIL and ADMIN_PASSWORD
+cp .env.example .env          # set POSTGRES_PASSWORD, ADMIN_EMAIL, ADMIN_PASSWORD and SITE_URL
 docker compose up --build -d
 ```
 
-The site is then on <http://localhost:3000>. The API and the database are only reachable inside the
-Docker network; the browser talks to the API through the website at `/api`.
+The site listens on port 3000. On start, the API container applies pending migrations and adds any
+missing starting data, so a release is `git pull && docker compose up --build -d`.
 
-```bash
-docker compose logs -f          # follow the logs
-docker compose down             # stop (data is kept in the `db-data` volume)
-docker compose down --volumes   # stop and delete the database
-```
+- Terminate HTTPS in a reverse proxy (Caddy, nginx, Traefik or a load balancer) in front of the
+  `frontend` service and set `TRUST_PROXY=2`.
+- `SITE_URL` is read at build time for canonical links, the sitemap and payment return links.
+- Pages are streamed; proxies should not buffer responses (`X-Accel-Buffering: no` is sent).
+- Back up the `db-data` volume: it holds bookings, accounts, content and uploaded photos.
 
-On start, the API container brings the database schema up to date and adds any missing starting
-data (the fleet, and the admin account from `.env`), so deploying a new version is
-`docker compose up --build -d`.
+## Configuration
 
-### Deploying
+Development values are in `.ddev/config.yaml`; production values come from `.env`.
 
-- Put a reverse proxy that terminates HTTPS (Caddy, nginx, Traefik or a load balancer) in front of
-  the `frontend` service, and set `TRUST_PROXY=2` so rate limits see the visitor's address.
-- Set `SITE_URL` to the real address **before building**: it is written into canonical links, the
-  sitemap and payment return links.
-- If the proxy buffers responses, let it stream instead (the site sends `X-Accel-Buffering: no`
-  for nginx); pages are delivered in parts.
-- Back up the `db-data` volume. It holds everything: bookings, accounts, content and uploaded photos.
-
-## Project layout
-
-```text
-.ddev/config.yaml        Development environment (env vars, the two app processes)
-docker-compose.yml       Production-style stack: db, backend, frontend
-.env.example             Settings for docker compose
-
-backend/
-  src/server.ts          Entry point
-  src/app.ts             Routes and middleware
-  src/config.ts          Environment variables and business limits
-  src/db/schema.ts       Database tables        -> `npm run db:generate` writes drizzle/*.sql
-  src/db/fleet.ts        Starting fleet and prices  (written once, to a new database)
-  src/db/content/        Starting content           (written once, to a new database)
-  src/lib/pricing.ts     Fare calculation
-  src/lib/geo.ts         Distance: routing server, or the built-in estimate
-  src/modules/           auth, vehicles, places, quotes, bookings, payments, content, media,
-                         contact, admin
-  src/test/              API tests against a real PostgreSQL database
-  drizzle/               SQL migrations (committed)
-
-frontend/
-  src/app/[locale]/      Pages (`/en/...`, `/es/...`): `(site)/` is the public website, `admin/` the panel
-  src/app/api/           Gateway that forwards `/api/*` to the backend
-  src/content/site.ts    The brand name, as built into the logo and page titles
-  src/i18n/messages/     Interface text in both languages
-  src/components/        UI: booking form, account, admin panel, layout
-  public/images/         Photographs that ship with the site (sources in CREDITS.md)
-```
-
-## How it works
-
-**Prices.** A booking is always made from a *quote*. The API works out the distance, prices every
-vehicle (`base fare + per km`, never below the vehicle's minimum; hourly hire is `hours × rate`; a
-return is two journeys), rounds up to a whole euro and stores the quote for 30 minutes. The booking
-takes its price from the stored quote, never from the browser. Rates live in the `vehicles` table.
-
-**Distances.** Without a routing server, distances are estimated: journeys between central Madrid
-and the airport or a listed city use measured road distances (accurate to a few percent); anything
-else is estimated from the straight-line distance (about ±10%) and labelled "estimated" in the
-booking form. For exact door-to-door distances set `ROUTER_URL` to an
-[OSRM](https://project-osrm.org)-compatible server.
-
-**Addresses.** Suggestions combine a built-in list of airports, stations, venues and cities
-([`catalog.ts`](backend/src/modules/places/catalog.ts)) with street addresses from a
-Photon-compatible geocoder (OpenStreetMap data). The default is the public Photon service, which is
-fine for light use; run your own for a busy site.
-
-**Accounts.** Booking never requires an account. Guests track or cancel a booking with its
-reference **and** the email address or phone number it was made with. Accounts keep a profile and
-list bookings. Passwords are hashed with scrypt; the session is an HttpOnly cookie. The account
-button in the header opens a menu: *My bookings*, *My details*, *Sign out*, and *Admin panel* for
-administrators.
-
-**Bookings by phone or WhatsApp.** In the admin panel, *New booking* enters a ride for a customer
-who called or wrote: a name and a phone number or email address are enough, the ride may leave
-right away, a price agreed with the customer can replace the calculated one, and the booking is
-confirmed at once. The panel then offers a ready-made confirmation message to send on WhatsApp.
-If the customer already has an account the booking appears in it; if not, it joins the account
-they create later with the same email address or phone number. New accounts do not prove that an
-address or number is theirs, so this trusts whoever signs up with it. Switch it off under
-*Business details → Bookings taken by phone* if that is not acceptable; such bookings are then
-reachable only with their reference.
-
-**Bookings.** New bookings are `pending` until the operator confirms them in `/admin`, then
-`confirmed → in_progress → completed` (or `cancelled`). Customers can cancel online until 24 hours
-before pickup, and must book at least 2 hours ahead. Both limits are settings.
-
-**Languages.** Every page exists under `/en` and `/es`. The bare address redirects to the visitor's
-language. Interface text (buttons, labels, the fixed parts of pages) is in
-`frontend/src/i18n/messages/`; everything else is content, edited in the console in both languages.
-
-**The admin panel.** At `/admin`, with its own menu instead of the website's header and footer.
-If pages ever hang while developing, clear the compiler cache: `ddev exec rm -rf frontend/.next/dev && ddev restart`.
-
-| Page | What it does |
-| --- | --- |
-| Overview | Counts, the next rides, what is waiting for confirmation |
-| Bookings, Messages | Confirm rides, record payments, read contact messages |
-| New booking | Enter a booking for a customer who phoned or wrote |
-| Fleet | Vehicles: name, capacity, the four rates, photo, position, shown or hidden |
-| Content | Services, routes, events, journal articles, questions, reviews, legal pages |
-| Business details | Phone, WhatsApp, email, social profiles, company details |
-
-A save shows on the website straight away. Lists and long texts are typed as plain text: one item
-per line, an empty line between paragraphs, `## ` before a heading and `- ` before a bullet point.
-Legal texts may contain `{companyName}`, `{taxId}`, `{address}`, `{registry}`, `{licence}`,
-`{email}`, `{phone}` and `{brand}`, which are replaced with the saved business details.
-
-**Photos.** Pictures uploaded in the console are made smaller in the browser, stored in the
-database and served at `/api/media/…`, so a database backup contains them. The website resizes
-every photo for the visitor's screen. A vehicle without a photo is shown as a line drawing.
-
-**Starting data.** A new database is filled with the fleet and content in `backend/src/db/`. That
-happens once: afterwards the console is where things change, and what an operator deletes does not
-come back.
-
-## Changing the database
-
-1. Edit [`backend/src/db/schema.ts`](backend/src/db/schema.ts).
-2. `ddev exec -d /var/www/html/backend npm run db:generate` — writes a new SQL file to `backend/drizzle/`.
-3. Review and commit that file. It is applied on the next `ddev restart`, and on deployment.
-
-## Settings
-
-Development values are in `.ddev/config.yaml`; for Docker they come from `.env`.
-
-| Variable | Used by | Purpose |
+| Variable | Service | Purpose |
 | --- | --- | --- |
 | `DATABASE_URL` | backend | PostgreSQL connection |
-| `SITE_URL` | frontend | Public address of the site. **Read when the site is built.** |
-| `APP_URL` | backend | Same address, for payment return links |
-| `API_URL` | frontend | Where the website reaches the API (internal) |
-| `ADMIN_EMAIL`, `ADMIN_PASSWORD` | backend | Operator account, created on start if missing |
+| `SITE_URL` | frontend | Public address of the site (build time) |
+| `APP_URL` | backend | Public address, for payment return links |
+| `API_URL` | frontend | Internal address of the API |
+| `ADMIN_EMAIL`, `ADMIN_PASSWORD` | backend | Administrator account, created on start if missing |
 | `TRUST_PROXY` | backend | Number of proxies in front of the API (default 1) |
 | `GEOCODER_URL` | backend | Address search; empty disables it |
-| `ROUTER_URL` | backend | Road distances; empty uses the estimate |
-| `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_API_BASE` | backend | Online payment; off unless both credentials are set |
-| `MIN_LEAD_MINUTES`, `FREE_CANCEL_HOURS`, `QUOTE_TTL_MINUTES` | backend | Booking rules (defaults 120, 24, 30). The site's wording mentions "2 hours" and "24 hours": update the text too if you change them. |
+| `ROUTER_URL` | backend | Road distances; empty uses the built-in estimate |
+| `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_API_BASE` | backend | Online payment, enabled when both credentials are set |
+| `MIN_LEAD_MINUTES`, `FREE_CANCEL_HOURS`, `QUOTE_TTL_MINUTES` | backend | Booking rules (defaults 120, 24, 30) |
+
+## Project structure
+
+```text
+backend/
+  src/app.ts             Express app: middleware and routes
+  src/config.ts          Environment and business rules
+  src/db/                Schema, migrations runner, seed and starting data
+  src/lib/               Pricing, distances, validation, passwords, references
+  src/modules/           auth, vehicles, places, quotes, bookings, payments,
+                         content, media, contact, admin
+  src/test/              API tests against a real PostgreSQL database
+  drizzle/               SQL migrations
+
+frontend/
+  src/app/[locale]/      (site)/ public website, admin/ admin panel
+  src/app/api/           Gateway to the API
+  src/components/        Booking flow, account, admin panel, layout, UI kit
+  src/i18n/              Locale routing and interface text
+  src/lib/               API client, server data loaders, formatting, SEO
+  public/images/         Photography (sources in CREDITS.md)
+```
+
+## Database changes
+
+1. Edit [`backend/src/db/schema.ts`](backend/src/db/schema.ts).
+2. Generate the migration: `ddev exec -d /var/www/html/backend npm run db:generate`.
+3. Review and commit the new file in `backend/drizzle/`. It is applied on the next start, in
+   development and in production.

@@ -4,8 +4,8 @@
  * Contact details, company data and all page content are edited in the
  * admin panel (`/admin`), not here.
  *
- * If the name changes, also replace the images that carry it (see "Before
- * going live" in the README).
+ * The images that carry the name are `src/app/icon.svg`, `favicon.ico`,
+ * `apple-icon.png` and `public/og.jpg`.
  */
 export const site = {
   name: 'SignatureMile',
