@@ -1,5 +1,24 @@
 import type { NextConfig } from 'next'
 
+/**
+ * What pages may load: only this site's own scripts, styles, images and fonts.
+ * Next.js needs inline scripts to start the page; development also needs eval
+ * and a websocket for hot reload, so the policy is sent by production builds only.
+ */
+const contentSecurityPolicy = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline'",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob:",
+  "font-src 'self'",
+  "connect-src 'self'",
+  "frame-src 'none'",
+  "frame-ancestors 'self'",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+].join('; ')
+
 const securityHeaders = [
   { key: 'X-Content-Type-Options', value: 'nosniff' },
   { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
@@ -7,6 +26,7 @@ const securityHeaders = [
   { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
   // Lets nginx-style reverse proxies pass streamed HTML through without buffering.
   { key: 'X-Accel-Buffering', value: 'no' },
+  ...(process.env.NODE_ENV === 'production' ? [{ key: 'Content-Security-Policy', value: contentSecurityPolicy }] : []),
 ]
 
 const nextConfig: NextConfig = {
