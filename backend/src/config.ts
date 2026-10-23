@@ -39,6 +39,26 @@ const schema = z.object({
   /** City-level IP geolocation database (MMDB, e.g. DB-IP Lite). Without it, clicks have no location. */
   GEOIP_DB: optionalString,
 
+  /**
+   * How emails are sent: `graph` (Microsoft 365, sending as the MAIL_FROM mailbox), `smtp`, or
+   * `log` (written to the API log instead; the default, so nothing is sent by accident).
+   */
+  MAIL_TRANSPORT: z.enum(['graph', 'smtp', 'log']).default('log'),
+  /** Sender shown to customers, e.g. `SignatureMile <booking@signaturemile.com>`. */
+  MAIL_FROM: z.string().default('SignatureMile <booking@signaturemile.com>'),
+  SMTP_HOST: optionalString,
+  SMTP_PORT: z.coerce.number().int().positive().default(587),
+  /** true for port 465 (TLS from the start); STARTTLS is used otherwise when the server offers it. */
+  SMTP_SECURE: flag.default(false),
+  SMTP_USER: optionalString,
+  SMTP_PASSWORD: optionalString,
+  /** Microsoft Entra app (client credentials) allowed to send mail as MAIL_FROM through Microsoft Graph. */
+  GRAPH_TENANT_ID: optionalString,
+  GRAPH_CLIENT_ID: optionalString,
+  GRAPH_CLIENT_SECRET: optionalString,
+  /** How long a password reset link works. */
+  RESET_TOKEN_TTL_MINUTES: z.coerce.number().int().positive().default(60),
+
   /** Optional operator account created on startup if it does not exist yet. */
   ADMIN_EMAIL: optionalString,
   ADMIN_PASSWORD: optionalString,

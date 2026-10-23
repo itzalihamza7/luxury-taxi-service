@@ -4,10 +4,12 @@ import type { AppContext } from './context.js'
 import { pool } from './db/client.js'
 import { errorHandler, notFoundHandler } from './lib/errors.js'
 import { createRouteFinder } from './lib/geo.js'
+import { createMailer } from './lib/mailer.js'
 import { createRateLimiter } from './lib/rate-limit.js'
 import { adminRouter } from './modules/admin/routes.js'
 import { analyticsRouter } from './modules/analytics/routes.js'
 import { authRouter } from './modules/auth/routes.js'
+import { passwordResetRouter } from './modules/auth/password-reset.js'
 import { attachUser } from './modules/auth/session.js'
 import { bookingsRouter } from './modules/bookings/routes.js'
 import { contactRouter } from './modules/contact/routes.js'
@@ -20,12 +22,14 @@ import { placesRouter } from './modules/places/routes.js'
 import { quotesRouter } from './modules/quotes/routes.js'
 import { vehiclesRouter } from './modules/vehicles/routes.js'
 
-export function createApp(config: Config): Express {
+/** `overrides` replaces dependencies, e.g. the mailer in tests. */
+export function createApp(config: Config, overrides: Partial<Pick<AppContext, 'mailer'>> = {}): Express {
   const context: AppContext = {
     config,
     rateLimit: createRateLimiter(config.RATE_LIMIT_DISABLED),
     findRoute: createRouteFinder(config.ROUTER_URL, knownRoutesFromMadrid()),
     payments: createPayPalGateway(config),
+    mailer: overrides.mailer ?? createMailer(config),
   }
 
   const app = express()
@@ -74,6 +78,7 @@ export function createApp(config: Config): Express {
   })
 
   app.use('/api/auth', authRouter(context))
+  app.use('/api/auth', passwordResetRouter(context))
   app.use('/api/vehicles', vehiclesRouter())
   app.use('/api/places', placesRouter(context))
   app.use('/api/quotes', quotesRouter(context))

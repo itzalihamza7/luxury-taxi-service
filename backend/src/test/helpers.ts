@@ -1,6 +1,7 @@
 import { sql } from 'drizzle-orm'
 import request from 'supertest'
 import { createApp } from '../app.js'
+import type { Email } from '../lib/mailer.js'
 import { loadConfig, type Config } from '../config.js'
 import { db } from '../db/client.js'
 import { INITIAL_FLEET } from '../db/fleet.js'
@@ -10,14 +11,20 @@ import { hashPassword } from '../lib/password.js'
 export const TIME_ZONE = 'Europe/Madrid'
 
 /** Build the app with the test environment, optionally overriding settings. */
-export function buildApp(overrides: Partial<Config> = {}) {
-  return createApp({ ...loadConfig(), ...overrides })
+export function buildApp(overrides: Partial<Config> = {}, dependencies: Parameters<typeof createApp>[1] = {}) {
+  return createApp({ ...loadConfig(), ...overrides }, dependencies)
+}
+
+/** A mailer that keeps what it was asked to send, for tests to read. */
+export function memoryMailer() {
+  const sent: Email[] = []
+  return { sent, mailer: { send: async (email: Email) => void sent.push(email) } }
 }
 
 /** Empty every table and restore the starting fleet. Call in `beforeEach`. */
 export async function resetDatabase(): Promise<void> {
   await db.execute(
-    sql`truncate table bookings, quotes, sessions, users, contact_messages, newsletter_subscribers, vehicles, content_entries, settings, media, whatsapp_clicks restart identity cascade`,
+    sql`truncate table bookings, quotes, sessions, users, contact_messages, newsletter_subscribers, vehicles, content_entries, settings, media, whatsapp_clicks, password_resets restart identity cascade`,
   )
   await db.insert(vehicles).values(INITIAL_FLEET)
 }

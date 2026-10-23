@@ -259,6 +259,25 @@ export const contentEntries = pgTable(
 )
 
 /** Named settings, e.g. `site` for the business details shown on the website. */
+/**
+ * One-time links to choose a new password. Only a hash of the token is stored,
+ * like session tokens, so a database leak does not hand out working links.
+ */
+export const passwordResets = pgTable(
+  'password_resets',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    tokenHash: text('token_hash').notNull().unique(),
+    expiresAt: timestamptz('expires_at').notNull(),
+    usedAt: timestamptz('used_at'),
+    createdAt: timestamptz('created_at').notNull().defaultNow(),
+  },
+  (table) => [index('password_resets_user_id_idx').on(table.userId)],
+)
+
 export const settings = pgTable('settings', {
   key: text('key').primaryKey(),
   value: jsonb('value').$type<Record<string, unknown>>().notNull(),

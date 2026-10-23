@@ -31,6 +31,10 @@ web_environment:
     - ADMIN_EMAIL=admin@signaturemile.com
     - ADMIN_PASSWORD=admin-dev-password
     - NEXT_TELEMETRY_DISABLED=1
+    # Emails go to DDEV's Mailpit: open them with `ddev mailpit`.
+    - MAIL_TRANSPORT=smtp
+    - SMTP_HOST=127.0.0.1
+    - SMTP_PORT=1025
 
 web_extra_exposed_ports:
     - name: frontend
