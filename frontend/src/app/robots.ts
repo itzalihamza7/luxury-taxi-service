@@ -8,7 +8,7 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: '*',
         allow: '/',
         // Private, per-visitor pages have nothing to offer a search engine.
-        disallow: ['/api/', '/*/account', '/*/admin', '/*/login', '/*/register', '/*/booking/payment'],
+        disallow: ['/api/', '/*/account', '/*/admin', '/*/login', '/*/register', '/*/forgot-password', '/*/reset-password', '/*/booking/payment'],
       },
     ],
     sitemap: `${siteUrl}/sitemap.xml`,

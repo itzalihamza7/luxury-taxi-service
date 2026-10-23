@@ -197,6 +197,7 @@ const en = {
     OWN_ACCOUNT: 'You cannot delete your own account.',
     LAST_SUPERADMIN: 'There must always be at least one super admin.',
     USER_NOT_FOUND: 'This account no longer exists.',
+    RESET_LINK_INVALID: 'This link has expired or was already used. Please ask for a new one.',
   },
   fields: {
     required: 'This field is required.',
@@ -427,6 +428,7 @@ const es: typeof en = {
     OWN_ACCOUNT: 'No puede eliminar su propia cuenta.',
     LAST_SUPERADMIN: 'Siempre debe haber al menos un superadministrador.',
     USER_NOT_FOUND: 'Esta cuenta ya no existe.',
+    RESET_LINK_INVALID: 'Este enlace ha caducado o ya se ha usado. Pida uno nuevo.',
   },
   fields: {
     required: 'Este campo es obligatorio.',

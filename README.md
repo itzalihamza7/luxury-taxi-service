@@ -23,7 +23,8 @@ the company's contact details.
 - A five-step booking flow that keeps the customer's progress on the device, prefills details for
   signed-in customers and handles an expired price without losing the booking.
 - Booking tracking and cancellation with the reference and the email address or phone number.
-- Customer accounts with their bookings and profile, and an account menu in the header.
+- Customer accounts with their bookings and profile, an account menu in the header, and password
+  reset by email (a one-time link valid for an hour).
 - Service, fleet, route, event and journal pages, all edited from the admin panel.
 - Optional online payment through PayPal Checkout.
 - Search-friendly: server-rendered pages, `hreflang` alternates, canonical links, structured data,
@@ -98,6 +99,7 @@ both apps with hot reload.
 ```bash
 ddev logs -f                                          # output of both apps
 ddev psql                                             # SQL prompt on the development database
+ddev mailpit                                          # emails the site sent (caught locally)
 ddev exec -d /var/www/html/backend npm test           # API test suite (separate test database)
 ddev exec -d /var/www/html/backend npm run typecheck
 ddev exec -d /var/www/html/frontend npm run lint
@@ -145,6 +147,9 @@ Development values are in `.ddev/config.yaml`; production values come from `.env
 | `ROUTER_URL` | backend | Road distances; empty uses the built-in estimate |
 | `GEOIP_DB` | backend | City-level IP geolocation database (MMDB); the Docker image downloads DB-IP Lite at build time |
 | `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_API_BASE` | backend | Online payment, enabled when both credentials are set |
+| `MAIL_TRANSPORT`, `MAIL_FROM` | backend | How emails are sent: `graph` (Microsoft 365), `smtp` or `log` (not sent) |
+| `GRAPH_TENANT_ID`, `GRAPH_CLIENT_ID`, `GRAPH_CLIENT_SECRET` | backend | Microsoft Entra app allowed to send as `MAIL_FROM` (`Mail.Send` application permission) |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD` | backend | SMTP server, when `MAIL_TRANSPORT=smtp` |
 | `MIN_LEAD_MINUTES`, `FREE_CANCEL_HOURS`, `QUOTE_TTL_MINUTES` | backend | Booking rules (defaults 120, 24, 30) |
 
 ## Project structure

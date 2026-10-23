@@ -58,7 +58,12 @@ export function LoginForm({ a }: { a: AccountMessages['login'] }) {
     <Shell>
       <form onSubmit={submit} noValidate className="space-y-5">
         <TextField id="login-email" type="email" label={a.email} autoComplete="email" inputMode="email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} error={fieldMessage(errors.email, t)} />
-        <TextField id="login-password" type="password" label={a.password} autoComplete="current-password" value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} error={fieldMessage(errors.password, t)} />
+        <div>
+          <TextField id="login-password" type="password" label={a.password} autoComplete="current-password" value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} error={fieldMessage(errors.password, t)} />
+          <Link href={form.email ? `/forgot-password?email=${encodeURIComponent(form.email)}` : '/forgot-password'} className="mt-2 inline-block text-sm text-ink-900/65 underline-offset-4 hover:text-ink-900 hover:underline">
+            {a.forgot}
+          </Link>
+        </div>
         {error ? <FormMessage tone="error">{error}</FormMessage> : null}
         <Button type="submit" variant="dark" size="lg" loading={busy} className="w-full">
           {a.submit}
