@@ -36,6 +36,13 @@
       "when": 1792758942827,
       "tag": "0004_whatsapp_clicks",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792765185399,
+      "tag": "0005_super_admin_role",
+      "breakpoints": true
     }
   ]
 }

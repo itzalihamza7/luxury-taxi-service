@@ -28,6 +28,9 @@ export type QuoteOption = {
   reason?: 'passengers' | 'luggage'
 }
 
+export const USER_ROLES = ['customer', 'admin', 'superadmin'] as const
+export type UserRole = (typeof USER_ROLES)[number]
+
 const RIDE_TYPES = ['one_way', 'return', 'local', 'hourly', 'city_to_city', 'airport'] as const
 const BOOKING_STATUSES = ['pending', 'confirmed', 'in_progress', 'completed', 'cancelled'] as const
 const PAYMENT_METHODS = ['chauffeur', 'online'] as const
@@ -52,13 +55,14 @@ export const users = pgTable(
     passwordHash: text('password_hash').notNull(),
     name: text('name').notNull(),
     phone: text('phone'),
-    role: text('role', { enum: ['customer', 'admin'] })
+    /** `admin` runs the business; `superadmin` can also appoint and remove other super admins. */
+    role: text('role', { enum: USER_ROLES })
       .notNull()
       .default('customer'),
     createdAt: timestamptz('created_at').notNull().defaultNow(),
     updatedAt: timestamptz('updated_at').notNull().defaultNow(),
   },
-  (table) => [check('users_role_check', sql`${table.role} in ('customer', 'admin')`)],
+  (table) => [check('users_role_check', sql`${table.role} in ('customer', 'admin', 'superadmin')`)],
 )
 
 export const sessions = pgTable(

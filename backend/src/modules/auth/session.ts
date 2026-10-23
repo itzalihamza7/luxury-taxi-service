@@ -79,8 +79,11 @@ export const requireUser: RequestHandler = (req, _res, next) => {
   next(req.user ? undefined : unauthorized())
 }
 
+/** Admins and super admins run the business; customers only see their own bookings. */
+export const isStaff = (user: Pick<SessionUser, 'role'> | undefined): boolean => user?.role === 'admin' || user?.role === 'superadmin'
+
 export const requireAdmin: RequestHandler = (req, _res, next) => {
   if (!req.user) next(unauthorized())
-  else if (req.user.role !== 'admin') next(forbidden())
+  else if (!isStaff(req.user)) next(forbidden())
   else next()
 }

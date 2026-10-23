@@ -60,13 +60,16 @@ export async function seed(): Promise<void> {
     const email = ADMIN_EMAIL.trim().toLowerCase()
     const [existing] = await db.select({ id: users.id }).from(users).where(eq(users.email, email))
     if (!existing) {
+      // The first account of a new site must be able to appoint everyone else.
+      const [superAdmin] = await db.select({ id: users.id }).from(users).where(eq(users.role, 'superadmin')).limit(1)
+      const role = superAdmin ? 'admin' : 'superadmin'
       await db.insert(users).values({
         email,
         name: 'Operations',
-        role: 'admin',
+        role,
         passwordHash: await hashPassword(ADMIN_PASSWORD),
       })
-      console.log(`[seed] created admin account ${email}`)
+      console.log(`[seed] created ${role} account ${email}`)
     }
   }
 }

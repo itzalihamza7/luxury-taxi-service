@@ -4,7 +4,7 @@ import type { AppContext } from '../../context.js'
 import { conflict, forbidden, notFound } from '../../lib/errors.js'
 import { normalizeReference } from '../../lib/reference.js'
 import { blankAsMissing, email, locale, optionalText, parse, personName, phone } from '../../lib/validate.js'
-import { requireUser } from '../auth/session.js'
+import { isStaff, requireUser } from '../auth/session.js'
 import {
   cancelBooking,
   canCancel,
@@ -85,7 +85,7 @@ export function bookingsRouter(context: AppContext): Router {
   router.get('/:reference', requireUser, async (req, res) => {
     const booking = await findBookingByReference(normalizeReference(String(req.params.reference)))
     if (!booking) throw bookingNotFound()
-    if (booking.userId !== req.user!.id && req.user!.role !== 'admin') throw forbidden()
+    if (booking.userId !== req.user!.id && !isStaff(req.user)) throw forbidden()
     res.json({ booking: serializeBooking(booking, config) })
   })
 
