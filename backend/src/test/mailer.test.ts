@@ -54,7 +54,15 @@ describe('mailer', () => {
     await expect(createMailer(graphConfig).send(email)).rejects.toThrow(new MailError('Microsoft Graph sendMail failed (403): ErrorAccessDenied Access is denied.'))
   })
 
-  it('refuses to start with an incomplete Graph configuration', () => {
-    expect(() => createMailer({ ...graphConfig, GRAPH_CLIENT_SECRET: undefined })).toThrow(/GRAPH_CLIENT_SECRET/)
+  it('falls back to logging, rather than failing, with an incomplete Graph configuration', async () => {
+    const errors: unknown[] = []
+    const spy = vi.spyOn(console, 'error').mockImplementation((...args) => void errors.push(args.join(' ')))
+    const calls: string[] = []
+    vi.stubGlobal('fetch', async (url: string) => void calls.push(url))
+    const mailer = createMailer({ ...graphConfig, GRAPH_CLIENT_SECRET: undefined })
+    await mailer.send(email)
+    spy.mockRestore()
+    expect(String(errors[0])).toMatch(/GRAPH_CLIENT_SECRET.*logged, not sent/)
+    expect(calls).toHaveLength(0)
   })
 })

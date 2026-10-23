@@ -107,8 +107,16 @@ function logMailer(config: Config): Mailer {
   }
 }
 
+/**
+ * A mistake in the mail settings must not take the site down: it is reported,
+ * and emails are logged instead of sent until it is fixed.
+ */
 export function createMailer(config: Config): Mailer {
-  if (config.MAIL_TRANSPORT === 'graph') return graphMailer(config)
-  if (config.MAIL_TRANSPORT === 'smtp') return smtpMailer(config)
+  try {
+    if (config.MAIL_TRANSPORT === 'graph') return graphMailer(config)
+    if (config.MAIL_TRANSPORT === 'smtp') return smtpMailer(config)
+  } catch (error) {
+    console.error(`[mail] ${error instanceof Error ? error.message : String(error)}; emails are logged, not sent`)
+  }
   return logMailer(config)
 }
