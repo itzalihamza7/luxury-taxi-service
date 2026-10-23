@@ -2,6 +2,7 @@ import { BadgeCheck, CalendarClock, Check, Handshake, Languages, LockKeyhole, Ma
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import { QuickQuote } from '@/components/booking/QuickQuote'
+import { ArrivalStory } from '@/components/home/ArrivalStory'
 import { ArticleCard, RouteCard, ServiceCard } from '@/components/content/Cards'
 import { FaqList } from '@/components/content/FaqList'
 import { JsonLd } from '@/components/content/JsonLd'
@@ -234,14 +235,16 @@ export default async function HomePage() {
 
           {/* min-w-0 lets this column shrink to the screen: the row of ride types scrolls instead of widening the page. */}
           <div id="quote" className="min-w-0 animate-rise scroll-mt-28 [animation-delay:240ms]">
-            <h2 className="mb-4 flex items-baseline justify-between gap-4">
-              <span className="font-display text-3xl text-bone-50">{h.widgetTitle}</span>
+            <h2 className="mb-4 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+              <span className="font-display text-3xl whitespace-nowrap text-bone-50">{h.widgetTitle}</span>
               <span className="text-xs text-bone-100/70">{h.widgetHint}</span>
             </h2>
             <QuickQuote b={b} />
           </div>
         </div>
       </section>
+
+      <ArrivalStory story={h.story} book={t.actions.book} fleet={t.actions.viewFleet} />
 
       {/* In short */}
       <Section tone="light">

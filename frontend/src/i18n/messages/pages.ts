@@ -4,6 +4,19 @@ const en = {
     metaTitle: 'Private chauffeur service in Madrid — fixed prices, booked online',
     metaDescription:
       'Chauffeur-driven cars in Madrid and across Spain: airport transfers, hourly hire, city rides and day trips. See a fixed price for every vehicle before you book.',
+    story: {
+      label: 'The arrival',
+      scroll: 'Scroll',
+      acts: [
+        { eyebrow: 'I · The arrival', title: 'On time, to the minute.', text: 'Your chauffeur follows the traffic and your flight, and is waiting before you are.' },
+        { eyebrow: 'II · The door', title: 'Held open for you.', text: 'Luggage taken, door opened, the route already planned.' },
+      ],
+      final: {
+        eyebrow: 'III · The journey',
+        title: 'Step inside.',
+        text: 'Quiet leather, cool water and nothing to think about until you arrive.',
+      },
+    },
     heroTitle: 'Arrive *unhurried*.',
     heroLead: 'Chauffeur-driven cars across Madrid and Spain. One fixed price, shown before you book — no meter, no surprises.',
     widgetTitle: 'Where to?',
@@ -213,6 +226,19 @@ const es: typeof en = {
     metaTitle: 'Servicio de chófer privado en Madrid: precios cerrados y reserva online',
     metaDescription:
       'Coches con chófer en Madrid y toda España: traslados al aeropuerto, servicio por horas, trayectos urbanos y excursiones. Vea el precio cerrado de cada vehículo antes de reservar.',
+    story: {
+      label: 'La llegada',
+      scroll: 'Desplácese',
+      acts: [
+        { eyebrow: 'I · La llegada', title: 'Puntual, al minuto.', text: 'Su chófer sigue el tráfico y su vuelo, y le espera antes de que usted llegue.' },
+        { eyebrow: 'II · La puerta', title: 'Abierta para usted.', text: 'El equipaje, en el maletero; la puerta, abierta; la ruta, ya planificada.' },
+      ],
+      final: {
+        eyebrow: 'III · El trayecto',
+        title: 'Adelante.',
+        text: 'Cuero en silencio, agua fresca y nada en qué pensar hasta llegar.',
+      },
+    },
     heroTitle: 'Llegue *sin prisas*.',
     heroLead: 'Coches con chófer en Madrid y toda España. Un precio cerrado, visible antes de reservar: sin taxímetro y sin sorpresas.',
     widgetTitle: '¿Adónde vamos?',
