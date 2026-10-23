@@ -107,16 +107,20 @@ the container and is excluded from file sync ([`.ddev/mutagen/mutagen.yml`](.dde
 
 ## Production
 
+On a server, [`deploy/setup-server.sh`](deploy/setup-server.sh) installs Docker and a swap file on
+a fresh Ubuntu host. [`docker-compose.prod.yml`](docker-compose.prod.yml) adds Caddy in front of the
+website, with automatic HTTPS certificates and a `www` redirect:
+
 ```bash
-cp .env.example .env          # set POSTGRES_PASSWORD, ADMIN_EMAIL, ADMIN_PASSWORD and SITE_URL
-docker compose up --build -d
+cp .env.example .env          # set POSTGRES_PASSWORD, ADMIN_EMAIL, ADMIN_PASSWORD, SITE_URL, DOMAIN
+                              # and TRUST_PROXY=2
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d
 ```
 
-The site listens on port 3000. On start, the API container applies pending migrations and adds any
-missing starting data, so a release is `git pull && docker compose up --build -d`.
+The domain's A record must point at the server, with ports 80 and 443 open. On start, the API
+container applies pending migrations and adds any missing starting data, so a release is `git pull`
+followed by the same command. Without the second file the stack runs plain HTTP on port 3000.
 
-- Terminate HTTPS in a reverse proxy (Caddy, nginx, Traefik or a load balancer) in front of the
-  `frontend` service and set `TRUST_PROXY=2`.
 - `SITE_URL` is read at build time for canonical links, the sitemap and payment return links.
 - Pages are streamed; proxies should not buffer responses (`X-Accel-Buffering: no` is sent).
 - Back up the `db-data` volume: it holds bookings, accounts, content and uploaded photos.
