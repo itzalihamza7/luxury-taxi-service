@@ -180,7 +180,7 @@ export function AdminShell({ nav, shell, children }: Props) {
         >
           <div className="flex h-16 shrink-0 items-center justify-between gap-3 border-b border-white/10 px-5">
             <Link href="/admin" className="flex min-w-0 items-center gap-3" onClick={() => setMenu(false)}>
-              <Monogram className="size-8 shrink-0 text-gold-300" />
+              <Monogram className="size-9 shrink-0 text-bone-50" />
               <span className="min-w-0 leading-tight">
                 <span className="block truncate text-sm font-semibold tracking-wide">
                   {site.name}

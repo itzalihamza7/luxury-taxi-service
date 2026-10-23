@@ -17,12 +17,13 @@ const inter = localFont({
   display: 'swap',
 })
 
-const instrumentSerif = localFont({
+// The display face: a classical Garamond for headings and the wordmark.
+const cormorant = localFont({
   src: [
-    { path: '../../fonts/InstrumentSerif-Regular.woff2', weight: '400', style: 'normal' },
-    { path: '../../fonts/InstrumentSerif-Italic.woff2', weight: '400', style: 'italic' },
+    { path: '../../fonts/CormorantGaramond-Variable.woff2', weight: '300 700', style: 'normal' },
+    { path: '../../fonts/CormorantGaramond-Italic-Variable.woff2', weight: '300 700', style: 'italic' },
   ],
-  variable: '--font-instrument',
+  variable: '--font-cormorant',
   display: 'swap',
 })
 
@@ -55,7 +56,7 @@ export default async function RootLayout({ children }: LayoutProps<'/[locale]'>)
   const locale = await getLocale()
 
   return (
-    <html lang={locale} className={`${inter.variable} ${instrumentSerif.variable}`}>
+    <html lang={locale} className={`${inter.variable} ${cormorant.variable}`}>
       <body className="flex min-h-dvh flex-col">
         <I18nProvider locale={locale} messages={common[locale]}>
           <AuthProvider>
