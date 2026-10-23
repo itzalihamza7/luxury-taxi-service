@@ -1,9 +1,6 @@
-import { Phone } from 'lucide-react'
 import { Link } from '@/components/ui/Link'
 import { getLocale } from '@/i18n/server'
-import { phoneHref } from '@/lib/contact'
 import { loadCollection, quietly } from '@/lib/server-api'
-import { contactDetails } from './ContactButtons'
 
 /*
  * The parts of the header that come from the console. They are handed to the
@@ -22,15 +19,4 @@ export async function ServiceLinks({ mobile }: { mobile?: boolean }) {
       </Link>
     </li>
   ))
-}
-
-export async function HeaderPhone() {
-  const settings = await contactDetails()
-  if (!settings) return null
-  return (
-    <a href={phoneHref(settings.phone)} className="inline-flex items-center gap-2 text-[0.8125rem] font-medium text-bone-50/80 transition-colors hover:text-gold-300">
-      <Phone aria-hidden className="size-3.5" />
-      {settings.phone}
-    </a>
-  )
 }

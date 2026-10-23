@@ -19,15 +19,14 @@ interface Props {
   /** The services as menu entries (`<li>`s), for the drop-down and for the phone menu. */
   serviceLinks: ReactNode
   mobileServiceLinks: ReactNode
-  phone: ReactNode
 }
 
 /**
- * The three props come from the console's content and arrive a moment after
+ * The two props come from the console's content and arrive a moment after
  * the header itself (see `HeaderData.tsx`). The header does not wait for them:
  * its buttons must work straight away.
  */
-export function Header({ serviceLinks, mobileServiceLinks, phone }: Props) {
+export function Header({ serviceLinks, mobileServiceLinks }: Props) {
   const { t } = useI18n()
   // The bar turns solid once the page has scrolled past the top of the hero.
   const scrolled = useSyncExternalStore(
@@ -53,7 +52,7 @@ export function Header({ serviceLinks, mobileServiceLinks, phone }: Props) {
     { href: '/about', label: t.nav.about },
     { href: '/contact', label: t.nav.contact },
   ]
-  const linkClass = 'inline-flex h-10 items-center text-[0.8125rem] font-medium tracking-wide text-bone-50/80 transition-colors hover:text-gold-300'
+  const linkClass = 'inline-flex h-10 items-center text-[0.6875rem] font-semibold tracking-[0.14em] text-bone-50/80 uppercase transition-colors hover:text-gold-300'
 
   return (
     <header
@@ -70,7 +69,7 @@ export function Header({ serviceLinks, mobileServiceLinks, phone }: Props) {
           <Wordmark />
         </Link>
 
-        <nav aria-label={t.nav.main} className="hidden items-center gap-4 lg:flex xl:gap-7">
+        <nav aria-label={t.nav.main} className="hidden items-center gap-5 xl:flex">
           <div className="group relative">
             <Link href="/services" className={`${linkClass} gap-1`}>
               {t.nav.services}
@@ -88,8 +87,6 @@ export function Header({ serviceLinks, mobileServiceLinks, phone }: Props) {
         </nav>
 
         <div className="flex items-center gap-3 xl:gap-4">
-          {/* The width is reserved, so the menu does not move when the number arrives. */}
-          <div className="hidden min-w-[9.75rem] justify-end 2xl:flex">{phone}</div>
           {/* Wrappers own the show/hide rule, so it never competes with a component's own display class. */}
           <div className="hidden sm:block">
             <LanguageSwitch />
@@ -106,7 +103,7 @@ export function Header({ serviceLinks, mobileServiceLinks, phone }: Props) {
             aria-expanded={open}
             aria-controls="mobile-menu"
             aria-label={open ? t.nav.close : t.nav.menu}
-            className="-mr-2 rounded-full p-2 lg:hidden"
+            className="-mr-2 rounded-full p-2 xl:hidden"
           >
             {open ? <X aria-hidden className="size-6" /> : <Menu aria-hidden className="size-6" />}
           </button>
@@ -117,7 +114,7 @@ export function Header({ serviceLinks, mobileServiceLinks, phone }: Props) {
       <div
         id="mobile-menu"
         hidden={!open}
-        className="h-[calc(100dvh-4.5rem)] overflow-y-auto border-t border-white/10 bg-ink-950 lg:hidden"
+        className="h-[calc(100dvh-4.5rem)] overflow-y-auto border-t border-white/10 bg-ink-950 xl:hidden"
       >
         {/* Following any link in the menu closes it. */}
         <nav

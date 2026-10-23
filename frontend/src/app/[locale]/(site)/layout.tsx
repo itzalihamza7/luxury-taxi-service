@@ -3,7 +3,7 @@ import { CookieConsent } from '@/components/layout/CookieConsent'
 import { contactDetails } from '@/components/layout/ContactButtons'
 import { Footer } from '@/components/layout/Footer'
 import { Header } from '@/components/layout/Header'
-import { HeaderPhone, ServiceLinks } from '@/components/layout/HeaderData'
+import { ServiceLinks } from '@/components/layout/HeaderData'
 import { MobileBar } from '@/components/layout/MobileBar'
 import { WhatsAppTracker } from '@/components/layout/WhatsAppTracker'
 import { currentYear } from '@/lib/clock'
@@ -13,10 +13,10 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
   const year = await currentYear()
 
   return (
-    <>
+    <div className="formal contents">
       {/*
         The page frame is sent at once. What comes from the console (the services
-        menu, phone number, footer links) follows a moment later in the same response.
+        menu, footer links) follows a moment later in the same response.
       */}
       <Header
         serviceLinks={
@@ -27,11 +27,6 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
         mobileServiceLinks={
           <Suspense fallback={null}>
             <ServiceLinks mobile />
-          </Suspense>
-        }
-        phone={
-          <Suspense fallback={null}>
-            <HeaderPhone />
           </Suspense>
         }
       />
@@ -46,7 +41,7 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
       </Suspense>
       <CookieConsent />
       <WhatsAppTracker />
-    </>
+    </div>
   )
 }
 

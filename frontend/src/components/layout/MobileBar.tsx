@@ -30,7 +30,7 @@ export function MobileBar({ phone, whatsapp }: { phone: string | null; whatsapp:
           WhatsApp
         </a>
       ) : null}
-      <Link href="/booking" className="flex flex-[1.4] items-center justify-center bg-gold-400 text-sm font-semibold text-ink-950">
+      <Link href="/booking" className="flex flex-[1.4] items-center justify-center bg-gold-300 text-[0.6875rem] font-semibold tracking-[0.2em] text-ink-950 uppercase">
         {t.actions.book}
       </Link>
     </div>

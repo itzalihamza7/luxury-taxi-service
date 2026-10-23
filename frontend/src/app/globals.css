@@ -2,7 +2,7 @@
 
 @theme inline {
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-display: var(--font-instrument), ui-serif, Georgia, 'Times New Roman', serif;
+  --font-display: var(--font-cormorant), 'Cormorant Garamond', Garamond, Georgia, 'Times New Roman', serif;
 }
 
 @theme {
@@ -22,14 +22,14 @@
   --color-bone-300: #d5cab8;
   --color-bone-400: #b3a791;
 
-  /* Gold: the single accent, a soft champagne. 700 is the accessible text tone on light surfaces. */
-  --color-gold-100: #f7efdf;
-  --color-gold-200: #eee0c2;
-  --color-gold-300: #e3cc9f;
-  --color-gold-400: #d4b67e;
-  --color-gold-500: #ba985b;
-  --color-gold-600: #957743;
-  --color-gold-700: #6e572f;
+  /* Gold: the single accent, a muted champagne used sparingly. 700 is the accessible text tone on light surfaces. */
+  --color-gold-100: #f6f0e3;
+  --color-gold-200: #ebdfc7;
+  --color-gold-300: #dccaa4;
+  --color-gold-400: #c9ae7f;
+  --color-gold-500: #b09362;
+  --color-gold-600: #8e7548;
+  --color-gold-700: #6c5833;
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 
@@ -72,6 +72,20 @@
     to {
       opacity: 1;
       transform: scale(1);
+    }
+  }
+  /* The line under "Scroll" at the start of the home page's arrival scene. */
+  @keyframes scroll-cue {
+    0%,
+    100% {
+      opacity: 0.2;
+      transform: scaleY(0.4);
+      transform-origin: top;
+    }
+    50% {
+      opacity: 1;
+      transform: scaleY(1);
+      transform-origin: top;
     }
   }
   @keyframes pop {
@@ -119,6 +133,12 @@
   h2,
   h3 {
     text-wrap: balance;
+  }
+
+  /* Cormorant's default figures are old-style; prices and counts read better as lining figures. */
+  .display,
+  .font-display {
+    font-variant-numeric: lining-nums;
   }
 
   p {
@@ -177,19 +197,33 @@
   }
 }
 
-/* Large editorial headings. */
+/* Large headings, set in the display face. */
 @utility display {
   font-family: var(--font-display);
   font-weight: 400;
-  letter-spacing: -0.015em;
-  line-height: 1.02;
+  letter-spacing: -0.01em;
+  line-height: 1.04;
+}
+
+/*
+ * The public website's formal look: square corners everywhere except true
+ * circles. Set on the site's frame, so the admin panel keeps its own.
+ */
+@utility formal {
+  --radius-xs: 0px;
+  --radius-sm: 0px;
+  --radius-md: 1px;
+  --radius-lg: 2px;
+  --radius-xl: 2px;
+  --radius-2xl: 2px;
+  --radius-3xl: 2px;
 }
 
 /* Small uppercase label above headings. */
 @utility eyebrow {
   font-size: 0.6875rem;
   font-weight: 600;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.3em;
   text-transform: uppercase;
 }
 
