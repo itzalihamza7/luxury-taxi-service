@@ -187,3 +187,21 @@ describe('api basics', () => {
     expect(search.body.places[0]).toMatchObject({ id: 'cat:toledo', label: 'Toledo', kind: 'city' })
   })
 })
+
+describe('sign-in throttling per account', () => {
+  it('locks an account after 10 failed attempts, even from different addresses', async () => {
+    const limited = buildApp({ RATE_LIMIT_DISABLED: false })
+    await registerAgent(limited, 'target@example.com', 'right-password-1')
+    const attempt = (password: string, n: number) =>
+      request(limited).post('/api/auth/login').set('X-Forwarded-For', `203.0.113.${n}`).send({ email: 'target@example.com', password })
+
+    for (let n = 1; n <= 10; n += 1) expect((await attempt('wrong-password', n)).status).toBe(401)
+    // Now even the right password is refused for a while.
+    const locked = await attempt('right-password-1', 11)
+    expect(locked.status).toBe(429)
+    expect(locked.body.error.code).toBe('RATE_LIMITED')
+    // Other accounts are not affected.
+    await registerAgent(limited, 'other@example.com', 'other-password-1')
+    expect((await request(limited).post('/api/auth/login').set('X-Forwarded-For', '203.0.113.99').send({ email: 'other@example.com', password: 'other-password-1' })).status).toBe(200)
+  })
+})
