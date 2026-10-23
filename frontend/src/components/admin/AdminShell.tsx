@@ -1,6 +1,6 @@
 'use client'
 
-import { CalendarCheck, CarFront, ExternalLink, FileText, Inbox, LayoutDashboard, LogOut, Menu, MessageCircle, PhoneCall, Plus, Settings, X, type LucideIcon } from 'lucide-react'
+import { CalendarCheck, CarFront, ExternalLink, FileText, Inbox, LayoutDashboard, LogOut, Menu, MessageCircle, PhoneCall, Plus, Settings, Users, X, type LucideIcon } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useAuth } from '@/components/auth/AuthProvider'
@@ -14,7 +14,7 @@ import { useI18n } from '@/i18n/client'
 import { href } from '@/i18n/config'
 import type { ManageMessages } from '@/i18n/messages/manage'
 import { api } from '@/lib/api'
-import type { BookingStatus } from '@/lib/types'
+import { isStaff, type BookingStatus } from '@/lib/types'
 
 /** The numbers behind the overview and the badges in the menu. */
 export interface Summary {
@@ -56,6 +56,7 @@ const NAV: { group?: Group; items: NavItem[] }[] = [
       { id: 'newBooking', href: '/admin/bookings/new', icon: PhoneCall },
       { id: 'messages', href: '/admin/messages', icon: Inbox },
       { id: 'whatsapp', href: '/admin/whatsapp', icon: MessageCircle },
+      { id: 'users', href: '/admin/users', icon: Users },
     ],
   },
   {
@@ -102,7 +103,7 @@ export function AdminShell({ nav, shell, children }: Props) {
   const [summary, setSummary] = useState<Summary | null>(null)
   const [reload, setReload] = useState(0)
 
-  const isAdmin = user?.role === 'admin'
+  const isAdmin = isStaff(user)
 
   // Signed-out visitors are sent to sign in, and brought back to the same page afterwards.
   useEffect(() => {

@@ -98,8 +98,14 @@ export interface User {
   email: string
   name: string
   phone: string | null
-  role: 'customer' | 'admin'
+  /** `superadmin` can also appoint and remove other super admins. */
+  role: UserRole
 }
+
+export type UserRole = 'customer' | 'admin' | 'superadmin'
+
+/** Admins and super admins run the business and see the admin panel. */
+export const isStaff = (user: Pick<User, 'role'> | null | undefined): boolean => user?.role === 'admin' || user?.role === 'superadmin'
 
 export interface AppConfig {
   currency: string

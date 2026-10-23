@@ -37,6 +37,7 @@ the company's contact details.
 | Bookings | Search and filter, confirm, start and complete rides, record payments, cancel |
 | New booking | Enter a ride for a customer who phoned or wrote, with an agreed price and a ready-to-send WhatsApp confirmation |
 | Messages | Contact-form messages |
+| Users | Search, edit and delete accounts; assign roles (customer, admin, super admin) |
 | WhatsApp clicks | Who opened WhatsApp from the website: approximate location, device, browser and page |
 | Fleet | Vehicles, capacities, rates, photos, display order and visibility |
 | Content | Services, routes, events, journal articles, questions, reviews and legal pages, in both languages |
@@ -69,7 +70,9 @@ Browser ──► Next.js (frontend:3000) ──/api/*──► Express API (bac
   admin panel needs no developer for day-to-day changes. Uploaded photos are resized in the
   browser, stored in PostgreSQL and served immutably, so one database backup holds everything.
 - **Accounts and security.** scrypt password hashing, HttpOnly session cookies, role-based access
-  to the admin API, rate limits on sensitive endpoints, input validation with stable error codes
+  to the admin API (only a super admin can appoint or change a super admin; role changes, email
+  changes and deletions require the acting admin's password, and the last super admin cannot be
+  removed), rate limits on sensitive endpoints, input validation with stable error codes
   that the website translates.
 - **Phone bookings and accounts.** A booking entered by the team joins the customer's account when
   they sign up with the same email address or phone number. This is a setting in *Business

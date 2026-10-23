@@ -21,6 +21,7 @@ const en = {
     myDetails: 'My details',
     admin: 'Admin panel',
     administrator: 'Administrator',
+    superAdministrator: 'Super admin',
     accountMenu: 'Account',
     accountLead: 'Sign in to see your bookings and book faster.',
     menu: 'Menu',
@@ -190,6 +191,12 @@ const en = {
     ENTRY_NOT_FOUND: 'This entry no longer exists.',
     UNSUPPORTED_IMAGE: 'Please choose a JPEG, PNG or WebP image.',
     PAYLOAD_TOO_LARGE: 'This is too large to save.',
+    WRONG_PASSWORD: 'Your password is not correct.',
+    SUPERADMIN_ONLY: 'Only a super admin can change super admin accounts.',
+    OWN_ROLE: 'You cannot change your own role.',
+    OWN_ACCOUNT: 'You cannot delete your own account.',
+    LAST_SUPERADMIN: 'There must always be at least one super admin.',
+    USER_NOT_FOUND: 'This account no longer exists.',
   },
   fields: {
     required: 'This field is required.',
@@ -217,6 +224,8 @@ const en = {
     invalid_link: 'Enter a valid link.',
     invalid_date: 'Enter a valid date.',
     before_start: 'The last day cannot be before the first day.',
+    wrong_password: 'This password is not correct.',
+    mismatch: 'This does not match.',
   },
 }
 
@@ -242,6 +251,7 @@ const es: typeof en = {
     myDetails: 'Mis datos',
     admin: 'Panel de administración',
     administrator: 'Administrador',
+    superAdministrator: 'Superadministrador',
     accountMenu: 'Cuenta',
     accountLead: 'Inicie sesión para ver sus reservas y reservar más rápido.',
     menu: 'Menú',
@@ -411,6 +421,12 @@ const es: typeof en = {
     ENTRY_NOT_FOUND: 'Esta entrada ya no existe.',
     UNSUPPORTED_IMAGE: 'Elija una imagen JPEG, PNG o WebP.',
     PAYLOAD_TOO_LARGE: 'Es demasiado grande para guardarlo.',
+    WRONG_PASSWORD: 'Su contraseña no es correcta.',
+    SUPERADMIN_ONLY: 'Solo un superadministrador puede cambiar cuentas de superadministrador.',
+    OWN_ROLE: 'No puede cambiar su propio rol.',
+    OWN_ACCOUNT: 'No puede eliminar su propia cuenta.',
+    LAST_SUPERADMIN: 'Siempre debe haber al menos un superadministrador.',
+    USER_NOT_FOUND: 'Esta cuenta ya no existe.',
   },
   fields: {
     required: 'Este campo es obligatorio.',
@@ -438,6 +454,8 @@ const es: typeof en = {
     invalid_link: 'Introduzca un enlace válido.',
     invalid_date: 'Introduzca una fecha válida.',
     before_start: 'El último día no puede ser anterior al primero.',
+    wrong_password: 'La contraseña no es correcta.',
+    mismatch: 'No coincide.',
   },
 }
 

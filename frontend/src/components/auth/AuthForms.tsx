@@ -10,7 +10,7 @@ import { href } from '@/i18n/config'
 import type { AccountMessages } from '@/i18n/messages/account'
 import { api, ApiError, errorMessage, fieldMessage } from '@/lib/api'
 import { useContactDetails } from '@/lib/hooks'
-import type { User } from '@/lib/types'
+import { isStaff, type User } from '@/lib/types'
 import { useAuth } from './AuthProvider'
 
 /**
@@ -20,7 +20,7 @@ import { useAuth } from './AuthProvider'
 function destination(user: User, locale: Parameters<typeof href>[0]): string {
   const next = new URLSearchParams(window.location.search).get('next')
   if (next && next.startsWith('/') && !next.startsWith('//')) return href(locale, next)
-  return href(locale, user.role === 'admin' ? '/admin' : '/account')
+  return href(locale, isStaff(user) ? '/admin' : '/account')
 }
 
 function Shell({ children }: { children: ReactNode }) {

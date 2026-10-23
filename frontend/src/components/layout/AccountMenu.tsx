@@ -7,7 +7,7 @@ import { ButtonLink } from '@/components/ui/Button'
 import { Link } from '@/components/ui/Link'
 import { useI18n } from '@/i18n/client'
 import type { CommonMessages } from '@/i18n/messages/common'
-import type { User } from '@/lib/types'
+import { isStaff, type User } from '@/lib/types'
 
 interface Item {
   href: string
@@ -20,7 +20,7 @@ interface Item {
 /** Where a signed-in visitor can go: their own pages, and the admin panel for the team. */
 function accountItems(user: User, t: CommonMessages): Item[] {
   return [
-    ...(user.role === 'admin' ? [{ href: '/admin', label: t.nav.admin, icon: LayoutDashboard, accent: true }] : []),
+    ...(isStaff(user) ? [{ href: '/admin', label: t.nav.admin, icon: LayoutDashboard, accent: true }] : []),
     { href: '/account', label: t.nav.myBookings, icon: CalendarCheck },
     { href: '/account?tab=profile', label: t.nav.myDetails, icon: UserRound },
   ]
@@ -42,7 +42,7 @@ function Identity({ user }: { user: User }) {
       <div className="min-w-0">
         <p className="truncate text-sm font-semibold text-bone-50">{user.name}</p>
         <p className="truncate text-xs text-bone-50/55">{user.email}</p>
-        {user.role === 'admin' ? <p className="mt-1.5 text-[0.625rem] font-semibold tracking-[0.16em] text-gold-300 uppercase">{t.nav.administrator}</p> : null}
+        {isStaff(user) ? <p className="mt-1.5 text-[0.625rem] font-semibold tracking-[0.16em] text-gold-300 uppercase">{user.role === 'superadmin' ? t.nav.superAdministrator : t.nav.administrator}</p> : null}
       </div>
     </div>
   )
