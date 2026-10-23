@@ -1,0 +1,14 @@
+# Public entry point: HTTPS certificates are obtained and renewed automatically
+# (Let's Encrypt) for the domain in DOMAIN, and www. redirects to it.
+
+{$DOMAIN} {
+	encode zstd gzip
+	reverse_proxy frontend:3000 {
+		# Pages are streamed; pass each part on as soon as it arrives.
+		flush_interval -1
+	}
+}
+
+www.{$DOMAIN} {
+	redir https://{$DOMAIN}{uri} permanent
+}
