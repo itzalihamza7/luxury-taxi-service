@@ -277,3 +277,35 @@ export type Booking = typeof bookings.$inferSelect
 export type ContentEntry = typeof contentEntries.$inferSelect
 export type BookingStatus = (typeof BOOKING_STATUSES)[number]
 export type PaymentStatus = (typeof PAYMENT_STATUSES)[number]
+
+const DEVICE_TYPES = ['mobile', 'tablet', 'desktop'] as const
+
+/**
+ * One click on a WhatsApp link of the website. The visitor's IP address is never
+ * stored: only an approximate place looked up from it, and a hash that changes
+ * every day (see `modules/analytics`).
+ */
+export const whatsappClicks = pgTable(
+  'whatsapp_clicks',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    createdAt: timestamptz('created_at').notNull().defaultNow(),
+    /** Same value for the same browser on the same day, unrelated the next day. */
+    visitor: text('visitor').notNull(),
+    /** The visitor's first WhatsApp click that day. */
+    isNew: boolean('is_new').notNull(),
+    page: text('page').notNull(),
+    referrer: text('referrer'),
+    language: text('language'),
+    countryCode: text('country_code'),
+    country: text('country'),
+    region: text('region'),
+    city: text('city'),
+    deviceType: text('device_type', { enum: DEVICE_TYPES }).notNull(),
+    os: text('os'),
+    browser: text('browser'),
+  },
+  (table) => [index('whatsapp_clicks_created_at_idx').on(table.createdAt), index('whatsapp_clicks_visitor_idx').on(table.visitor)],
+)
+
+export type WhatsappClick = typeof whatsappClicks.$inferSelect

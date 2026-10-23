@@ -36,6 +36,9 @@ const schema = z.object({
   PAYPAL_CLIENT_SECRET: optionalString,
   PAYPAL_API_BASE: z.string().default('https://api-m.sandbox.paypal.com'),
 
+  /** City-level IP geolocation database (MMDB, e.g. DB-IP Lite). Without it, clicks have no location. */
+  GEOIP_DB: optionalString,
+
   /** Optional operator account created on startup if it does not exist yet. */
   ADMIN_EMAIL: optionalString,
   ADMIN_PASSWORD: optionalString,

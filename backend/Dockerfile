@@ -16,6 +16,17 @@ FROM base AS deps
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev --no-audit --no-fund
 
+# --- IP geolocation database ---------------------------------------------------
+# DB-IP's free city database (CC BY 4.0), published monthly: this month's, or last
+# month's early in a month. Without it the site still works; clicks just have no place.
+FROM alpine:3 AS geoip
+RUN apk add --no-cache curl && mkdir /geoip && cd /geoip \
+  && for month in "$(date +%Y-%m)" "$(date -d "@$(( $(date +%s) - 2678400 ))" +%Y-%m)"; do \
+       curl -fsSL "https://download.db-ip.com/free/dbip-city-lite-$month.mmdb.gz" | gunzip > dbip-city-lite.mmdb && break; \
+       rm -f dbip-city-lite.mmdb; \
+     done; \
+  [ -s dbip-city-lite.mmdb ] || echo "IP geolocation database unavailable"
+
 # --- Runtime image --------------------------------------------------------------
 FROM base AS runner
 ENV NODE_ENV=production
@@ -26,6 +37,8 @@ COPY --from=build /app/dist ./dist
 # host readable by their owner only, and COPY would preserve that.
 COPY --chown=node:node drizzle ./drizzle
 COPY --chown=node:node package.json ./
+COPY --from=geoip --chown=node:node /geoip ./geoip
+ENV GEOIP_DB=/app/geoip/dbip-city-lite.mmdb
 USER node
 EXPOSE 4000
 HEALTHCHECK --interval=10s --timeout=5s --start-period=40s --retries=6 \

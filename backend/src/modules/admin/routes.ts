@@ -9,6 +9,7 @@ import { normalizeReference } from '../../lib/reference.js'
 import { parse } from '../../lib/validate.js'
 import { requireAdmin } from '../auth/session.js'
 import { findBookingByReference, serializeBooking } from '../bookings/service.js'
+import { analyticsAdminRouter } from '../analytics/routes.js'
 import { contentAdminRouter } from '../content/routes.js'
 import { mediaAdminRouter } from '../media/routes.js'
 import { CATALOG } from '../places/catalog.js'
@@ -62,6 +63,7 @@ export function adminRouter(context: AppContext): Router {
   router.use('/media', mediaAdminRouter())
   router.use(contentAdminRouter())
   router.use(operatorBookingsRouter(context))
+  router.use(analyticsAdminRouter())
 
   /** Places a route or event can point at, so "book this" opens with the destination filled in. */
   router.get('/places', (_req, res) => {
