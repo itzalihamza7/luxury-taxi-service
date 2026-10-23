@@ -1,6 +1,6 @@
 'use client'
 
-import { CalendarCheck, CarFront, ExternalLink, FileText, Inbox, LayoutDashboard, LogOut, Menu, PhoneCall, Plus, Settings, X, type LucideIcon } from 'lucide-react'
+import { CalendarCheck, CarFront, ExternalLink, FileText, Inbox, LayoutDashboard, LogOut, Menu, MessageCircle, PhoneCall, Plus, Settings, X, type LucideIcon } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useAuth } from '@/components/auth/AuthProvider'
@@ -55,6 +55,7 @@ const NAV: { group?: Group; items: NavItem[] }[] = [
       { id: 'bookings', href: '/admin/bookings', icon: CalendarCheck },
       { id: 'newBooking', href: '/admin/bookings/new', icon: PhoneCall },
       { id: 'messages', href: '/admin/messages', icon: Inbox },
+      { id: 'whatsapp', href: '/admin/whatsapp', icon: MessageCircle },
     ],
   },
   {

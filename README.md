@@ -37,6 +37,7 @@ the company's contact details.
 | Bookings | Search and filter, confirm, start and complete rides, record payments, cancel |
 | New booking | Enter a ride for a customer who phoned or wrote, with an agreed price and a ready-to-send WhatsApp confirmation |
 | Messages | Contact-form messages |
+| WhatsApp clicks | Who opened WhatsApp from the website: approximate location, device, browser and page |
 | Fleet | Vehicles, capacities, rates, photos, display order and visibility |
 | Content | Services, routes, events, journal articles, questions, reviews and legal pages, in both languages |
 | Business details | Phone, WhatsApp, email, social profiles, company details and booking options |
@@ -139,6 +140,7 @@ Development values are in `.ddev/config.yaml`; production values come from `.env
 | `TRUST_PROXY` | backend | Number of proxies in front of the API (default 1) |
 | `GEOCODER_URL` | backend | Address search; empty disables it |
 | `ROUTER_URL` | backend | Road distances; empty uses the built-in estimate |
+| `GEOIP_DB` | backend | City-level IP geolocation database (MMDB); the Docker image downloads DB-IP Lite at build time |
 | `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_API_BASE` | backend | Online payment, enabled when both credentials are set |
 | `MIN_LEAD_MINUTES`, `FREE_CANCEL_HOURS`, `QUOTE_TTL_MINUTES` | backend | Booking rules (defaults 120, 24, 30) |
 

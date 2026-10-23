@@ -5,6 +5,7 @@ import { Footer } from '@/components/layout/Footer'
 import { Header } from '@/components/layout/Header'
 import { HeaderPhone, ServiceLinks } from '@/components/layout/HeaderData'
 import { MobileBar } from '@/components/layout/MobileBar'
+import { WhatsAppTracker } from '@/components/layout/WhatsAppTracker'
 import { currentYear } from '@/lib/clock'
 
 /** The frame of the public website: header, footer, the phone action bar and the cookie notice. */
@@ -44,6 +45,7 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
         <SiteMobileBar />
       </Suspense>
       <CookieConsent />
+      <WhatsAppTracker />
     </>
   )
 }
