@@ -26,6 +26,8 @@ the company's contact details.
 - Customer accounts with their bookings and profile, an account menu in the header, and password
   reset by email (a one-time link valid for an hour).
 - Service, fleet, route, event and journal pages, all edited from the admin panel.
+- An Experience page (`/experience`): a film of the car's arrival, played by the scroll, and what a
+  journey includes, moment by moment.
 - Optional online payment through PayPal Checkout.
 - Search-friendly: server-rendered pages, `hreflang` alternates, canonical links, structured data,
   sitemap and link previews.
@@ -80,6 +82,53 @@ Browser ──► Next.js (frontend:3000) ──/api/*──► Express API (bac
   details*.
 - **Languages.** Every page exists under `/en` and `/es`; the bare domain redirects to the
   visitor's language. Interface text lives in `frontend/src/i18n/messages/`, content in the database.
+
+## Experience page
+
+The Experience page ([`frontend/src/components/experience/`](frontend/src/components/experience/))
+opens with a ten-second film of the car arriving, played by the scroll rather than by time, with
+three moments of text over it.
+
+- **The film.** It comes in two versions, each downloaded in full and played from memory, so seeks
+  never wait for the network. A light 640×360 version (0.5 MB) loads first. The full-quality 1080p
+  version (5.8 MB, on phones too) follows at low priority and fades in at the same frame; the light
+  one is then released. The film's first frame is in the page as a sharp still, so the page never
+  waits for the film.
+- **Scrubbing.** One `requestAnimationFrame` loop advances the smooth scroll
+  ([Lenis](https://github.com/darkroomengineering/lenis)), eases the film towards the scroll
+  position and asks for a new frame only when the frame changes, chaining the next seek on the
+  previous one's `seeked`. The words fade with opacity and transforms only, so nothing over the
+  film has to be repainted while it plays. Values are written to the DOM, not React state.
+- **Less motion.** Visitors who prefer reduced motion get a still picture, native scrolling and no
+  film download.
+- **Type.** The page sets its words in Cormorant Garamond and Manrope, bundled in
+  `frontend/src/fonts/` (SIL Open Font License); the rest of the site keeps its own.
+- **Policy and caching.** The Content Security Policy allows the in-memory film (`media-src 'self'
+  blob:` in [`frontend/next.config.ts`](frontend/next.config.ts)), and browsers keep files under
+  `/video/` for a week.
+
+To use another clip (1920×1080, 24 fps, about ten seconds), encode it into `frontend/public/video/`
+under the same names:
+
+```bash
+cd frontend/public/video
+# Full quality.
+ffmpeg -i clip.mp4 -an -c:v libx264 -preset slow -tune film -crf 28 -pix_fmt yuv420p \
+  -profile:v high -g 8 -keyint_min 8 -sc_threshold 0 -bf 0 -r 24 -movflags +faststart maybach-hd.mp4
+# Light version, shown only until the full one has arrived: denoised and scaled down.
+ffmpeg -i clip.mp4 -an -vf hqdn3d=4:3:6:4.5,scale=640:360:flags=lanczos -c:v libx264 -preset slow \
+  -tune film -crf 32 -pix_fmt yuv420p -profile:v high -g 24 -keyint_min 24 -sc_threshold 0 -bf 0 \
+  -r 24 -movflags +faststart maybach-preview.mp4
+ffmpeg -i clip.mp4 -frames:v 1 -q:v 6 maybach-poster.jpg            # first frame, until the film moves
+ffmpeg -ss 9.4 -i clip.mp4 -frames:v 1 -q:v 3 maybach-interior.jpg  # closing still: reduced motion, the car
+```
+
+`-g 8` puts a keyframe every eight frames, so a seek decodes at most seven frames before the one it
+shows, well within a screen refresh; compared with a keyframe on every frame, the file is about half
+the size at a higher quality. The text appears at fixed points of the scroll (the `fade(...)` calls
+in [`ExperienceFilm.tsx`](frontend/src/components/experience/ExperienceFilm.tsx)), so a clip with
+different timing needs those points moved. Returning visitors can see the previous film for up to a
+week, unless the new files get new names.
 
 ## Getting started
 
@@ -168,10 +217,11 @@ backend/
 frontend/
   src/app/[locale]/      (site)/ public website, admin/ admin panel
   src/app/api/           Gateway to the API
-  src/components/        Booking flow, account, admin panel, layout, UI kit
+  src/components/        Booking flow, account, admin panel, Experience page, layout, UI kit
   src/i18n/              Locale routing and interface text
   src/lib/               API client, server data loaders, formatting, SEO
   public/images/         Photography (sources in CREDITS.md)
+  public/video/          The Experience page's film (light and full quality) and two stills from it
 ```
 
 ## Database changes
