@@ -178,6 +178,63 @@ const en = {
     ],
     numbersEyebrow: 'At a glance',
   },
+  experience: {
+    metaTitle: 'The experience',
+    metaDescription:
+      'What a journey with us feels like, from the moment you book to the moment you arrive: a chauffeur who is there before you are, a price fixed in advance and a calm, well-kept car.',
+    film: {
+      label: 'The journey, in film',
+      arrival: { eyebrow: 'The experience', title: 'Your car is *already waiting*.' },
+      scroll: 'Scroll to step inside',
+      approach: {
+        eyebrow: 'Before you arrive',
+        title: 'Every detail, *handled*.',
+        points: [
+          'On time, or early. For flights, we follow the aircraft.',
+          'A name board at arrivals, and your luggage taken care of.',
+          'One fixed price, agreed before you book.',
+        ],
+      },
+      inside: {
+        eyebrow: 'Step inside',
+        title: 'The journey is *yours*.',
+        text: 'Bottled water, on-board Wi-Fi and a charger within reach, and a chauffeur who knows when to talk and when not to.',
+      },
+    },
+    moments: {
+      eyebrow: 'Moment by moment',
+      title: 'Four moments, *one standard*',
+      lead: 'The film shows the arrival. The rest of the experience is quieter, and it is the same whichever car we send.',
+      items: [
+        {
+          title: 'Before',
+          text: 'You see the fixed price for every car before you share a single detail, VAT included. A person checks every booking, and you can cancel online at no cost up to 24 hours before pickup.',
+        },
+        {
+          title: 'The pickup',
+          text: 'Your chauffeur arrives before the agreed time. At the airport they follow your flight’s real arrival time, wait for you with a name board and take care of the luggage.',
+        },
+        {
+          title: 'On the way',
+          text: 'Bottled water, on-board Wi-Fi and phone chargers in every car. Calls, conversations and destinations stay in the car.',
+        },
+        {
+          title: 'The arrival',
+          text: 'Licensed, bilingual chauffeurs who know the terminals, the venues and the streets closed to traffic, so you are set down where you need to be. And there is always someone to call, day or night.',
+        },
+      ],
+    },
+    car: {
+      eyebrow: 'The car in the film',
+      title: 'Mercedes-Maybach *S-Class*',
+      text: [
+        'The car in the film is the Mercedes-Maybach S-Class, the flagship of our fleet: long, near-silent, with rear seats made for the hour between a flight and a meeting.',
+        'Whichever car you choose, from a city car to a sixteen-seat minibus, the chauffeur, the standards and the fixed price come with it.',
+      ],
+      imageAlt: 'The cream leather rear seats of the Mercedes-Maybach S-Class',
+      link: 'See the fleet',
+    },
+  },
   contact: {
     metaTitle: 'Contact',
     metaDescription: 'Call, WhatsApp or write to us at any hour. For bookings, the online form shows prices instantly.',
@@ -386,6 +443,63 @@ const es: typeof en = {
       { title: 'Discreción', text: 'Quién es usted, adónde va y lo que dice en el coche solo le incumbe a usted.' },
     ],
     numbersEyebrow: 'De un vistazo',
+  },
+  experience: {
+    metaTitle: 'La experiencia',
+    metaDescription:
+      'Cómo es un trayecto con nosotros, de la reserva a la llegada: un chófer que llega antes que usted, un precio cerrado de antemano y un coche tranquilo y cuidado.',
+    film: {
+      label: 'El trayecto, en película',
+      arrival: { eyebrow: 'La experiencia', title: 'Su coche *ya le espera*.' },
+      scroll: 'Desplácese para entrar',
+      approach: {
+        eyebrow: 'Antes de que llegue',
+        title: 'Cada detalle, *resuelto*.',
+        points: [
+          'Puntual, o antes. En los vuelos seguimos el avión, no el horario.',
+          'Un cartel con su nombre en llegadas y su equipaje en buenas manos.',
+          'Un precio cerrado, acordado antes de reservar.',
+        ],
+      },
+      inside: {
+        eyebrow: 'Adelante',
+        title: 'El trayecto es *suyo*.',
+        text: 'Agua embotellada, wifi a bordo y un cargador a mano, y un chófer que sabe cuándo hablar y cuándo no.',
+      },
+    },
+    moments: {
+      eyebrow: 'Paso a paso',
+      title: 'Cuatro momentos, *un mismo nivel*',
+      lead: 'La película muestra la llegada. El resto de la experiencia es más discreto, y es el mismo sea cual sea el coche que enviemos.',
+      items: [
+        {
+          title: 'Antes',
+          text: 'Ve el precio cerrado de cada coche antes de darnos un solo dato, con el IVA incluido. Una persona revisa cada reserva, y puede cancelarla online sin coste hasta 24 horas antes de la recogida.',
+        },
+        {
+          title: 'La recogida',
+          text: 'Su chófer llega antes de la hora acordada. En el aeropuerto sigue la hora real de llegada de su vuelo, le espera con un cartel con su nombre y se ocupa del equipaje.',
+        },
+        {
+          title: 'Durante el trayecto',
+          text: 'Agua embotellada, wifi a bordo y cargadores de móvil en todos los coches. Las llamadas, las conversaciones y los destinos se quedan en el coche.',
+        },
+        {
+          title: 'La llegada',
+          text: 'Chóferes profesionales, con licencia y bilingües, que conocen las terminales, los recintos y las calles cerradas al tráfico, para que llegue justo donde lo necesita. Y siempre hay alguien al teléfono, de día o de noche.',
+        },
+      ],
+    },
+    car: {
+      eyebrow: 'El coche de la película',
+      title: 'Mercedes-Maybach *Clase S*',
+      text: [
+        'El coche de la película es el Mercedes-Maybach Clase S, el buque insignia de nuestra flota: largo, casi silencioso y con unos asientos traseros pensados para la hora entre un vuelo y una reunión.',
+        'Elija el coche que elija, del utilitario al minibús de dieciséis plazas, el chófer, el nivel de servicio y el precio cerrado van con él.',
+      ],
+      imageAlt: 'Los asientos traseros de cuero crema del Mercedes-Maybach Clase S',
+      link: 'Ver la flota',
+    },
   },
   contact: {
     metaTitle: 'Contacto',

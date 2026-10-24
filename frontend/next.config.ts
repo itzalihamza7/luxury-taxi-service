@@ -10,6 +10,8 @@ const contentSecurityPolicy = [
   "script-src 'self' 'unsafe-inline'",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
+  // The Experience page's film is downloaded, then played from memory (a blob: address).
+  "media-src 'self' blob:",
   "font-src 'self'",
   "connect-src 'self'",
   "frame-src 'none'",
@@ -44,9 +46,11 @@ const nextConfig: NextConfig = {
     // Resized photos are kept for a month, by the server and by browsers. A photo
     // replaced in the admin panel gets a new address, so nothing stale is shown.
     minimumCacheTTL: 2_592_000,
-    // Only these may be resized: photos that ship with the site, and photos uploaded in the console.
+    // Only these may be resized: photos that ship with the site, stills from the Experience page's film,
+    // and photos uploaded in the console.
     localPatterns: [
       { pathname: '/images/**', search: '' },
+      { pathname: '/video/*.jpg', search: '' },
       { pathname: '/api/media/**', search: '' },
     ],
   },
@@ -59,7 +63,10 @@ const nextConfig: NextConfig = {
     },
   },
   async headers() {
-    return [{ source: '/:path*', headers: securityHeaders }]
+    return [
+      { source: '/:path*', headers: securityHeaders },
+      { source: '/video/:file*', headers: [{ key: 'Cache-Control', value: 'public, max-age=604800, stale-while-revalidate=86400' }] },
+    ]
   },
 }
 

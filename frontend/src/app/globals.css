@@ -40,6 +40,8 @@
   --animate-settle: settle 2.6s var(--ease-out-expo) both;
   /* A menu opening under the button that owns it. */
   --animate-pop: pop 0.18s var(--ease-out-expo) both;
+  /* The scroll cue over the Experience page's film: a short line running down its track. */
+  --animate-scroll-cue: scroll-cue 2s ease-in-out infinite;
 
   @keyframes rise {
     from {
@@ -84,6 +86,14 @@
       transform: translateY(0) scale(1);
     }
   }
+  @keyframes scroll-cue {
+    from {
+      transform: translateY(-100%);
+    }
+    to {
+      transform: translateY(340%);
+    }
+  }
 }
 
 @layer base {
@@ -91,6 +101,17 @@
     scroll-behavior: smooth;
     scroll-padding-top: 6rem;
     -webkit-text-size-adjust: 100%;
+  }
+
+  /* Where Lenis drives the scroll (the Experience page), the browser must not smooth it a second time. */
+  html.lenis {
+    scroll-behavior: auto;
+  }
+
+  /* The Experience page sets its words in Cormorant Garamond and Manrope, which the page loads. */
+  .experience {
+    --font-display: var(--font-cormorant), ui-serif, Georgia, serif;
+    font-family: var(--font-manrope), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   }
 
   body {

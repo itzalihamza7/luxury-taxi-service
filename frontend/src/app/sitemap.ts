@@ -30,6 +30,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: '/journal', priority: 0.6 },
     ...articles.map((article) => ({ path: `/journal/${article.slug}`, priority: 0.5, lastModified: article.date })),
     { path: '/about', priority: 0.5 },
+    { path: '/experience', priority: 0.5 },
     { path: '/contact', priority: 0.5 },
     { path: '/faq', priority: 0.5 },
     { path: '/booking/track', priority: 0.3 },
