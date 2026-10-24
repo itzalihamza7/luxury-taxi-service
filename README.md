@@ -18,6 +18,8 @@ the company's contact details.
 
 **Website**
 
+- A one-page home that opens with a film of the car arriving, played by the scroll, followed by the
+  services, the car and a booking request sent through WhatsApp.
 - Instant fixed-price quotes for one-way, return, hourly, city-to-city and airport rides, with
   airport, station and address suggestions.
 - A five-step booking flow that keeps the customer's progress on the device, prefills details for
@@ -80,6 +82,46 @@ Browser ──► Next.js (frontend:3000) ──/api/*──► Express API (bac
   details*.
 - **Languages.** Every page exists under `/en` and `/es`; the bare domain redirects to the
   visitor's language. Interface text lives in `frontend/src/i18n/messages/`, content in the database.
+
+## Home page
+
+The home page ([`frontend/src/components/landing/`](frontend/src/components/landing/)) is one
+scrolling page. It opens with a ten-second film of the car arriving, played by the scroll rather
+than by time, and continues with the services, the car, a booking request that opens WhatsApp with
+the details filled in, and the contact details from *Business details*.
+
+- **The film.** It is downloaded in full behind a progress loader and played from memory, so every
+  seek is instant; phones get a 720p version. Every frame is a keyframe, so any moment can be shown
+  without decoding the frames before it.
+- **One frame loop.** A single `requestAnimationFrame` loop advances the smooth scroll
+  ([Lenis](https://github.com/darkroomengineering/lenis)), eases the film towards the scroll
+  position and fades the text in and out. These values are written straight to the DOM, so
+  scrolling does not re-render React components.
+- **Less motion.** Visitors whose system asks for reduced motion get a still picture, native
+  scrolling and no film download.
+- **Fonts and policy.** Typefaces are self-hosted from `frontend/src/fonts/` (SIL Open Font
+  License), so pages make no requests to a font service. The Content Security Policy allows the
+  in-memory film (`media-src 'self' blob:` in [`frontend/next.config.ts`](frontend/next.config.ts)).
+
+To use another clip (1920×1080, 24 fps, about ten seconds), encode it into `frontend/public/video/`
+under the same names:
+
+```bash
+cd frontend/public/video
+ffmpeg -i clip.mp4 -an -c:v libx264 -preset slow -tune film -crf 28 -pix_fmt yuv420p \
+  -profile:v high -g 1 -keyint_min 1 -sc_threshold 0 -r 24 -movflags +faststart maybach-hero.mp4
+ffmpeg -i clip.mp4 -an -vf scale=1280:720:flags=lanczos -c:v libx264 -preset slow -tune film \
+  -crf 28 -pix_fmt yuv420p -profile:v high -g 1 -keyint_min 1 -sc_threshold 0 -r 24 \
+  -movflags +faststart maybach-hero-mobile.mp4
+ffmpeg -i clip.mp4 -frames:v 1 -q:v 6 maybach-poster.jpg            # first frame, until the film plays
+ffmpeg -ss 9.4 -i clip.mp4 -frames:v 1 -q:v 3 maybach-interior.jpg  # closing still: reduced motion, the car
+```
+
+`-g 1` makes every frame a keyframe and `-crf 28` keeps the desktop film at about 10 MB. The text
+appears at fixed points of the scroll (the `fade(...)` calls in
+[`Drive.tsx`](frontend/src/components/landing/Drive.tsx)), so a clip with different timing needs
+those points moved. Browsers keep files under `/video/` for a week: returning visitors can see the
+previous film until then, unless the new files get new names.
 
 ## Getting started
 
@@ -166,12 +208,13 @@ backend/
   drizzle/               SQL migrations
 
 frontend/
-  src/app/[locale]/      (site)/ public website, admin/ admin panel
+  src/app/[locale]/      (landing)/ home page, (site)/ other public pages, admin/ admin panel
   src/app/api/           Gateway to the API
-  src/components/        Booking flow, account, admin panel, layout, UI kit
+  src/components/        Home page, booking flow, account, admin panel, layout, UI kit
   src/i18n/              Locale routing and interface text
   src/lib/               API client, server data loaders, formatting, SEO
   public/images/         Photography (sources in CREDITS.md)
+  public/video/          Home page film, its first frame and closing still
 ```
 
 ## Database changes
