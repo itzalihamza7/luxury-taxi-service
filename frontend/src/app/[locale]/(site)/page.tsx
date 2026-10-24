@@ -1,4 +1,4 @@
-import { BadgeCheck, CalendarClock, Check, Handshake, Languages, LockKeyhole, MapPin, PlaneLanding, Quote, Tag, Wifi, type LucideIcon } from 'lucide-react'
+import { BadgeCheck, CalendarClock, Check, Handshake, Languages, LockKeyhole, MapPin, PlaneLanding, Play, Quote, Tag, Wifi, type LucideIcon } from 'lucide-react'
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import { QuickQuote } from '@/components/booking/QuickQuote'
@@ -9,6 +9,7 @@ import { FleetGrid } from '@/components/fleet/FleetGrid'
 import { contactDetails, WhatsAppButton } from '@/components/layout/ContactButtons'
 import { CtaBand } from '@/components/layout/CtaBand'
 import { ButtonLink } from '@/components/ui/Button'
+import { Link } from '@/components/ui/Link'
 import { Photo } from '@/components/ui/Photo'
 import { Accent, Eyebrow, Section, SectionHeading } from '@/components/ui/Section'
 import { site, siteUrl } from '@/content/site'
@@ -218,6 +219,17 @@ export default async function HomePage() {
                 {t.actions.getPrice}
               </ButtonLink>
               <WhatsAppButton />
+              {/* For visitors not ready to book: the film, one click away. */}
+              <Link
+                href="/experience"
+                className="group inline-flex items-center gap-3 text-sm font-medium tracking-wide text-bone-50 transition-colors hover:text-gold-300"
+              >
+                <span className="relative flex size-11 shrink-0 items-center justify-center rounded-full border border-gold-300/70 transition-colors duration-300 group-hover:bg-gold-300/15">
+                  <span aria-hidden className="absolute inset-0 animate-ping rounded-full border border-gold-300/40 [animation-duration:2.4s]" />
+                  <Play aria-hidden className="ml-0.5 size-4 fill-gold-300 text-gold-300" />
+                </span>
+                {t.actions.watchExperience}
+              </Link>
               <ButtonLink href="/fleet" variant="ghost" arrow className="text-bone-100/80">
                 {t.actions.viewFleet}
               </ButtonLink>
@@ -266,6 +278,47 @@ export default async function HomePage() {
             <div className="mt-9">
               <ButtonLink href="/about" variant="outline" arrow>
                 {t.nav.about}
+              </ButtonLink>
+            </div>
+          </div>
+        </div>
+      </Section>
+
+      {/* The experience: the film, offered to everyone who is not ready to book yet. */}
+      <Section tone="dark">
+        <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:gap-16">
+          {/* The whole picture opens the film for pointer users; keyboard and screen readers use the button beside it. */}
+          <Link
+            href="/experience"
+            tabIndex={-1}
+            aria-hidden
+            className="reveal group relative block aspect-[16/10] overflow-hidden rounded-2xl bg-ink-900 shadow-[0_40px_80px_-40px_rgba(0,0,0,0.7)]"
+          >
+            <Photo
+              src="/video/maybach-poster.jpg"
+              alt=""
+              sizes="(min-width: 1024px) 58vw, 100vw"
+              className="object-[25%_center] transition-transform duration-[1600ms] ease-out-expo group-hover:scale-[1.04]"
+            />
+            <span className="absolute inset-0 bg-gradient-to-t from-ink-950/75 via-ink-950/10 to-ink-950/20" />
+            <span className="absolute left-1/2 top-1/2 flex size-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-gold-300/80 bg-ink-950/35 backdrop-blur-sm transition-transform duration-500 ease-out-expo group-hover:scale-110 sm:size-24">
+              <span className="absolute inset-0 animate-ping rounded-full border border-gold-300/50 [animation-duration:2.4s]" />
+              <Play className="ml-1 size-7 fill-gold-300 text-gold-300 sm:size-8" />
+            </span>
+            <span className="eyebrow absolute bottom-5 left-5 right-5 text-bone-50/85 sm:bottom-6 sm:left-7">{h.experienceNote}</span>
+          </Link>
+          <div className="reveal">
+            <Eyebrow onDark>{h.experienceEyebrow}</Eyebrow>
+            <h2 className="display mt-5 text-4xl text-bone-50 sm:text-5xl lg:text-[3.5rem]">
+              <Accent text={h.experienceTitle} />
+            </h2>
+            <p className="mt-6 max-w-xl text-base leading-relaxed text-bone-100/70 sm:text-lg">{h.experienceText}</p>
+            <div className="mt-9 flex flex-wrap items-center gap-4">
+              <ButtonLink href="/experience" size="lg" arrow>
+                {t.actions.watchExperience}
+              </ButtonLink>
+              <ButtonLink href="/booking" variant="outline-light" size="lg">
+                {t.actions.book}
               </ButtonLink>
             </div>
           </div>

@@ -25,6 +25,7 @@ export async function Footer({ year }: { year: number }) {
   ])
 
   const company = [
+    { href: '/experience', label: t.nav.experience },
     { href: '/about', label: t.nav.about },
     { href: '/fleet', label: t.nav.fleet },
     { href: '/routes', label: t.nav.routes },

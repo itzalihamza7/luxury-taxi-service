@@ -3,6 +3,7 @@ const en = {
   tagline: 'Private chauffeurs · Madrid',
   nav: {
     home: 'Home',
+    experience: 'Experience',
     services: 'Services',
     allServices: 'All services',
     fleet: 'Fleet',
@@ -41,6 +42,7 @@ const en = {
     learnMore: 'Learn more',
     viewVehicle: 'View vehicle',
     viewFleet: 'View the fleet',
+    watchExperience: 'Watch the experience',
     readArticle: 'Read article',
     allArticles: 'All articles',
     allRoutes: 'All routes',
@@ -234,6 +236,7 @@ const es: typeof en = {
   tagline: 'Chóferes privados · Madrid',
   nav: {
     home: 'Inicio',
+    experience: 'Experiencia',
     services: 'Servicios',
     allServices: 'Todos los servicios',
     fleet: 'Flota',
@@ -272,6 +275,7 @@ const es: typeof en = {
     learnMore: 'Saber más',
     viewVehicle: 'Ver vehículo',
     viewFleet: 'Ver la flota',
+    watchExperience: 'Ver la experiencia',
     readArticle: 'Leer artículo',
     allArticles: 'Todos los artículos',
     allRoutes: 'Todas las rutas',

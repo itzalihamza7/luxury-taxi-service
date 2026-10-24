@@ -8,6 +8,11 @@ const en = {
     heroLead: 'Chauffeur-driven cars across Madrid and Spain. One fixed price, shown before you book — no meter, no surprises.',
     widgetTitle: 'Where to?',
     widgetHint: 'See the price for every vehicle in seconds.',
+    experienceEyebrow: 'The experience',
+    experienceTitle: 'Before you book, *take the ride*.',
+    experienceText:
+      'Ten seconds of film: the car draws up on a tree-lined boulevard, the rear door opens and the seat is waiting for you. Scroll through it, and see how every journey with us begins.',
+    experienceNote: 'A 10-second film, played as you scroll',
     introEyebrow: 'In short',
     introImageAlt: 'A chauffeur holds the car door open for a passenger',
     standardsImageAlt: 'A chauffeur in a dark coat beside a black saloon',
@@ -274,6 +279,11 @@ const es: typeof en = {
     heroLead: 'Coches con chófer en Madrid y toda España. Un precio cerrado, visible antes de reservar: sin taxímetro y sin sorpresas.',
     widgetTitle: '¿Adónde vamos?',
     widgetHint: 'Vea el precio de cada vehículo en segundos.',
+    experienceEyebrow: 'La experiencia',
+    experienceTitle: 'Antes de reservar, *suba a bordo*.',
+    experienceText:
+      'Diez segundos de película: el coche llega por un bulevar arbolado, se abre la puerta trasera y el asiento le espera. Recórrala al desplazarse y vea cómo empieza cada trayecto con nosotros.',
+    experienceNote: 'Una película de 10 segundos que avanza al desplazarse',
     introEyebrow: 'En pocas palabras',
     introImageAlt: 'Un chófer sujeta la puerta del coche a una pasajera',
     standardsImageAlt: 'Un chófer con abrigo oscuro junto a una berlina negra',

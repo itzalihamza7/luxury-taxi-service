@@ -1,6 +1,6 @@
 'use client'
 
-import { ChevronDown, Menu, X } from 'lucide-react'
+import { ChevronDown, Menu, Play, X } from 'lucide-react'
 import { useEffect, useState, useSyncExternalStore, type ReactNode } from 'react'
 import { Wordmark } from '@/components/ui/Brand'
 import { ButtonLink } from '@/components/ui/Button'
@@ -49,11 +49,14 @@ export function Header({ serviceLinks, mobileServiceLinks, phone }: Props) {
     { href: '/fleet', label: t.nav.fleet },
     { href: '/routes', label: t.nav.routes },
     { href: '/events', label: t.nav.events },
-    { href: '/journal', label: t.nav.journal },
+    // Left out of the bar between 1024 and 1279 px, where it would push the booking button off the screen.
+    { href: '/journal', label: t.nav.journal, fromXl: true },
     { href: '/about', label: t.nav.about },
     { href: '/contact', label: t.nav.contact },
   ]
   const linkClass = 'inline-flex h-10 items-center text-[0.8125rem] font-medium tracking-wide text-bone-50/80 transition-colors hover:text-gold-300'
+  // The way into the film: first in the menu, and in gold, so it is the link people notice.
+  const experienceClass = 'inline-flex h-10 items-center gap-1.5 text-[0.8125rem] font-medium tracking-wide text-gold-300 transition-colors hover:text-gold-200'
 
   return (
     <header
@@ -71,6 +74,10 @@ export function Header({ serviceLinks, mobileServiceLinks, phone }: Props) {
         </Link>
 
         <nav aria-label={t.nav.main} className="hidden items-center gap-4 lg:flex xl:gap-7">
+          <Link href="/experience" className={experienceClass}>
+            <Play aria-hidden className="size-3 fill-current" />
+            {t.nav.experience}
+          </Link>
           <div className="group relative">
             <Link href="/services" className={`${linkClass} gap-1`}>
               {t.nav.services}
@@ -80,11 +87,19 @@ export function Header({ serviceLinks, mobileServiceLinks, phone }: Props) {
               <ul className="rounded-md border border-white/10 bg-ink-900/95 p-2 shadow-2xl backdrop-blur-md empty:hidden">{serviceLinks}</ul>
             </div>
           </div>
-          {links.map((link) => (
-            <Link key={link.href} href={link.href} className={linkClass}>
-              {link.label}
-            </Link>
-          ))}
+          {links.map((link) =>
+            link.fromXl ? (
+              <span key={link.href} className="hidden xl:contents">
+                <Link href={link.href} className={linkClass}>
+                  {link.label}
+                </Link>
+              </span>
+            ) : (
+              <Link key={link.href} href={link.href} className={linkClass}>
+                {link.label}
+              </Link>
+            ),
+          )}
         </nav>
 
         <div className="flex items-center gap-3 xl:gap-4">
@@ -127,6 +142,10 @@ export function Header({ serviceLinks, mobileServiceLinks, phone }: Props) {
             if ((event.target as HTMLElement).closest('a')) setOpen(false)
           }}
         >
+          <Link href="/experience" className="display flex items-center gap-3 border-b border-white/10 py-4 text-3xl text-gold-300">
+            <Play aria-hidden className="size-5 fill-current" />
+            {t.nav.experience}
+          </Link>
           <Link href="/services" className="display border-b border-white/10 py-4 text-3xl">
             {t.nav.services}
           </Link>
