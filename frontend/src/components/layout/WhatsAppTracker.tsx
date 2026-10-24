@@ -12,7 +12,8 @@ function externalReferrer(): string | null {
   }
 }
 
-function report() {
+/** Report one WhatsApp click, e.g. from a form that opens WhatsApp itself rather than through a link. */
+export function reportWhatsAppClick() {
   const body = JSON.stringify({ page: window.location.pathname, referrer: externalReferrer(), touch: navigator.maxTouchPoints > 1 })
   // A beacon still goes out while the browser leaves for WhatsApp.
   const sent = navigator.sendBeacon?.('/api/track/whatsapp', new Blob([body], { type: 'application/json' }))
@@ -28,7 +29,7 @@ export function WhatsAppTracker() {
     const onClick = (event: MouseEvent) => {
       if (event.button > 1) return
       const link = (event.target as Element | null)?.closest?.('a[href^="https://wa.me/"]')
-      if (link) report()
+      if (link) reportWhatsAppClick()
     }
     document.addEventListener('click', onClick, true)
     document.addEventListener('auxclick', onClick, true)

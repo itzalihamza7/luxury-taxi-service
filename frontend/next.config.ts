@@ -10,6 +10,8 @@ const contentSecurityPolicy = [
   "script-src 'self' 'unsafe-inline'",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
+  // The home page's film is downloaded, then played from memory (a blob: address).
+  "media-src 'self' blob:",
   "font-src 'self'",
   "connect-src 'self'",
   "frame-src 'none'",
@@ -59,7 +61,10 @@ const nextConfig: NextConfig = {
     },
   },
   async headers() {
-    return [{ source: '/:path*', headers: securityHeaders }]
+    return [
+      { source: '/:path*', headers: securityHeaders },
+      { source: '/video/:file*', headers: [{ key: 'Cache-Control', value: 'public, max-age=604800, stale-while-revalidate=86400' }] },
+    ]
   },
 }
 

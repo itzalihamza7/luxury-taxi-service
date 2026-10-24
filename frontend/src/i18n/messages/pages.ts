@@ -1,32 +1,6 @@
 /** Copy for the marketing pages. `*word*` in a title marks the italic accent. */
 const en = {
   home: {
-    metaTitle: 'Private chauffeur service in Madrid — fixed prices, booked online',
-    metaDescription:
-      'Chauffeur-driven cars in Madrid and across Spain: airport transfers, hourly hire, city rides and day trips. See a fixed price for every vehicle before you book.',
-    story: {
-      label: 'The arrival',
-      scroll: 'Scroll',
-      acts: [
-        { eyebrow: 'I · The arrival', title: 'On time, to the minute.', text: 'Your chauffeur follows the traffic and your flight, and is waiting before you are.' },
-        { eyebrow: 'II · The door', title: 'Held open for you.', text: 'Luggage taken, door opened, the route already planned.' },
-      ],
-      final: {
-        eyebrow: 'III · The journey',
-        title: 'Step inside.',
-        text: 'Quiet leather, cool water and nothing to think about until you arrive.',
-      },
-    },
-    heroTitle: 'Arrive *unhurried*.',
-    heroLead: 'Chauffeur-driven cars across Madrid and Spain. One fixed price, shown before you book — no meter, no surprises.',
-    widgetTitle: 'Where to?',
-    widgetHint: 'See the price for every vehicle in seconds.',
-    introEyebrow: 'In short',
-    introImageAlt: 'A chauffeur holds the car door open for a passenger',
-    standardsImageAlt: 'A chauffeur in a dark coat beside a black saloon',
-    introTitle: 'A private driver, *a price you already know*',
-    introText:
-      'We are a chauffeur service based in Madrid. You book a car and a professional driver for a set time; they collect you at the door and take you where you need to go. Business travellers use us for airports and meetings, families for luggage-heavy arrivals and days out, and companies for guests they want looked after.',
     facts: [
       { value: '7', label: 'vehicle classes, from city car to 16-seat minibus' },
       { value: '2 h', label: 'minimum notice for online bookings' },
@@ -34,9 +8,6 @@ const en = {
     ],
     servicesEyebrow: 'What we do',
     servicesTitle: 'Five ways to *travel well*',
-    fleetEyebrow: 'The fleet',
-    fleetTitle: 'Choose the car, *see the price*',
-    fleetLead: 'Every vehicle comes with a professional chauffeur. Prices shown are the starting fare for a transfer, VAT included.',
     includedEyebrow: 'With every ride',
     includedTitle: 'Everything that should be *standard*',
     included: [
@@ -47,31 +18,6 @@ const en = {
       { title: 'Fixed prices', text: 'The fare is set when you book, and it includes VAT.' },
       { title: 'Free cancellation', text: 'Cancel online at no cost up to 24 hours before pickup.' },
     ],
-    stepsEyebrow: 'How it works',
-    stepsTitle: 'Booked in *two minutes*',
-    steps: [
-      { title: 'Tell us the journey', text: 'Ride type, pickup, drop-off, date and time.' },
-      { title: 'Choose your car', text: 'Every vehicle that fits your group, each with its fixed price.' },
-      { title: 'Add your details', text: 'As a guest or with an account. Your progress is saved as you go.' },
-      { title: 'Confirm and track', text: 'Pay online or on the day, then follow the booking with your reference.' },
-    ],
-    routesEyebrow: 'Day trips',
-    routesTitle: 'The places worth *leaving Madrid for*',
-    standardsEyebrow: 'Behind the wheel',
-    standardsTitle: 'Chauffeurs, *not just drivers*',
-    standards: [
-      { title: 'Licensed professionals', text: 'Every chauffeur holds the licences required for private-hire work in Spain.' },
-      { title: 'Bilingual', text: 'English and Spanish as standard, so nothing is lost at the pickup.' },
-      { title: 'Local knowledge', text: 'They know the terminals, the venues and the streets closed to traffic.' },
-      { title: 'Discreet by habit', text: 'Calls, conversations and destinations stay in the car.' },
-    ],
-    reviewsEyebrow: 'In their words',
-    reviewsTitle: 'What a good journey *feels like*',
-    reviewsSample: 'Sample reviews, shown for illustration only.',
-    faqEyebrow: 'Questions',
-    faqTitle: 'Before you *book*',
-    journalEyebrow: 'Journal',
-    journalTitle: 'Notes from *the road*',
   },
   services: {
     metaTitle: 'Chauffeur services in Madrid',
@@ -223,32 +169,6 @@ const en = {
 
 const es: typeof en = {
   home: {
-    metaTitle: 'Servicio de chófer privado en Madrid: precios cerrados y reserva online',
-    metaDescription:
-      'Coches con chófer en Madrid y toda España: traslados al aeropuerto, servicio por horas, trayectos urbanos y excursiones. Vea el precio cerrado de cada vehículo antes de reservar.',
-    story: {
-      label: 'La llegada',
-      scroll: 'Desplácese',
-      acts: [
-        { eyebrow: 'I · La llegada', title: 'Puntual, al minuto.', text: 'Su chófer sigue el tráfico y su vuelo, y le espera antes de que usted llegue.' },
-        { eyebrow: 'II · La puerta', title: 'Abierta para usted.', text: 'El equipaje, en el maletero; la puerta, abierta; la ruta, ya planificada.' },
-      ],
-      final: {
-        eyebrow: 'III · El trayecto',
-        title: 'Adelante.',
-        text: 'Cuero en silencio, agua fresca y nada en qué pensar hasta llegar.',
-      },
-    },
-    heroTitle: 'Llegue *sin prisas*.',
-    heroLead: 'Coches con chófer en Madrid y toda España. Un precio cerrado, visible antes de reservar: sin taxímetro y sin sorpresas.',
-    widgetTitle: '¿Adónde vamos?',
-    widgetHint: 'Vea el precio de cada vehículo en segundos.',
-    introEyebrow: 'En pocas palabras',
-    introImageAlt: 'Un chófer sujeta la puerta del coche a una pasajera',
-    standardsImageAlt: 'Un chófer con abrigo oscuro junto a una berlina negra',
-    introTitle: 'Un conductor privado, *un precio que ya conoce*',
-    introText:
-      'Somos un servicio de chófer con sede en Madrid. Usted reserva un coche y un conductor profesional para una hora concreta; le recoge en la puerta y le lleva adonde necesite. Los viajeros de negocios nos eligen para aeropuertos y reuniones; las familias, para llegadas con mucho equipaje y excursiones; y las empresas, para los invitados a los que quieren cuidar.',
     facts: [
       { value: '7', label: 'categorías de vehículo, del utilitario al minibús de 16 plazas' },
       { value: '2 h', label: 'de antelación mínima para reservar online' },
@@ -256,9 +176,6 @@ const es: typeof en = {
     ],
     servicesEyebrow: 'Qué hacemos',
     servicesTitle: 'Cinco maneras de *viajar bien*',
-    fleetEyebrow: 'La flota',
-    fleetTitle: 'Elija el coche, *vea el precio*',
-    fleetLead: 'Todos los vehículos incluyen chófer profesional. Los precios indicados son la tarifa de salida de un traslado, con IVA incluido.',
     includedEyebrow: 'En cada trayecto',
     includedTitle: 'Todo lo que debería ser *de serie*',
     included: [
@@ -269,31 +186,6 @@ const es: typeof en = {
       { title: 'Precios cerrados', text: 'La tarifa queda fijada al reservar e incluye el IVA.' },
       { title: 'Cancelación gratuita', text: 'Cancele online sin coste hasta 24 horas antes de la recogida.' },
     ],
-    stepsEyebrow: 'Cómo funciona',
-    stepsTitle: 'Reservado en *dos minutos*',
-    steps: [
-      { title: 'Cuéntenos el trayecto', text: 'Tipo de servicio, recogida, destino, fecha y hora.' },
-      { title: 'Elija su coche', text: 'Todos los vehículos adecuados para su grupo, cada uno con su precio cerrado.' },
-      { title: 'Añada sus datos', text: 'Como invitado o con una cuenta. Su progreso se guarda sobre la marcha.' },
-      { title: 'Confirme y haga el seguimiento', text: 'Pague online o el mismo día y siga la reserva con su referencia.' },
-    ],
-    routesEyebrow: 'Excursiones',
-    routesTitle: 'Los lugares por los que *merece la pena salir de Madrid*',
-    standardsEyebrow: 'Al volante',
-    standardsTitle: 'Chóferes, *no solo conductores*',
-    standards: [
-      { title: 'Profesionales con licencia', text: 'Todos los chóferes cuentan con las licencias exigidas para el transporte privado en España.' },
-      { title: 'Bilingües', text: 'Inglés y español de serie, para que nada se pierda en la recogida.' },
-      { title: 'Conocimiento local', text: 'Conocen las terminales, los recintos y las calles cerradas al tráfico.' },
-      { title: 'Discretos por costumbre', text: 'Las llamadas, las conversaciones y los destinos se quedan en el coche.' },
-    ],
-    reviewsEyebrow: 'En sus palabras',
-    reviewsTitle: 'Cómo es *un buen trayecto*',
-    reviewsSample: 'Opiniones de muestra, con fines únicamente ilustrativos.',
-    faqEyebrow: 'Preguntas',
-    faqTitle: 'Antes de *reservar*',
-    journalEyebrow: 'Revista',
-    journalTitle: 'Apuntes *de carretera*',
   },
   services: {
     metaTitle: 'Servicios de chófer en Madrid',

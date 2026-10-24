@@ -4,6 +4,7 @@ import { isLocale, type Locale } from './config'
 import { account } from './messages/account'
 import { booking } from './messages/booking'
 import { common } from './messages/common'
+import { landing } from './messages/landing'
 import { manage } from './messages/manage'
 import { pages } from './messages/pages'
 
@@ -20,6 +21,11 @@ export async function getLocale(): Promise<Locale> {
 /** Shared strings (navigation, actions, statuses, errors) for the current language. */
 export async function getCommon() {
   return common[await getLocale()]
+}
+
+/** Copy for the home page. */
+export async function getLanding() {
+  return landing[await getLocale()]
 }
 
 /** Copy for the marketing pages. */
