@@ -26,6 +26,8 @@ the company's contact details.
 - Customer accounts with their bookings and profile, an account menu in the header, and password
   reset by email (a one-time link valid for an hour).
 - Service, fleet, route, event and journal pages, all edited from the admin panel.
+- A home page that opens on the Mercedes-Maybach in a 3D studio: the camera walks around the car
+  as the visitor scrolls, and the instant price follows.
 - An Experience page (`/experience`): a film of the car's arrival, played by the scroll, and what a
   journey includes, moment by moment.
 - Optional online payment through PayPal Checkout.
@@ -130,6 +132,38 @@ in [`ExperienceFilm.tsx`](frontend/src/components/experience/ExperienceFilm.tsx)
 different timing needs those points moved. Returning visitors can see the previous film for up to a
 week, unless the new files get new names.
 
+## Home page 3D showroom
+
+The home page opens on the fleet's Mercedes-Maybach in a dark studio, drawn with
+[three.js](https://threejs.org) through React Three Fiber and drei
+([`frontend/src/components/showroom/`](frontend/src/components/showroom/)). The section is pinned
+while the visitor scrolls: the camera walks from the front three-quarter view to the side, the rear
+and above the roof, three short blocks of words take turns, and the price widget follows.
+
+- **Loading.** The opening frame is a still, cropped wide or tall to match the screen, so the page
+  shows at once. three.js and the model load only on this page, after the page itself, and the 3D
+  view fades in when it is ready. Visitors who prefer reduced motion, devices without WebGL and
+  data-saver mode keep the still.
+- **Cost.** The model is 0.74 MB, its decoder 0.25 MB (both cached for a week). Nothing is drawn
+  while the section is off screen, the resolution drops on a struggling GPU, and phones get a
+  lighter scene.
+- **Studio.** Lighting comes from soft boxes reflected in the paint (no image files); one light
+  sweeps along the car on larger screens. The floor and horizon are drawn in exact colours,
+  outside the tone mapping the car gets, so they meet without a line.
+- **The model** is "Mercedes-Benz Maybach 2022" by Mpgs Studios, under
+  [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/): the credit is shown under the car and
+  listed in `frontend/public/images/CREDITS.md`. It was reduced from 2.4 million to 185,000
+  triangles and compressed with Draco:
+
+```bash
+npx @gltf-transform/cli optimize scene.gltf frontend/public/models/maybach.glb \
+  --compress draco --simplify-error 0.001 --palette false --instance false
+```
+
+  The Draco decoder in `frontend/public/draco/` is copied from
+  `three/examples/jsm/libs/draco/gltf/`; the Content Security Policy allows it to run
+  (`'wasm-unsafe-eval'` and `worker-src blob:` in [`frontend/next.config.ts`](frontend/next.config.ts)).
+
 ## Getting started
 
 Requirements: [DDEV](https://ddev.com) and Docker.
@@ -217,11 +251,12 @@ backend/
 frontend/
   src/app/[locale]/      (site)/ public website, admin/ admin panel
   src/app/api/           Gateway to the API
-  src/components/        Booking flow, account, admin panel, Experience page, layout, UI kit
+  src/components/        Booking flow, account, admin panel, 3D showroom, Experience page, layout, UI kit
   src/i18n/              Locale routing and interface text
   src/lib/               API client, server data loaders, formatting, SEO
   public/images/         Photography (sources in CREDITS.md)
   public/video/          The Experience page's film (light and full quality) and two stills from it
+  public/models/         The 3D showroom's car (Draco-compressed glTF); its decoder is in public/draco/
 ```
 
 ## Database changes
