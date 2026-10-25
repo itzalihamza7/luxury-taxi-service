@@ -91,6 +91,8 @@ export async function createBooking(
   input: CreateBookingInput,
   user: SessionUser | undefined,
   operator?: OperatorOptions,
+  /** Booked by the AI phone agent (with its key). */
+  byAgent = false,
 ): Promise<{ booking: Booking; approveUrl: string | null; created: boolean }> {
   const [quote] = await db.select().from(quotes).where(eq(quotes.id, input.quoteId))
   if (!quote) throw notFound('QUOTE_NOT_FOUND', 'This price is no longer available. Please request a new quote.')
@@ -151,7 +153,7 @@ export async function createBooking(
           reference,
           userId: operator ? operator.userId : (user?.id ?? null),
           quoteId: quote.id,
-          source: operator ? 'operator' : 'website',
+          source: operator ? 'operator' : byAgent ? 'agent' : 'website',
           // An operator who enters a booking has already agreed it with the customer.
           status: operator ? 'confirmed' : 'pending',
           rideType: quote.rideType,
