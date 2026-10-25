@@ -57,6 +57,10 @@ async function VehicleDetails({ params }: Pick<Props, 'params'>) {
 
   const f = p.fleet
   const bookHref = `/booking?vehicle=${vehicle.slug}`
+  // A tagline can repeat the category (the Maybach is "Flagship" in both): say it once.
+  const tagline = vehicle.tagline[locale].trim()
+  const category = t.categories[vehicle.category]
+  const label = tagline && tagline.toLowerCase() !== category.toLowerCase() ? `${tagline} · ${category}` : category
 
   return (
     <>
@@ -87,9 +91,7 @@ async function VehicleDetails({ params }: Pick<Props, 'params'>) {
 
           <div className="mt-10 grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
             <div className="animate-rise">
-              <Eyebrow onDark>
-                {vehicle.tagline[locale]} · {t.categories[vehicle.category]}
-              </Eyebrow>
+              <Eyebrow onDark>{label}</Eyebrow>
               <h1 className="display mt-5 text-5xl text-bone-50 sm:text-6xl lg:text-7xl">{vehicle.name}</h1>
               <p className="mt-6 max-w-xl text-base leading-relaxed text-bone-100/70 sm:text-lg">{vehicle.description[locale]}</p>
 
