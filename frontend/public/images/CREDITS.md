@@ -3,8 +3,9 @@
 Every photograph in this folder comes from [Pexels](https://www.pexels.com) and
 is used under the [Pexels License](https://www.pexels.com/license/): free to
 use, including commercially, with no attribution required. Credit is given here
-anyway. Each photo was cropped and compressed for the website; nothing else was
-changed unless noted.
+anyway. Each photo was cropped, compressed and colour-graded to one common look for the
+website (muted saturation, cooler shadows, warmer highlights, a light vignette);
+nothing else was changed unless noted.
 
 Replace any of them with your own photographs in the operations console
 (`/admin`), or by replacing the file.
