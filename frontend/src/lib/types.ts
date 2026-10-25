@@ -88,7 +88,7 @@ export interface Booking {
   contact: { name: string; email: string | null; phone: string | null; company: string | null; notes: string | null }
   isGuest: boolean
   /** `operator` when the business entered the booking for a customer who phoned or wrote. */
-  source: 'website' | 'operator'
+  source: 'website' | 'operator' | 'agent'
   canCancel: boolean
   createdAt: string
 }

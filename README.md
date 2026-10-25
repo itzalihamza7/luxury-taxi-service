@@ -42,7 +42,7 @@ the company's contact details.
 | WhatsApp clicks | Who opened WhatsApp from the website: approximate location, device, browser and page |
 | Fleet | Vehicles, capacities, rates, photos, display order and visibility |
 | Content | Services, routes, events, journal articles, questions, reviews and legal pages, in both languages |
-| Business details | Phone, WhatsApp, email, social profiles, company details and booking options |
+| Business details | Phone, WhatsApp, email, social profiles, company details, booking options and AI phone agent keys |
 
 ## Architecture
 
@@ -80,6 +80,23 @@ Browser ──► Next.js (frontend:3000) ──/api/*──► Express API (bac
   details*.
 - **Languages.** Every page exists under `/en` and `/es`; the bare domain redirects to the
   visitor's language. Interface text lives in `frontend/src/i18n/messages/`, content in the database.
+
+## AI phone agent
+
+An AI phone agent (for example [Vesper](https://github.com/itzalihamza7/Voice-agent-for-businesses))
+can quote, book, find and cancel rides through the same public API the website uses. With a key it
+gets a little more:
+
+- **Keys** are created and revoked under Business details. Only a SHA-256 hash and the first
+  characters are stored; the key is shown once. The agent sends it as
+  `Authorization: Bearer smk_…`. A wrong or revoked key is refused (401); requests without a key
+  work exactly as before.
+- **Rate limits** for requests with a key are counted per key, at 20 times a visitor's limit, since
+  one key serves many callers.
+- **`GET /api/agent/bookings?phone=`** (key only) lists the upcoming bookings made with a phone
+  number. The agent fills the number in from the line the call comes from, so a caller only hears
+  about their own rides.
+- **Bookings** the agent makes are marked `agent` and show an "AI agent" badge in the admin panel.
 
 ## Getting started
 

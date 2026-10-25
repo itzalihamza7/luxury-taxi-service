@@ -1,3 +1,4 @@
+import { AgentKeys } from '@/components/admin/AgentKeys'
 import { BusinessDetails } from '@/components/admin/BusinessDetails'
 import { adminMetadata } from '@/components/admin/metadata'
 import { getManage } from '@/i18n/server'
@@ -8,5 +9,11 @@ export const instant = false
 export const generateMetadata = () => adminMetadata('settings', '/admin/settings')
 
 export default async function AdminSettingsPage() {
-  return <BusinessDetails m={await getManage()} />
+  const m = await getManage()
+  return (
+    <>
+      <BusinessDetails m={m} />
+      <AgentKeys m={m} />
+    </>
+  )
 }

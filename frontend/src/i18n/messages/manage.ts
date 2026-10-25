@@ -98,6 +98,8 @@ const en = {
     filter: 'Show',
     byPhone: 'By phone',
     byPhoneHint: 'Entered by the team for a customer who phoned or wrote.',
+    byAgent: 'AI agent',
+    byAgentHint: 'Booked by your AI phone agent with its key.',
   },
 
   newBooking: {
@@ -318,6 +320,22 @@ const en = {
     linkBookingsHint:
       'A booking you enter for a customer appears in their account when they create one with the same email address or phone number. New accounts are not asked to prove that the address or number is theirs, so someone who knows a customer’s number could see that customer’s phone bookings by signing up with it. Untick this to keep such bookings reachable only with their reference.',
   },
+  agentKeys: {
+    title: 'AI phone agent keys',
+    hint: 'A key lets your AI phone agent (for example Vesper) book rides and look up a caller’s upcoming bookings. Give each agent its own key and revoke it if it leaks.',
+    name: 'Name',
+    namePlaceholder: 'Vesper phone agent',
+    create: 'Create key',
+    created: 'Copy this key now and paste it into your agent’s connection settings. It will not be shown again.',
+    copy: 'Copy',
+    copied: 'Copied',
+    none: 'No keys yet.',
+    lastUsed: 'Last used {date}',
+    neverUsed: 'Never used',
+    revoked: 'Revoked',
+    revoke: 'Revoke',
+    revokeConfirm: 'Revoke “{name}”? The agent using it will stop working until you give it a new key.',
+  },
 }
 
 const es: typeof en = {
@@ -418,6 +436,8 @@ const es: typeof en = {
     filter: 'Mostrar',
     byPhone: 'Por teléfono',
     byPhoneHint: 'Anotada por el equipo para un cliente que llamó o escribió.',
+    byAgent: 'Agente IA',
+    byAgentHint: 'Reservada por su agente telefónico de IA con su clave.',
   },
 
   newBooking: {
@@ -609,6 +629,22 @@ const es: typeof en = {
     linkBookingsOnSignup: 'Añadirlas a la cuenta del cliente que se registre más adelante',
     linkBookingsHint:
       'Una reserva que usted anota para un cliente aparece en su cuenta cuando crea una con el mismo correo o teléfono. Al crear una cuenta no se pide demostrar que el correo o el número son propios, así que alguien que conozca el número de un cliente podría ver sus reservas telefónicas registrándose con él. Desmarque esta casilla para que esas reservas solo se puedan consultar con su referencia.',
+  },
+  agentKeys: {
+    title: 'Claves del agente telefónico de IA',
+    hint: 'Una clave permite a su agente telefónico de IA (por ejemplo Vesper) reservar trayectos y consultar las próximas reservas de quien llama. Dé a cada agente su propia clave y revóquela si se filtra.',
+    name: 'Nombre',
+    namePlaceholder: 'Agente telefónico Vesper',
+    create: 'Crear clave',
+    created: 'Copie esta clave ahora y péguela en la conexión de su agente. No se volverá a mostrar.',
+    copy: 'Copiar',
+    copied: 'Copiada',
+    none: 'Todavía no hay claves.',
+    lastUsed: 'Último uso: {date}',
+    neverUsed: 'Sin usar',
+    revoked: 'Revocada',
+    revoke: 'Revocar',
+    revokeConfirm: '¿Revocar «{name}»? El agente que la usa dejará de funcionar hasta que le dé una nueva clave.',
   },
 }
 
