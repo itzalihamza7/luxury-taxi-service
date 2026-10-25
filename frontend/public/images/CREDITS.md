@@ -36,3 +36,17 @@ Replace any of them with your own photographs in the operations console
 | `site/chauffeur-door.jpg` | Chauffeur opening a car door | [15774577](https://www.pexels.com/photo/man-opening-car-door-for-woman-15774577/) | Pexels contributor |
 | `site/chauffeur-coat.jpg` | Chauffeur beside a saloon | [7594130](https://www.pexels.com/photo/a-man-going-inside-the-car-7594130/) | pavel-danilyuk |
 | `site/chauffeur-suit.jpg` | Passenger stepping into a saloon | [8425380](https://www.pexels.com/photo/man-in-gray-suit-going-inside-the-black-car-8425380/) | pavel-danilyuk |
+
+## 3D model
+
+The car in the home page's 3D showroom, and the two pictures of it, come from a model
+published under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), which allows
+commercial use as long as the author is credited. The page shows the credit under the car.
+
+The model was adapted: its geometry simplified from 2.4 million to 185,000 triangles and
+compressed, a helper plane hidden, the paint given a clear coat, and the lights made to glow.
+
+| File | Shows | Source | Author |
+| --- | --- | --- | --- |
+| `../models/maybach.glb` | Mercedes-Benz Maybach 2022, adapted for the web | [Sketchfab](https://sketchfab.com/3d-models/mercedes-benz-maybach-2022-979f37a878f04b2a8d888b62ea6027e9) | [Mpgs Studios](https://sketchfab.com/mpgs.studio) |
+| `site/showroom.jpg`, `site/showroom-tall.jpg` | The showroom's opening frame, rendered from that model | as above | as above |
