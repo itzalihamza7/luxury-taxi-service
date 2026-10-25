@@ -7,7 +7,10 @@ import type { NextConfig } from 'next'
  */
 const contentSecurityPolicy = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline'",
+  // 'wasm-unsafe-eval' lets WebAssembly compile (and nothing else): the home page's 3D car is decoded with it.
+  "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'",
+  // The decoder runs in a worker that three.js starts from a blob: address.
+  "worker-src 'self' blob:",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
   // The Experience page's film is downloaded, then played from memory (a blob: address).
@@ -66,6 +69,8 @@ const nextConfig: NextConfig = {
     return [
       { source: '/:path*', headers: securityHeaders },
       { source: '/video/:file*', headers: [{ key: 'Cache-Control', value: 'public, max-age=604800, stale-while-revalidate=86400' }] },
+      { source: '/models/:file*', headers: [{ key: 'Cache-Control', value: 'public, max-age=604800, stale-while-revalidate=86400' }] },
+      { source: '/draco/:file*', headers: [{ key: 'Cache-Control', value: 'public, max-age=604800, stale-while-revalidate=86400' }] },
     ]
   },
 }

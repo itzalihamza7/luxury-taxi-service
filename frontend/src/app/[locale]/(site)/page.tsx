@@ -1,6 +1,6 @@
 import { BadgeCheck, CalendarClock, Check, Handshake, Languages, LockKeyhole, MapPin, PlaneLanding, Play, Quote, Tag, Wifi, type LucideIcon } from 'lucide-react'
 import type { Metadata } from 'next'
-import { Suspense } from 'react'
+import { Fragment, Suspense } from 'react'
 import { QuickQuote } from '@/components/booking/QuickQuote'
 import { ArticleCard, RouteCard, ServiceCard } from '@/components/content/Cards'
 import { FaqList } from '@/components/content/FaqList'
@@ -8,6 +8,8 @@ import { JsonLd } from '@/components/content/JsonLd'
 import { FleetGrid } from '@/components/fleet/FleetGrid'
 import { contactDetails, WhatsAppButton } from '@/components/layout/ContactButtons'
 import { CtaBand } from '@/components/layout/CtaBand'
+import { Showroom } from '@/components/showroom/Showroom'
+import { ShowroomStill } from '@/components/showroom/ShowroomStill'
 import { ButtonLink } from '@/components/ui/Button'
 import { Link } from '@/components/ui/Link'
 import { Photo } from '@/components/ui/Photo'
@@ -17,6 +19,16 @@ import { href } from '@/i18n/config'
 import { getBooking, getCommon, getLocale, getPages } from '@/i18n/server'
 import { pageMetadata } from '@/lib/seo'
 import { loadCollection } from '@/lib/server-api'
+
+/** The 3D car's licence (CC BY 4.0) asks for this credit wherever it is shown. */
+const MODEL_CREDIT = {
+  title: 'Mercedes-Benz Maybach 2022',
+  source: 'https://sketchfab.com/3d-models/mercedes-benz-maybach-2022-979f37a878f04b2a8d888b62ea6027e9',
+  author: 'Mpgs Studios',
+  authorUrl: 'https://sketchfab.com/mpgs.studio',
+  license: 'CC BY 4.0',
+  licenseUrl: 'https://creativecommons.org/licenses/by/4.0/',
+}
 
 const INCLUDED_ICONS: LucideIcon[] = [Handshake, Languages, Wifi, PlaneLanding, Tag, CalendarClock]
 const STANDARD_ICONS: LucideIcon[] = [BadgeCheck, Languages, MapPin, LockKeyhole]
@@ -197,25 +209,35 @@ export default async function HomePage() {
         <BusinessData />
       </Suspense>
 
-      {/* Hero */}
-      <section className="on-dark grain relative overflow-hidden bg-ink-950 pb-20 pt-32 text-bone-100 sm:pt-40 lg:min-h-dvh lg:pb-28">
-        {/* Madrid by night, darker where the words are and clearer where the city shows. */}
-        <div aria-hidden className="absolute inset-0">
-          <Photo src="/images/site/hero.jpg" alt="" sizes="100vw" eager className="animate-settle object-[62%_35%]" />
-          <div className="absolute inset-0 bg-gradient-to-r from-ink-950/95 via-ink-950/75 to-ink-950/30" />
-          <div className="absolute inset-0 bg-gradient-to-t from-ink-950 via-ink-950/5 to-ink-950/70" />
-        </div>
-        <div className="container-page relative grid items-center gap-12 lg:grid-cols-[minmax(0,1fr)_26rem] lg:gap-16 xl:grid-cols-[minmax(0,1fr)_28rem]">
-          <div className="min-w-0">
-            <div className="animate-rise">
-              <Eyebrow onDark>{t.tagline}</Eyebrow>
-            </div>
-            <h1 className="display mt-6 animate-rise text-[3.5rem] leading-[0.95] text-bone-50 [animation-delay:90ms] sm:text-8xl xl:text-[7.5rem]">
+      <Showroom
+        label={h.showroomLabel}
+        scroll={h.showroomScroll}
+        still={<ShowroomStill />}
+        credit={
+          <>
+            {h.modelCredit}:{' '}
+            <a href={MODEL_CREDIT.source} target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-bone-50">
+              {MODEL_CREDIT.title}
+            </a>
+            {' · '}
+            <a href={MODEL_CREDIT.authorUrl} target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-bone-50">
+              {MODEL_CREDIT.author}
+            </a>
+            {' · '}
+            <a href={MODEL_CREDIT.licenseUrl} target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-bone-50">
+              {MODEL_CREDIT.license}
+            </a>
+          </>
+        }
+        stages={[
+          <Fragment key="opening">
+            <Eyebrow onDark>{t.tagline}</Eyebrow>
+            <h1 className="display mt-6 text-[3.25rem] leading-[0.95] text-bone-50 sm:text-7xl xl:text-[6.5rem]">
               <Accent text={h.heroTitle} />
             </h1>
-            <p className="mt-7 max-w-xl animate-rise text-lg leading-relaxed text-bone-100/80 [animation-delay:180ms] sm:text-xl">{h.heroLead}</p>
-            <div className="mt-9 flex animate-rise flex-wrap items-center gap-4 [animation-delay:270ms]">
-              <ButtonLink href="/booking" size="lg" arrow className="lg:hidden">
+            <p className="mt-6 max-w-lg text-base leading-relaxed text-bone-100/80 sm:text-lg">{h.heroLead}</p>
+            <div className="mt-8 flex flex-wrap items-center gap-4">
+              <ButtonLink href="#quote" size="lg" arrow>
                 {t.actions.getPrice}
               </ButtonLink>
               <WhatsAppButton />
@@ -230,11 +252,43 @@ export default async function HomePage() {
                 </span>
                 {t.actions.watchExperience}
               </Link>
-              <ButtonLink href="/fleet" variant="ghost" arrow className="text-bone-100/80">
+            </div>
+          </Fragment>,
+          <Fragment key="fleet">
+            <Eyebrow onDark>{h.fleetStageEyebrow}</Eyebrow>
+            <h2 className="display mt-6 text-5xl leading-[0.98] text-bone-50 sm:text-6xl xl:text-7xl">
+              <Accent text={h.fleetStageTitle} />
+            </h2>
+            <p className="mt-6 max-w-md text-base leading-relaxed text-bone-100/75 sm:text-lg">{h.fleetStageText}</p>
+            <div className="mt-8">
+              <ButtonLink href="/fleet" variant="outline-light" arrow>
                 {t.actions.viewFleet}
               </ButtonLink>
             </div>
-            <ul className="mt-12 grid max-w-xl animate-rise gap-x-8 gap-y-3 text-sm text-bone-100/75 [animation-delay:360ms] sm:grid-cols-2">
+          </Fragment>,
+          <Fragment key="ride">
+            <Eyebrow onDark>{h.rideStageEyebrow}</Eyebrow>
+            <h2 className="display mt-6 text-5xl leading-[0.98] text-bone-50 sm:text-6xl xl:text-7xl">
+              <Accent text={h.rideStageTitle} />
+            </h2>
+            <p className="mt-6 max-w-md text-base leading-relaxed text-bone-100/75 sm:text-lg">{h.rideStageText}</p>
+            <div className="mt-8">
+              <ButtonLink href="#quote" size="lg" arrow>
+                {t.actions.getPrice}
+              </ButtonLink>
+            </div>
+          </Fragment>,
+        ]}
+      />
+
+      {/* The price, straight after the showroom. */}
+      <Section tone="dark" id="quote">
+        <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1fr)_26rem] lg:gap-16 xl:grid-cols-[minmax(0,1fr)_28rem]">
+          <div className="reveal">
+            <Eyebrow onDark>{t.cta.eyebrow}</Eyebrow>
+            <h2 className="display mt-5 text-5xl text-bone-50 sm:text-6xl lg:text-7xl">{h.widgetTitle}</h2>
+            <p className="mt-5 max-w-lg text-base leading-relaxed text-bone-100/70 sm:text-lg">{h.widgetHint}</p>
+            <ul className="mt-10 grid max-w-xl gap-x-8 gap-y-3 text-sm text-bone-100/75 sm:grid-cols-2">
               {promises.map((promise) => (
                 <li key={promise} className="flex items-start gap-2.5">
                   <Check aria-hidden className="mt-0.5 size-4 shrink-0 text-gold-300" />
@@ -243,17 +297,12 @@ export default async function HomePage() {
               ))}
             </ul>
           </div>
-
           {/* min-w-0 lets this column shrink to the screen: the row of ride types scrolls instead of widening the page. */}
-          <div id="quote" className="min-w-0 animate-rise scroll-mt-28 [animation-delay:240ms]">
-            <h2 className="mb-4 flex items-baseline justify-between gap-4">
-              <span className="font-display text-3xl text-bone-50">{h.widgetTitle}</span>
-              <span className="text-xs text-bone-100/70">{h.widgetHint}</span>
-            </h2>
+          <div className="min-w-0">
             <QuickQuote b={b} />
           </div>
         </div>
-      </section>
+      </Section>
 
       {/* In short */}
       <Section tone="light">

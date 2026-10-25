@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Third-party decoder for the 3D model, copied from three.js as it ships.
+    "public/draco/**",
   ]),
 ]);
 
