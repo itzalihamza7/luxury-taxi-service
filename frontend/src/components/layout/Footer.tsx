@@ -143,6 +143,11 @@ export async function Footer({ year }: { year: number }) {
               </li>
             ))}
             <li>
+              <Link href="/credits" className="transition-colors hover:text-gold-300">
+                {t.nav.credits}
+              </Link>
+            </li>
+            <li>
               <CookieSettingsButton />
             </li>
           </ul>

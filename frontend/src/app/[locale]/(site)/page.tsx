@@ -20,16 +20,6 @@ import { getBooking, getCommon, getLocale, getPages } from '@/i18n/server'
 import { pageMetadata } from '@/lib/seo'
 import { loadCollection } from '@/lib/server-api'
 
-/** The 3D car's licence (CC BY 4.0) asks for this credit wherever it is shown. */
-const MODEL_CREDIT = {
-  title: 'Mercedes-Benz Maybach 2022',
-  source: 'https://sketchfab.com/3d-models/mercedes-benz-maybach-2022-979f37a878f04b2a8d888b62ea6027e9',
-  author: 'Mpgs Studios',
-  authorUrl: 'https://sketchfab.com/mpgs.studio',
-  license: 'CC BY 4.0',
-  licenseUrl: 'https://creativecommons.org/licenses/by/4.0/',
-}
-
 const INCLUDED_ICONS: LucideIcon[] = [Handshake, Languages, Wifi, PlaneLanding, Tag, CalendarClock]
 const STANDARD_ICONS: LucideIcon[] = [BadgeCheck, Languages, MapPin, LockKeyhole]
 
@@ -123,10 +113,20 @@ async function RoutesSection() {
   )
 }
 
+/** "Elena Ruiz" -> "ER": a reviewer's initials, for the badge beside their name. */
+const initials = (name: string) =>
+  name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? '')
+    .join('')
+
 async function Reviews() {
   const [reviews, locale, p, settings] = await Promise.all([loadCollection('review'), getLocale(), getPages(), contactDetails()])
   const h = p.home
-  if (reviews.length === 0) return null
+  // Sample reviews never reach the public: the section appears once the operator marks the reviews as real.
+  if (reviews.length === 0 || settings?.reviewsAreSamples !== false) return null
   return (
     <div className="mt-24">
       <SectionHeading eyebrow={h.reviewsEyebrow} title={h.reviewsTitle} onDark />
@@ -136,16 +136,19 @@ async function Reviews() {
             <figure className="flex h-full flex-col rounded-md border border-white/10 bg-white/[0.025] p-7">
               <Quote aria-hidden className="size-7 text-gold-300/70" />
               <blockquote className="mt-5 font-display text-[1.375rem] leading-snug text-bone-50">{review.quote[locale]}</blockquote>
-              <figcaption className="mt-auto pt-7 text-sm">
-                <span className="block font-medium text-bone-50">{review.author[locale]}</span>
-                <span className="text-bone-100/55">{review.context[locale]}</span>
+              <figcaption className="mt-auto flex items-center gap-3.5 pt-7 text-sm">
+                <span aria-hidden className="flex size-10 shrink-0 items-center justify-center rounded-full border border-gold-300/40 font-display text-base text-gold-300">
+                  {initials(review.author[locale])}
+                </span>
+                <span>
+                  <span className="block font-medium text-bone-50">{review.author[locale]}</span>
+                  <span className="text-bone-100/55">{review.context[locale]}</span>
+                </span>
               </figcaption>
             </figure>
           </li>
         ))}
       </ul>
-      {/* Said unless the operator has confirmed that the reviews are real. */}
-      {settings?.reviewsAreSamples === false ? null : <p className="mt-5 text-xs text-bone-100/55">{h.reviewsSample}</p>}
     </div>
   )
 }
@@ -213,22 +216,6 @@ export default async function HomePage() {
         label={h.showroomLabel}
         scroll={h.showroomScroll}
         still={<ShowroomStill />}
-        credit={
-          <>
-            {h.modelCredit}:{' '}
-            <a href={MODEL_CREDIT.source} target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-bone-50">
-              {MODEL_CREDIT.title}
-            </a>
-            {' · '}
-            <a href={MODEL_CREDIT.authorUrl} target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-bone-50">
-              {MODEL_CREDIT.author}
-            </a>
-            {' · '}
-            <a href={MODEL_CREDIT.licenseUrl} target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-bone-50">
-              {MODEL_CREDIT.license}
-            </a>
-          </>
-        }
         stages={[
           <Fragment key="opening">
             <Eyebrow onDark>{t.tagline}</Eyebrow>
@@ -240,19 +227,25 @@ export default async function HomePage() {
               <ButtonLink href="#quote" size="lg" arrow>
                 {t.actions.getPrice}
               </ButtonLink>
-              <WhatsAppButton />
-              {/* For visitors not ready to book: the film, one click away. */}
-              <Link
-                href="/experience"
-                className="group inline-flex items-center gap-3 text-sm font-medium tracking-wide text-bone-50 transition-colors hover:text-gold-300"
-              >
-                <span className="relative flex size-11 shrink-0 items-center justify-center rounded-full border border-gold-300/70 transition-colors duration-300 group-hover:bg-gold-300/15">
-                  <span aria-hidden className="absolute inset-0 animate-ping rounded-full border border-gold-300/40 [animation-duration:2.4s]" />
-                  <Play aria-hidden className="ml-0.5 size-4 fill-gold-300 text-gold-300" />
-                </span>
-                {t.actions.watchExperience}
-              </Link>
+              {/* Below 1024 px the bar at the bottom of the screen already offers WhatsApp; the space goes to the car. */}
+              <span className="hidden lg:contents">
+                <WhatsAppButton />
+              </span>
             </div>
+            {/* For visitors not ready to book: the film, one click away, on a line of its own. */}
+            <Link
+              href="/experience"
+              className="group mt-7 inline-flex items-center gap-4 text-sm font-medium tracking-wide text-bone-50 transition-colors hover:text-gold-300"
+            >
+              <span className="relative flex size-12 shrink-0 items-center justify-center rounded-full bg-gold-400 text-ink-950 shadow-[0_10px_30px_-12px_rgba(212,182,126,0.8)] transition-transform duration-300 ease-out-expo group-hover:scale-105">
+                <span aria-hidden className="absolute inset-0 animate-ping rounded-full border border-gold-300/50 [animation-duration:2.4s]" />
+                <Play aria-hidden className="ml-0.5 size-4 fill-current" />
+              </span>
+              <span className="flex flex-col">
+                {t.actions.watchExperience}
+                <span className="text-xs font-normal tracking-normal text-bone-100/55">{t.nav.experienceHint}</span>
+              </span>
+            </Link>
           </Fragment>,
           <Fragment key="fleet">
             <Eyebrow onDark>{h.fleetStageEyebrow}</Eyebrow>
@@ -354,7 +347,6 @@ export default async function HomePage() {
               <span className="absolute inset-0 animate-ping rounded-full border border-gold-300/50 [animation-duration:2.4s]" />
               <Play className="ml-1 size-7 fill-gold-300 text-gold-300 sm:size-8" />
             </span>
-            <span className="eyebrow absolute bottom-5 left-5 right-5 text-bone-50/85 sm:bottom-6 sm:left-7">{h.experienceNote}</span>
           </Link>
           <div className="reveal">
             <Eyebrow onDark>{h.experienceEyebrow}</Eyebrow>

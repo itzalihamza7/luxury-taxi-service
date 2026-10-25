@@ -1,9 +1,9 @@
-import { Info } from 'lucide-react'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { Suspense } from 'react'
 import { contactDetails } from '@/components/layout/ContactButtons'
 import { PageHero } from '@/components/layout/PageHero'
+import { OperatorNotice } from '@/components/legal/OperatorNotice'
 import { PageSkeleton } from '@/components/layout/PageSkeleton'
 import { Link } from '@/components/ui/Link'
 import { Section } from '@/components/ui/Section'
@@ -43,6 +43,8 @@ async function LegalContent({ params }: Pick<PageProps<'/[locale]/legal/[slug]'>
     ? { ...settings.legal, email: settings.email, phone: settings.phone, brand: site.name }
     : { brand: site.name }
   const text = (value: string) => fill(value, details)
+  // Until the company details are filled in, the team (and only the team) is reminded.
+  const incomplete = !settings || Object.values(settings.legal).some((value) => /^\s*\[.*\]\s*$/.test(value))
 
   return (
     <>
@@ -68,11 +70,8 @@ async function LegalContent({ params }: Pick<PageProps<'/[locale]/legal/[slug]'>
           </nav>
 
           <article className="max-w-3xl">
-            <p className="flex items-start gap-3 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-relaxed text-amber-900">
-              <Info aria-hidden className="mt-0.5 size-4 shrink-0" />
-              {p.legal.template}
-            </p>
-            <p className="mt-6 text-sm text-ink-900/60">{fill(p.legal.updated, { date: formatDate(document.updated, locale) })}</p>
+            {incomplete ? <OperatorNotice text={p.legal.template} /> : null}
+            <p className="text-sm text-ink-900/60">{fill(p.legal.updated, { date: formatDate(document.updated, locale) })}</p>
 
             {document.sections[locale].map((section) => (
               <section key={section.heading ?? section.paragraphs[0]} className="mt-10">

@@ -54,14 +54,13 @@ interface Props {
   /** A still of the scene: shown at once, and instead of the 3D view where it cannot run. */
   still: ReactNode
   scroll: string
-  credit: ReactNode
 }
 
 /**
  * The home page's opening: the car in a studio, in 3D. The section is pinned while the
  * visitor scrolls; the camera walks around the car and three blocks of words take turns.
  */
-export function Showroom({ label, stages, still, scroll, credit }: Props) {
+export function Showroom({ label, stages, still, scroll }: Props) {
   const reduced = useReducedMotion()
   const show3D = useSyncExternalStore(subscribeNever, canShow3D, () => false) && !reduced
   const compact = useSyncExternalStore(subscribeCompact, () => window.matchMedia(COMPACT).matches, () => false)
@@ -155,9 +154,6 @@ export function Showroom({ label, stages, still, scroll, credit }: Props) {
           </div>
         )}
 
-        <div className="absolute bottom-[4.75rem] right-5 max-w-[16rem] text-right text-[0.6875rem] leading-snug text-bone-100/45 sm:right-8 lg:bottom-6 lg:right-12 lg:max-w-none">
-          {credit}
-        </div>
       </div>
     </section>
   )

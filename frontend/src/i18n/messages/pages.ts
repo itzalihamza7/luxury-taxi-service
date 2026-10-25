@@ -12,7 +12,6 @@ const en = {
     experienceTitle: 'Before you book, *take the ride*.',
     experienceText:
       'Ten seconds of film: the car draws up on a tree-lined boulevard, the rear door opens and the seat is waiting for you. Scroll through it, and see how every journey with us begins.',
-    experienceNote: 'A 10-second film, played as you scroll',
     showroomLabel: 'The Mercedes-Maybach, in 3D',
     showroomScroll: 'Scroll to walk around the car',
     fleetStageEyebrow: 'The fleet',
@@ -23,7 +22,6 @@ const en = {
     rideStageTitle: 'Every detail, *already handled*.',
     rideStageText:
       'A name board at arrivals, flights followed in real time, and water, Wi-Fi and chargers on board. Free cancellation up to 24 hours before pickup.',
-    modelCredit: '3D model (adapted)',
     introEyebrow: 'In short',
     introImageAlt: 'A chauffeur holds the car door open for a passenger',
     standardsImageAlt: 'A chauffeur in a dark coat beside a black saloon',
@@ -70,7 +68,6 @@ const en = {
     ],
     reviewsEyebrow: 'In their words',
     reviewsTitle: 'What a good journey *feels like*',
-    reviewsSample: 'Sample reviews, shown for illustration only.',
     faqEyebrow: 'Questions',
     faqTitle: 'Before you *book*',
     journalEyebrow: 'Journal',
@@ -251,6 +248,22 @@ const en = {
       link: 'See the fleet',
     },
   },
+  credits: {
+    metaTitle: 'Credits',
+    metaDescription: 'The 3D car and the photographs on this website, and the people who made them.',
+    eyebrow: 'Credits',
+    title: 'With *thanks*',
+    lead: 'The 3D car and the photographs on this website, and where they come from.',
+    modelTitle: 'The 3D Mercedes-Maybach',
+    modelIntro: 'The car in the home page’s 3D showroom, and the two pictures of it, are based on',
+    by: 'by',
+    licensed: ', licensed under',
+    changes: 'We adapted it for the web: simpler, compressed geometry, a clear-coated paint and lamps that light up.',
+    photoTitle: 'Photography',
+    photoText: 'The photographs come from Pexels, used under the',
+    photoLicense: 'Pexels License',
+    photoChanges: 'They were cropped, compressed and colour-graded to one common look.',
+  },
   contact: {
     metaTitle: 'Contact',
     metaDescription: 'Call, WhatsApp or write to us at any hour. For bookings, the online form shows prices instantly.',
@@ -277,7 +290,7 @@ const en = {
     eyebrow: 'Legal',
     updated: 'Last updated: {date}',
     template:
-      'This is a template text. It must be completed with the company’s details and reviewed by a qualified legal adviser before the site goes live.',
+      'Only you can see this, as an admin: the company details are still the placeholders. Fill them in under Business details in the admin panel, and have these texts reviewed by a qualified legal adviser.',
   },
 }
 
@@ -294,7 +307,6 @@ const es: typeof en = {
     experienceTitle: 'Antes de reservar, *suba a bordo*.',
     experienceText:
       'Diez segundos de película: el coche llega por un bulevar arbolado, se abre la puerta trasera y el asiento le espera. Recórrala al desplazarse y vea cómo empieza cada trayecto con nosotros.',
-    experienceNote: 'Una película de 10 segundos que avanza al desplazarse',
     showroomLabel: 'El Mercedes-Maybach, en 3D',
     showroomScroll: 'Desplácese para rodear el coche',
     fleetStageEyebrow: 'La flota',
@@ -305,7 +317,6 @@ const es: typeof en = {
     rideStageTitle: 'Cada detalle, *ya resuelto*.',
     rideStageText:
       'Un cartel con su nombre en llegadas, vuelos seguidos en tiempo real, y agua, wifi y cargadores a bordo. Cancelación gratuita hasta 24 horas antes de la recogida.',
-    modelCredit: 'Modelo 3D (adaptado)',
     introEyebrow: 'En pocas palabras',
     introImageAlt: 'Un chófer sujeta la puerta del coche a una pasajera',
     standardsImageAlt: 'Un chófer con abrigo oscuro junto a una berlina negra',
@@ -352,7 +363,6 @@ const es: typeof en = {
     ],
     reviewsEyebrow: 'En sus palabras',
     reviewsTitle: 'Cómo es *un buen trayecto*',
-    reviewsSample: 'Opiniones de muestra, con fines únicamente ilustrativos.',
     faqEyebrow: 'Preguntas',
     faqTitle: 'Antes de *reservar*',
     journalEyebrow: 'Revista',
@@ -533,6 +543,22 @@ const es: typeof en = {
       link: 'Ver la flota',
     },
   },
+  credits: {
+    metaTitle: 'Créditos',
+    metaDescription: 'El coche en 3D y las fotografías de esta web, y quién las hizo.',
+    eyebrow: 'Créditos',
+    title: 'Con *agradecimiento*',
+    lead: 'El coche en 3D y las fotografías de esta web, y de dónde proceden.',
+    modelTitle: 'El Mercedes-Maybach en 3D',
+    modelIntro: 'El coche del escaparate 3D de la página de inicio, y sus dos imágenes, se basan en',
+    by: 'de',
+    licensed: ', con licencia',
+    changes: 'Lo adaptamos para la web: geometría simplificada y comprimida, pintura con barniz y faros que se encienden.',
+    photoTitle: 'Fotografía',
+    photoText: 'Las fotografías proceden de Pexels y se usan con la',
+    photoLicense: 'licencia de Pexels',
+    photoChanges: 'Se recortaron, comprimieron y retocaron con un mismo tono de color.',
+  },
   contact: {
     metaTitle: 'Contacto',
     metaDescription: 'Llámenos, escríbanos por WhatsApp o envíenos un mensaje a cualquier hora. Para reservar, el formulario online muestra los precios al instante.',
@@ -559,7 +585,7 @@ const es: typeof en = {
     eyebrow: 'Legal',
     updated: 'Última actualización: {date}',
     template:
-      'Este es un texto modelo. Debe completarse con los datos de la empresa y ser revisado por un asesor jurídico cualificado antes de publicar el sitio.',
+      'Solo usted lo ve, como administrador: los datos de la empresa siguen siendo los de ejemplo. Complételos en Datos del negocio, en el panel de administración, y haga revisar estos textos por un asesor jurídico cualificado.',
   },
 }
 
