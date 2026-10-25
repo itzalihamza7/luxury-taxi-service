@@ -18,6 +18,8 @@ const cormorant = localFont({
   ],
   variable: '--font-cormorant',
   display: 'swap',
+  // Not preloaded: every page prefetches this one through the menu, and would fetch fonts it never shows.
+  preload: false,
 })
 
 const manrope = localFont({
@@ -25,6 +27,7 @@ const manrope = localFont({
   variable: '--font-manrope',
   weight: '200 800',
   display: 'swap',
+  preload: false,
 })
 
 export async function generateMetadata(): Promise<Metadata> {
