@@ -1,6 +1,6 @@
 'use client'
 
-import { ChevronDown, PhoneCall, RefreshCw, Search } from 'lucide-react'
+import { Bot, ChevronDown, PhoneCall, RefreshCw, Search } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 import { Suspense, useCallback, useEffect, useState } from 'react'
 import { BookingDetails, StatusBadge } from '@/components/booking/BookingDetails'
@@ -202,6 +202,11 @@ function Bookings({ a, b, m, initialFilter, initialSearch }: Props & { initialFi
                           <span title={m.bookings.byPhoneHint} className="mt-1 inline-flex items-center gap-1 rounded-full bg-sky-100 px-2 py-0.5 text-[0.6875rem] font-semibold text-sky-900">
                             <PhoneCall aria-hidden className="size-3" />
                             {m.bookings.byPhone}
+                          </span>
+                        ) : booking.source === 'agent' ? (
+                          <span title={m.bookings.byAgentHint} className="mt-1 inline-flex items-center gap-1 rounded-full bg-violet-100 px-2 py-0.5 text-[0.6875rem] font-semibold text-violet-900">
+                            <Bot aria-hidden className="size-3" />
+                            {m.bookings.byAgent}
                           </span>
                         ) : null}
                       </span>

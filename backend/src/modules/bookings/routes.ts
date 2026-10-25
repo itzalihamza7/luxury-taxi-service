@@ -56,7 +56,7 @@ export function bookingsRouter(context: AppContext): Router {
   /** Create a booking from a quote. Works for guests and signed-in customers alike. */
   router.post('/', rateLimit({ name: 'bookings', windowMs: 60_000, limit: 10 }), async (req, res) => {
     const input = parse(createSchema, req.body)
-    const { booking, approveUrl, created } = await createBooking(context, input, req.user)
+    const { booking, approveUrl, created } = await createBooking(context, input, req.user, undefined, Boolean(req.phoneAgent))
     res.status(created ? 201 : 200).json({
       booking: serializeBooking(booking, config),
       /** Present when the customer chose to pay online: redirect them here. */

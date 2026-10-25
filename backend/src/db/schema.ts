@@ -37,7 +37,8 @@ const PAYMENT_METHODS = ['chauffeur', 'online'] as const
 const PAYMENT_STATUSES = ['unpaid', 'paid'] as const
 const ROUTE_SOURCES = ['road', 'estimate'] as const
 /** Who entered a booking: the customer on the website, or an operator on their behalf (phone, WhatsApp). */
-const BOOKING_SOURCES = ['website', 'operator'] as const
+/** Where a booking came from: the website, the team (by phone), or the AI phone agent. */
+const BOOKING_SOURCES = ['website', 'operator', 'agent'] as const
 
 /** The kinds of editable content. Each has its own shape for `data` (see `modules/content/schemas.ts`). */
 export const CONTENT_COLLECTIONS = ['service', 'route', 'event', 'article', 'faq', 'review', 'legal'] as const
@@ -211,7 +212,7 @@ export const bookings = pgTable(
     check('bookings_payment_method_check', sql`${table.paymentMethod} in ('chauffeur', 'online')`),
     check('bookings_payment_status_check', sql`${table.paymentStatus} in ('unpaid', 'paid')`),
     check('bookings_total_check', sql`${table.totalCents} >= 0`),
-    check('bookings_source_check', sql`${table.source} in ('website', 'operator')`),
+    check('bookings_source_check', sql`${table.source} in ('website', 'operator', 'agent')`),
     check('bookings_contact_check', sql`${table.contactEmail} is not null or ${table.contactPhone} is not null`),
   ],
 )
@@ -284,6 +285,24 @@ export const settings = pgTable('settings', {
   updatedAt: timestamptz('updated_at').notNull().defaultNow(),
 })
 
+/**
+ * Keys for the business's AI phone agent (e.g. Vesper). Requests with one are counted per key
+ * instead of per IP, may use the agent-only endpoints, and their bookings are marked "agent".
+ * Only a hash is stored; the key is shown once, when it is created.
+ */
+export const agentKeys = pgTable('agent_keys', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: text('name').notNull(),
+  /** SHA-256 of the key. */
+  keyHash: text('key_hash').notNull().unique(),
+  /** The key's first characters, so admins can tell keys apart. */
+  prefix: text('prefix').notNull(),
+  createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
+  createdAt: timestamptz('created_at').notNull().defaultNow(),
+  lastUsedAt: timestamptz('last_used_at'),
+  revokedAt: timestamptz('revoked_at'),
+})
+
 /** Images uploaded in the operations console. Served at `/api/media/:id`. */
 export const media = pgTable('media', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -297,6 +316,7 @@ export type User = typeof users.$inferSelect
 export type Vehicle = typeof vehicles.$inferSelect
 export type Quote = typeof quotes.$inferSelect
 export type Booking = typeof bookings.$inferSelect
+export type AgentKey = typeof agentKeys.$inferSelect
 export type ContentEntry = typeof contentEntries.$inferSelect
 export type BookingStatus = (typeof BOOKING_STATUSES)[number]
 export type PaymentStatus = (typeof PAYMENT_STATUSES)[number]

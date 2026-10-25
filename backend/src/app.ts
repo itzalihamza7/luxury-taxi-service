@@ -17,6 +17,8 @@ import { contentRouter } from './modules/content/routes.js'
 import { mediaRouter } from './modules/media/routes.js'
 import { createPayPalGateway } from './modules/payments/paypal.js'
 import { paymentsRouter } from './modules/payments/routes.js'
+import { attachPhoneAgent } from './modules/phone-agent/keys.js'
+import { phoneAgentRouter } from './modules/phone-agent/routes.js'
 import { knownRoutesFromMadrid } from './modules/places/catalog.js'
 import { placesRouter } from './modules/places/routes.js'
 import { quotesRouter } from './modules/quotes/routes.js'
@@ -63,6 +65,7 @@ export function createApp(config: Config, overrides: Partial<Pick<AppContext, 'm
   app.use('/api/admin', express.json({ limit: '1mb' }))
   app.use(express.json({ limit: '50kb' }))
   app.use(attachUser)
+  app.use(attachPhoneAgent)
 
   /** Business settings the booking screens need. Contains nothing secret. */
   app.get('/api/config', (_req, res) => {
@@ -87,6 +90,7 @@ export function createApp(config: Config, overrides: Partial<Pick<AppContext, 'm
   app.use('/api/track', analyticsRouter(context))
   app.use('/api/content', contentRouter())
   app.use('/api/media', mediaRouter())
+  app.use('/api/agent', phoneAgentRouter(context))
   app.use('/api/admin', adminRouter(context))
   app.use('/api', contactRouter(context))
 

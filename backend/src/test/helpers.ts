@@ -24,7 +24,7 @@ export function memoryMailer() {
 /** Empty every table and restore the starting fleet. Call in `beforeEach`. */
 export async function resetDatabase(): Promise<void> {
   await db.execute(
-    sql`truncate table bookings, quotes, sessions, users, contact_messages, newsletter_subscribers, vehicles, content_entries, settings, media, whatsapp_clicks, password_resets restart identity cascade`,
+    sql`truncate table bookings, quotes, sessions, users, contact_messages, newsletter_subscribers, vehicles, content_entries, settings, media, whatsapp_clicks, password_resets, agent_keys restart identity cascade`,
   )
   await db.insert(vehicles).values(INITIAL_FLEET)
 }

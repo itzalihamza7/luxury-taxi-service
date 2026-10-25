@@ -46,7 +46,7 @@ the company's contact details.
 | WhatsApp clicks | Who opened WhatsApp from the website: approximate location, device, browser and page |
 | Fleet | Vehicles, capacities, rates, photos, display order and visibility |
 | Content | Services, routes, events, journal articles, questions, reviews and legal pages, in both languages |
-| Business details | Phone, WhatsApp, email, social profiles, company details and booking options |
+| Business details | Phone, WhatsApp, email, social profiles, company details, booking options and AI phone agent keys |
 
 ## Architecture
 
@@ -151,8 +151,8 @@ and above the roof, three short blocks of words take turns, and the price widget
   sweeps along the car on larger screens. The floor and horizon are drawn in exact colours,
   outside the tone mapping the car gets, so they meet without a line.
 - **The model** is "Mercedes-Benz Maybach 2022" by Mpgs Studios, under
-  [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/): the credit is shown under the car and
-  listed in `frontend/public/images/CREDITS.md`. It was reduced from 2.4 million to 185,000
+  [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/): the credit is on the site's Credits page,
+  linked from every footer, and listed in `frontend/public/images/CREDITS.md`. It was reduced from 2.4 million to 185,000
   triangles and compressed with Draco:
 
 ```bash
@@ -163,6 +163,23 @@ npx @gltf-transform/cli optimize scene.gltf frontend/public/models/maybach.glb \
   The Draco decoder in `frontend/public/draco/` is copied from
   `three/examples/jsm/libs/draco/gltf/`; the Content Security Policy allows it to run
   (`'wasm-unsafe-eval'` and `worker-src blob:` in [`frontend/next.config.ts`](frontend/next.config.ts)).
+
+## AI phone agent
+
+An AI phone agent (for example [Vesper](https://github.com/itzalihamza7/Voice-agent-for-businesses))
+can quote, book, find and cancel rides through the same public API the website uses. With a key it
+gets a little more:
+
+- **Keys** are created and revoked under Business details. Only a SHA-256 hash and the first
+  characters are stored; the key is shown once. The agent sends it as
+  `Authorization: Bearer smk_…`. A wrong or revoked key is refused (401); requests without a key
+  work exactly as before.
+- **Rate limits** for requests with a key are counted per key, at 20 times a visitor's limit, since
+  one key serves many callers.
+- **`GET /api/agent/bookings?phone=`** (key only) lists the upcoming bookings made with a phone
+  number. The agent fills the number in from the line the call comes from, so a caller only hears
+  about their own rides.
+- **Bookings** the agent makes are marked `agent` and show an "AI agent" badge in the admin panel.
 
 ## Getting started
 
