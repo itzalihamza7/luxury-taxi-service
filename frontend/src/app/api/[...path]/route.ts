@@ -9,7 +9,8 @@ import { apiFetch, failureReason, markChanged } from '@/lib/server-api'
  * which lets one built image run in any environment.
  */
 
-const REQUEST_HEADERS = ['accept', 'accept-language', 'content-type', 'cookie', 'user-agent', 'x-forwarded-for', 'x-forwarded-proto', 'x-forwarded-host']
+// `authorization` carries the AI phone agent's key (Bearer smk_…); the browser never sends it.
+const REQUEST_HEADERS = ['accept', 'accept-language', 'authorization', 'content-type', 'cookie', 'user-agent', 'x-forwarded-for', 'x-forwarded-proto', 'x-forwarded-host']
 const RESPONSE_HEADERS = ['content-type', 'cache-control', 'retry-after']
 
 async function forward(request: NextRequest, context: RouteContext<'/api/[...path]'>): Promise<Response> {
