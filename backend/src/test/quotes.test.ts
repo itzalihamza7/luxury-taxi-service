@@ -93,6 +93,46 @@ describe('POST /api/quotes', () => {
   })
 })
 
+describe('compact answers for AI assistants (?view=compact)', () => {
+  // The website chat's assistant reads only the first 2,000 characters of an answer.
+  const LIMIT = 2_000
+
+  it('prices every vehicle by name and size, short enough to be read whole', async () => {
+    const response = await request(app).post('/api/quotes?view=compact').send(quotePayload())
+    expect(response.status).toBe(201)
+    const { quote } = response.body
+    expect(quote.options).toHaveLength(7)
+    expect(quote.options.find((option: { vehicleName: string }) => option.vehicleName === 'Mercedes-Maybach S-Class')).toMatchObject({
+      totalCents: 19_000,
+      available: true,
+      passengers: expect.any(Number),
+      luggage: expect.any(Number),
+      vehicleId: expect.any(String),
+    })
+    expect(quote.options[0].vehicle).toBeUndefined()
+    expect(quote.id).toEqual(expect.any(String))
+    expect(JSON.stringify(response.body).length).toBeLessThan(LIMIT)
+  })
+
+  it('lists the fleet without its descriptions', async () => {
+    const response = await request(app).get('/api/vehicles?view=compact')
+    expect(response.status).toBe(200)
+    expect(response.body.vehicles).toHaveLength(7)
+    expect(response.body.vehicles[0]).toEqual({
+      id: expect.any(String),
+      name: expect.any(String),
+      category: expect.any(String),
+      passengers: expect.any(Number),
+      luggage: expect.any(Number),
+      fromCents: expect.any(Number),
+      hourlyRateCents: expect.any(Number),
+    })
+    expect(JSON.stringify(response.body).length).toBeLessThan(LIMIT)
+    // Without the parameter, the website's own answer is unchanged.
+    expect((await request(app).get('/api/vehicles')).body.vehicles[0].description).toBeDefined()
+  })
+})
+
 describe('quote validation', () => {
   const expectFieldError = async (overrides: Record<string, unknown>, field: string, code: string) => {
     const response = await post(overrides)

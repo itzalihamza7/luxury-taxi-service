@@ -9,7 +9,7 @@ import { haversineM, isInServiceArea, type RouteResult } from '../../lib/geo.js'
 import { fareCents, RIDE_TYPES } from '../../lib/pricing.js'
 import { zonedDateTimeToUtc } from '../../lib/time.js'
 import { parse } from '../../lib/validate.js'
-import { listActiveVehicles, serializeVehicle } from '../vehicles/routes.js'
+import { listActiveVehicles, serializeVehicle, wantsCompact } from '../vehicles/routes.js'
 
 const placeSchema = z.object({
   label: z.string().trim().min(1).max(200),
@@ -151,11 +151,27 @@ export async function createQuote({ config, findRoute }: AppContext, body: unkno
   return serializeQuote(quote, fleet)
 }
 
+/** `?view=compact` (see `compactVehicle`): each option is the vehicle's name, size and price. */
+function compactQuote(quote: ReturnType<typeof serializeQuote>) {
+  return {
+    ...quote,
+    options: quote.options.map(({ vehicleId, totalCents, available, vehicle }) => ({
+      vehicleId,
+      vehicleName: vehicle.name,
+      passengers: vehicle.passengers,
+      luggage: vehicle.luggage,
+      totalCents,
+      available,
+    })),
+  }
+}
+
 export function quotesRouter(context: AppContext): Router {
   const router = Router()
 
   router.post('/', context.rateLimit({ name: 'quotes', windowMs: 60_000, limit: 30 }), async (req, res) => {
-    res.status(201).json({ quote: await createQuote(context, req.body) })
+    const quote = await createQuote(context, req.body)
+    res.status(201).json({ quote: wantsCompact(req.query) ? compactQuote(quote) : quote })
   })
 
   return router
