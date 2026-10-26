@@ -7,7 +7,7 @@ import { forbidden, unauthorized } from '../../lib/errors.js'
 
 export const SESSION_COOKIE = 'sid'
 
-export type SessionUser = Pick<User, 'id' | 'email' | 'name' | 'phone' | 'role'>
+export type SessionUser = Pick<User, 'id' | 'email' | 'name' | 'phone' | 'role' | 'emailVerifiedAt'>
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -21,8 +21,9 @@ declare global {
 
 const hashToken = (token: string) => createHash('sha256').update(token).digest('hex')
 
-export function publicUser(user: SessionUser): SessionUser {
-  return { id: user.id, email: user.email, name: user.name, phone: user.phone, role: user.role }
+/** The account as its owner sees it. */
+export function publicUser(user: SessionUser) {
+  return { id: user.id, email: user.email, name: user.name, phone: user.phone, role: user.role, emailVerified: user.emailVerifiedAt !== null }
 }
 
 function readCookie(req: Request, name: string): string | undefined {
@@ -66,7 +67,7 @@ export const attachUser: RequestHandler = async (req, _res, next) => {
   const token = readCookie(req, SESSION_COOKIE)
   if (token) {
     const [row] = await db
-      .select({ id: users.id, email: users.email, name: users.name, phone: users.phone, role: users.role })
+      .select({ id: users.id, email: users.email, name: users.name, phone: users.phone, role: users.role, emailVerifiedAt: users.emailVerifiedAt })
       .from(sessions)
       .innerJoin(users, eq(users.id, sessions.userId))
       .where(and(eq(sessions.tokenHash, hashToken(token)), gt(sessions.expiresAt, new Date())))

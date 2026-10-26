@@ -5,7 +5,8 @@ type NewVehicle = typeof vehicles.$inferInsert
 /**
  * Starting fleet, inserted once when the `vehicles` table is empty.
  *
- * Rates are sample values in euro cents - review them before going live.
+ * Rates in euro cents, from the business's price list of 26 October 2026: the fixed price inside
+ * the M-30 (see `lib/zone.ts`), the price per km beyond it, and the hourly rate (null: on request).
  * After the first start the database is the source of truth: vehicles, prices
  * and photos are then edited in the console (`/admin`), not here.
  *
@@ -21,10 +22,9 @@ export const INITIAL_FLEET: NewVehicle[] = [
     bodyType: 'sedan',
     passengers: 3,
     luggage: 2,
-    baseFareCents: 2000,
-    perKmCents: 190,
-    hourlyRateCents: 6500,
-    minFareCents: 6000,
+    zoneFareCents: 9000,
+    perKmCents: 230,
+    hourlyRateCents: 8500,
     tagline: { en: 'Business sedan', es: 'Berlina ejecutiva' },
     description: {
       en: 'Our most-booked car. Quiet, composed and comfortable for up to three passengers with luggage — the natural choice for airport transfers, meetings and dinners across Madrid.',
@@ -44,10 +44,9 @@ export const INITIAL_FLEET: NewVehicle[] = [
     bodyType: 'limousine',
     passengers: 3,
     luggage: 2,
-    baseFareCents: 3000,
-    perKmCents: 260,
-    hourlyRateCents: 9500,
-    minFareCents: 9500,
+    zoneFareCents: 15000,
+    perKmCents: 350,
+    hourlyRateCents: 12000,
     tagline: { en: 'First-class sedan', es: 'Berlina de primera clase' },
     description: {
       en: 'The long-wheelbase saloon: more legroom, softer suspension and a noticeably quieter cabin. Chosen by executives, for special occasions and for long motorway journeys.',
@@ -67,10 +66,9 @@ export const INITIAL_FLEET: NewVehicle[] = [
     bodyType: 'van',
     passengers: 7,
     luggage: 5,
-    baseFareCents: 2500,
-    perKmCents: 230,
-    hourlyRateCents: 8000,
-    minFareCents: 8000,
+    zoneFareCents: 9000,
+    perKmCents: 300,
+    hourlyRateCents: 9500,
     tagline: { en: 'First-class van', es: 'Monovolumen de primera clase' },
     description: {
       en: "Seven seats, a generous boot and easy step-in access. Families, small groups and anyone travelling with golf bags, pushchairs or a week's luggage ride together in one vehicle.",
@@ -90,10 +88,9 @@ export const INITIAL_FLEET: NewVehicle[] = [
     bodyType: 'limousine',
     passengers: 3,
     luggage: 2,
-    baseFareCents: 6000,
-    perKmCents: 450,
-    hourlyRateCents: 18000,
-    minFareCents: 19000,
+    zoneFareCents: 30000,
+    perKmCents: 600,
+    hourlyRateCents: 22000,
     tagline: { en: 'Flagship', es: 'Buque insignia' },
     description: {
       en: "The most refined car in the fleet. Individual reclining rear seats, exceptional quiet and a ride that makes Madrid's traffic feel a long way off. For the journeys that should feel like an occasion.",
@@ -113,10 +110,9 @@ export const INITIAL_FLEET: NewVehicle[] = [
     bodyType: 'van',
     passengers: 6,
     luggage: 5,
-    baseFareCents: 5000,
+    zoneFareCents: 16000,
     perKmCents: 390,
     hourlyRateCents: 15000,
-    minFareCents: 16000,
     tagline: { en: 'Flagship van', es: 'Monovolumen insignia' },
     description: {
       en: 'A V-Class rebuilt around its passengers: fewer seats, far more space and a lounge-style cabin for up to six. A private room on wheels for roadshows, wedding parties and VIP groups.',
@@ -126,6 +122,8 @@ export const INITIAL_FLEET: NewVehicle[] = [
       en: ['Lounge-style seating for up to six', 'Privacy for calls and conversations on the move', 'Flagship comfort with room for luggage'],
       es: ['Asientos tipo salón para hasta seis personas', 'Privacidad para llamadas y conversaciones en marcha', 'Confort de gama alta con espacio para equipaje'],
     },
+    // Not on the price list of 26 October 2026: kept for older bookings, hidden from the website.
+    active: false,
     sortOrder: 50,
   },
   {
@@ -136,10 +134,9 @@ export const INITIAL_FLEET: NewVehicle[] = [
     bodyType: 'minibus',
     passengers: 16,
     luggage: 16,
-    baseFareCents: 5000,
-    perKmCents: 340,
-    hourlyRateCents: 12000,
-    minFareCents: 15000,
+    zoneFareCents: 30000,
+    perKmCents: 500,
+    hourlyRateCents: null,
     tagline: { en: 'Minibus', es: 'Minibús' },
     description: {
       en: 'Sixteen seats with luggage space to match. Keeps a team, a wedding party or a tour group on one schedule — one pickup, one arrival, one price.',
@@ -159,10 +156,9 @@ export const INITIAL_FLEET: NewVehicle[] = [
     bodyType: 'hatchback',
     passengers: 3,
     luggage: 2,
-    baseFareCents: 1200,
+    zoneFareCents: 4000,
     perKmCents: 135,
     hourlyRateCents: 4500,
-    minFareCents: 4000,
     tagline: { en: 'Economy', es: 'Económico' },
     description: {
       en: 'A compact city car for short hops when you want a professional driver and a fixed price without the executive saloon. Same chauffeur standards, smaller footprint.',
@@ -171,6 +167,30 @@ export const INITIAL_FLEET: NewVehicle[] = [
     highlights: {
       en: ['Our lowest fixed fares', 'Easy through narrow city-centre streets', 'Best for one or two travellers with light luggage'],
       es: ['Nuestras tarifas cerradas más bajas', 'Ágil por las calles estrechas del centro', 'Ideal para uno o dos viajeros con poco equipaje'],
+    },
+    // Not on the price list of 26 October 2026: kept for older bookings, hidden from the website.
+    active: false,
+    sortOrder: 70,
+  },
+  {
+    slug: 'toyota-corolla',
+    imageUrl: null,
+    name: 'Toyota Corolla',
+    category: 'economy',
+    bodyType: 'sedan',
+    passengers: 4,
+    luggage: 3,
+    zoneFareCents: 7000,
+    perKmCents: 130,
+    hourlyRateCents: 5000,
+    tagline: { en: 'Hybrid saloon', es: 'Berlina híbrida' },
+    description: {
+      en: 'A quiet, efficient hybrid saloon for everyday transfers: room for four, a proper boot for luggage, and the same professional chauffeur and fixed price as the rest of the fleet.',
+      es: 'Una berlina híbrida silenciosa y eficiente para los traslados de cada día: sitio para cuatro, un maletero de verdad para el equipaje y el mismo chófer profesional y precio cerrado que el resto de la flota.',
+    },
+    highlights: {
+      en: ['Our lowest fixed fares', 'Quiet hybrid engine', 'Room for four with their luggage'],
+      es: ['Nuestras tarifas cerradas más bajas', 'Motor híbrido silencioso', 'Sitio para cuatro con su equipaje'],
     },
     sortOrder: 70,
   },

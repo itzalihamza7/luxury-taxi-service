@@ -11,6 +11,7 @@ import { fareCents, transferFareCents, type VehicleRates } from './pricing.js'
 import { createRateLimiter } from './rate-limit.js'
 import { generateReference, normalizeReference } from './reference.js'
 import { zonedDateTimeToUtc } from './time.js'
+import { atAirport, inPriceZone, insideM30, metresBeyondZone } from './zone.js'
 
 const MADRID = 'Europe/Madrid'
 const SOL = { lat: 40.4169, lng: -3.7035 }
@@ -60,38 +61,93 @@ describe('zonedDateTimeToUtc', () => {
 })
 
 describe('pricing', () => {
-  const rates: VehicleRates = { baseFareCents: 2000, perKmCents: 190, hourlyRateCents: 6500, minFareCents: 6000 }
+  // The E-Class on the price list of 26 October 2026.
+  const rates: VehicleRates = { zoneFareCents: 9000, perKmCents: 230, hourlyRateCents: 8500 }
 
-  it('charges the minimum fare on short trips', () => {
-    expect(transferFareCents(rates, 17_000)).toBe(6000)
-    expect(transferFareCents(rates, 0)).toBe(6000)
+  it('charges the fixed price inside the zone', () => {
+    expect(transferFareCents(rates, 0)).toBe(9000)
   })
 
-  it('charges base + distance, rounded up to a whole euro', () => {
-    // 20.00 + 1.90 x 73.0314 km = 158.76 -> 159.00
-    expect(transferFareCents(rates, 73_031)).toBe(15_900)
+  it('adds each kilometre beyond the zone, rounded up to a whole euro', () => {
+    // 90.00 + 2.30 x 64.321 km = 237.94 -> 238.00
+    expect(transferFareCents(rates, 64_321)).toBe(23_800)
   })
 
   it('does not round an exact euro amount up', () => {
-    expect(transferFareCents({ ...rates, perKmCents: 100 }, 50_000)).toBe(7000)
+    expect(transferFareCents({ ...rates, perKmCents: 100 }, 50_000)).toBe(14_000)
   })
 
   it('prices a return trip as two transfers', () => {
-    expect(fareCents(rates, { rideType: 'return', distanceM: 73_031, hours: 0 })).toBe(31_800)
+    expect(fareCents(rates, { rideType: 'return', beyondZoneM: 64_321, hours: 0 })).toBe(47_600)
   })
 
   it('prices hourly hire by the hour, ignoring distance', () => {
-    expect(fareCents(rates, { rideType: 'hourly', distanceM: 999_000, hours: 3 })).toBe(19_500)
+    expect(fareCents(rates, { rideType: 'hourly', beyondZoneM: 999_000, hours: 3 })).toBe(25_500)
+  })
+
+  it('has no price for hourly hire without an hourly rate (agreed case by case)', () => {
+    expect(fareCents({ ...rates, hourlyRateCents: null }, { rideType: 'hourly', beyondZoneM: 0, hours: 3 })).toBeNull()
+    expect(fareCents({ ...rates, hourlyRateCents: null }, { rideType: 'one_way', beyondZoneM: 0, hours: 0 })).toBe(9000)
   })
 
   it.each(['one_way', 'local', 'city_to_city', 'airport'] as const)('prices %s as a single transfer', (rideType) => {
-    expect(fareCents(rates, { rideType, distanceM: 73_031, hours: 0 })).toBe(15_900)
+    expect(fareCents(rates, { rideType, beyondZoneM: 64_321, hours: 0 })).toBe(23_800)
   })
 
   it('never returns a negative or fractional amount', () => {
-    const total = transferFareCents(rates, -500)
-    expect(total).toBe(6000)
+    expect(transferFareCents(rates, -500)).toBe(9000)
     expect(Number.isInteger(transferFareCents(rates, 12_345))).toBe(true)
+  })
+})
+
+describe('price zone (M-30 and the airport)', () => {
+  const place = (lat: number, lng: number) => ({ lat, lng })
+  const SOL = place(40.4169, -3.7035)
+  const T4 = place(40.4917, -3.5931)
+  const T1 = place(40.4675, -3.5701)
+  const TOLEDO = place(39.8628, -4.0273)
+
+  it.each([
+    ['Puerta del Sol', SOL],
+    ['Bernabéu', place(40.4531, -3.6883)],
+    ['Plaza de Castilla', place(40.4666, -3.689)],
+    ['Atocha', place(40.4065, -3.6893)],
+    ['Moncloa', place(40.4351, -3.7193)],
+    ['Matadero', place(40.392, -3.6975)],
+  ])('%s is inside the M-30', (_name, point) => {
+    expect(insideM30(point)).toBe(true)
+  })
+
+  it.each([
+    ['Usera, across the river', place(40.387, -3.7065)],
+    ['IFEMA', place(40.4637, -3.6166)],
+    ['Las Tablas', place(40.5065, -3.6697)],
+    ['Casa de Campo', place(40.4093, -3.7621)],
+    ['Getafe', place(40.3057, -3.7329)],
+  ])('%s is outside the M-30', (_name, point) => {
+    expect(insideM30(point)).toBe(false)
+    expect(atAirport(point)).toBe(false)
+  })
+
+  it('knows the airport terminals', () => {
+    expect(atAirport(T4)).toBe(true)
+    expect(atAirport(T1)).toBe(true)
+    expect(inPriceZone(T4)).toBe(true)
+  })
+
+  it('counts nothing beyond the zone inside the M-30 or between it and the airport', () => {
+    expect(metresBeyondZone(SOL, place(40.4531, -3.6883), 6_000)).toBe(0)
+    expect(metresBeyondZone(T4, SOL, 17_000)).toBe(0)
+    expect(metresBeyondZone(SOL, T1, 15_000)).toBe(0)
+  })
+
+  it('counts the share of the journey beyond the M-30', () => {
+    // Sol to Toledo: about 4 km of the straight line are inside the M-30, the rest is beyond it.
+    const beyond = metresBeyondZone(SOL, TOLEDO, 72_000)
+    expect(beyond).toBeGreaterThan(66_000)
+    expect(beyond).toBeLessThan(70_000)
+    // The airport to Toledo: all of it beyond the zone, bar the last stretch out of the airport.
+    expect(metresBeyondZone(T4, TOLEDO, 85_000)).toBeGreaterThan(82_000)
   })
 })
 

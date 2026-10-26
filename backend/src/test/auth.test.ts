@@ -170,8 +170,9 @@ describe('api basics', () => {
 
   it('lists the fleet with public fields only', async () => {
     const response = await request(app).get('/api/vehicles')
-    expect(response.body.vehicles).toHaveLength(7)
-    expect(response.body.vehicles[0]).toMatchObject({ slug: 'mercedes-e-class', passengers: 3, luggage: 2, fromCents: 6000 })
+    // The price list of 26 October 2026: six vehicles on the website, the V-Class VIP and Yaris hidden.
+    expect(response.body.vehicles).toHaveLength(6)
+    expect(response.body.vehicles[0]).toMatchObject({ slug: 'mercedes-e-class', passengers: 3, luggage: 2, fromCents: 9000 })
     expect(response.body.vehicles[0]).not.toHaveProperty('perKmCents')
 
     const one = await request(app).get('/api/vehicles/mercedes-sprinter')

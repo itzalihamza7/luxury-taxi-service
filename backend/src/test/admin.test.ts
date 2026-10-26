@@ -59,7 +59,7 @@ describe('admin bookings', () => {
     const sooner = await book(2)
     const cancelled = await book(4)
     const finished = await book(5)
-    await admin.patch(`/api/admin/bookings/${cancelled}`).send({ status: 'cancelled' })
+    await admin.patch(`/api/admin/bookings/${cancelled}`).send({ status: 'cancelled', note: 'The customer changed their plans.' })
     await admin.patch(`/api/admin/bookings/${finished}`).send({ status: 'confirmed' })
     await admin.patch(`/api/admin/bookings/${finished}`).send({ status: 'completed' })
 
@@ -81,7 +81,7 @@ describe('admin bookings', () => {
     expect((await patch({ status: 'in_progress' })).body.booking.status).toBe('in_progress')
     expect((await patch({ status: 'pending' })).status).toBe(409)
     expect((await patch({ status: 'completed', paymentStatus: 'paid' })).body.booking).toMatchObject({ status: 'completed', paymentStatus: 'paid' })
-    expect((await patch({ status: 'cancelled' })).status).toBe(409)
+    expect((await patch({ status: 'cancelled', note: 'Too late to cancel.' })).status).toBe(409)
     expect((await patch({ paymentStatus: 'unpaid' })).body.booking.paymentStatus).toBe('unpaid')
     expect((await patch({})).status).toBe(400)
     expect((await admin.patch('/api/admin/bookings/LX-ZZZZZZ').send({ status: 'confirmed' })).status).toBe(404)

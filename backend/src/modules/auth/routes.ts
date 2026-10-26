@@ -6,11 +6,13 @@ import { db } from '../../db/client.js'
 import { users } from '../../db/schema.js'
 import { conflict, HttpError, unauthorized } from '../../lib/errors.js'
 import { DUMMY_HASH, hashPassword, verifyPassword } from '../../lib/password.js'
-import { email, parse, personName, phone } from '../../lib/validate.js'
+import { email, locale, parse, personName, phone } from '../../lib/validate.js'
+import { claimBookingsByVerifiedEmail } from '../bookings/flow.js'
 import { claimOperatorBookings } from '../bookings/service.js'
 import { getSiteSettings } from '../content/routes.js'
 import { clearFailedLogins, loginLocked, recordFailedLogin } from './login-throttle.js'
 import { endSession, publicUser, requireUser, startSession } from './session.js'
+import { sendVerificationCode } from './verify-email.js'
 
 const optionalPhone = z.preprocess((value) => (value === '' || value === null ? undefined : value), phone.optional())
 
@@ -19,6 +21,8 @@ const registerSchema = z.object({
   email,
   password: z.string().min(8).max(128),
   phone: optionalPhone,
+  /** The language of the email with the verification code. */
+  locale,
 })
 
 const loginSchema = z.object({
@@ -34,7 +38,7 @@ const profileSchema = z.object({
 const isUniqueViolation = (error: unknown) =>
   typeof error === 'object' && error !== null && 'code' in error && (error as { code: unknown }).code === '23505'
 
-export function authRouter({ config, rateLimit }: AppContext): Router {
+export function authRouter({ config, mailer, rateLimit }: AppContext): Router {
   const router = Router()
 
   router.post('/register', rateLimit({ name: 'register', windowMs: 60_000, limit: 5 }), async (req, res) => {
@@ -58,8 +62,17 @@ export function authRouter({ config, rateLimit }: AppContext): Router {
     // Bookings the business took for this customer by phone or WhatsApp join the new account.
     const linkedBookings = (await getSiteSettings()).linkBookingsOnSignup ? await claimOperatorBookings(user) : 0
 
+    // A code to prove the email is theirs: then the bookings made with it join the account too.
+    const verificationSent = await sendVerificationCode(mailer, user, input.locale).then(
+      () => true,
+      (error: unknown) => {
+        console.error('[auth] could not send the verification code:', error instanceof Error ? error.message : error)
+        return false
+      },
+    )
+
     await startSession(req, res, user.id, config.SESSION_TTL_DAYS)
-    res.status(201).json({ user: publicUser(user), linkedBookings })
+    res.status(201).json({ user: publicUser(user), linkedBookings, verificationSent })
   })
 
   router.post('/login', rateLimit({ name: 'login', windowMs: 60_000, limit: 10 }), async (req, res) => {
@@ -76,6 +89,8 @@ export function authRouter({ config, rateLimit }: AppContext): Router {
       throw unauthorized('INVALID_CREDENTIALS', 'Email or password is incorrect.')
     }
     clearFailedLogins(input.email)
+    // Bookings made as a guest since the last visit, with the account's verified email.
+    await claimBookingsByVerifiedEmail(user)
 
     await startSession(req, res, user.id, config.SESSION_TTL_DAYS)
     res.json({ user: publicUser(user) })

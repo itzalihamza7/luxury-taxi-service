@@ -8,6 +8,8 @@ import { phoneMatches, samePhone } from '../../lib/phone.js'
 import { generateReference } from '../../lib/reference.js'
 import type { SessionUser } from '../auth/session.js'
 import { PaymentError } from '../payments/paypal.js'
+import { bookingCancelledEmail, bookingReceivedEmail } from './emails.js'
+import { listEvents, listPayments, newGuestCode, recordEvent, sendQuietly, serializeEvent, serializePayment, type Actor } from './flow.js'
 
 /** Statuses a customer may still cancel from. */
 const CANCELLABLE: Booking['status'][] = ['pending', 'confirmed']
@@ -62,6 +64,12 @@ export function serializeBooking(booking: Booking, config: Config) {
 
 export type PublicBooking = ReturnType<typeof serializeBooking>
 
+/** The booking with its history and payment requests, for its page (customer) or the console (team). */
+export async function serializeBookingInFull(booking: Booking, config: Config) {
+  const [events, payments] = await Promise.all([listEvents(booking.id), listPayments(booking.id)])
+  return { ...serializeBooking(booking, config), events: events.map(serializeEvent), payments: payments.map(serializePayment) }
+}
+
 export interface CreateBookingInput {
   quoteId: string
   vehicleId: string
@@ -78,6 +86,8 @@ export interface OperatorOptions {
   userId: string | null
   /** A price agreed with the customer, replacing the calculated one. */
   totalCents?: number | null
+  /** The team member entering it, for the booking's history. */
+  actor?: Actor
 }
 
 /** Postgres unique-violation details, whether thrown directly or wrapped by drizzle. */
@@ -87,7 +97,7 @@ function uniqueViolation(error: unknown): string | null {
 }
 
 export async function createBooking(
-  { config, payments }: AppContext,
+  { config, payments, mailer }: AppContext,
   input: CreateBookingInput,
   user: SessionUser | undefined,
   operator?: OperatorOptions,
@@ -119,6 +129,10 @@ export async function createBooking(
   if (input.paymentMethod === 'online' && !payments.enabled) {
     throw badRequest('PAYMENTS_UNAVAILABLE', 'Online payment is not available. Please choose to pay your chauffeur.')
   }
+  const totalCents = operator?.totalCents ?? option.totalCents
+  if (input.paymentMethod === 'online' && totalCents === null) {
+    throw badRequest('PRICE_ON_REQUEST', 'This ride is priced with you first: we will send you a payment link once the price is agreed.')
+  }
 
   for (let attempt = 0; attempt < 5; attempt += 1) {
     const reference = generateReference()
@@ -130,7 +144,7 @@ export async function createBooking(
       try {
         payment = await payments.createOrder({
           reference,
-          amountCents: option.totalCents,
+          amountCents: totalCents!,
           currency: quote.currency,
           description: `Chauffeur booking ${reference} - ${vehicle.name}`,
           returnUrl: returnBase,
@@ -175,7 +189,7 @@ export async function createBooking(
           distanceM: quote.distanceM,
           durationS: quote.durationS,
           routeSource: quote.routeSource,
-          totalCents: operator?.totalCents ?? option.totalCents,
+          totalCents,
           currency: quote.currency,
           paymentMethod: input.paymentMethod,
           paymentRef: payment?.orderId ?? null,
@@ -185,9 +199,12 @@ export async function createBooking(
           company: input.contact.company,
           notes: input.contact.notes,
           locale: input.locale,
+          guestCode: newGuestCode(),
         })
         .returning()
       if (!booking) throw new Error('booking insert returned no row')
+      await recordEvent(booking.id, 'created', operator?.actor ?? null)
+      sendQuietly(mailer, bookingReceivedEmail(booking, config))
       return { booking, approveUrl: payment?.approveUrl ?? null, created: true }
     } catch (error) {
       const constraint = uniqueViolation(error)
@@ -212,7 +229,8 @@ export function listBookingsForUser(userId: string): Promise<Booking[]> {
   return db.select().from(bookings).where(eq(bookings.userId, userId)).orderBy(desc(bookings.pickupAt))
 }
 
-export async function cancelBooking(booking: Booking): Promise<Booking> {
+/** Cancels a booking, records who did it and why, and tells the customer by email. */
+export async function cancelBooking({ config, mailer }: Pick<AppContext, 'config' | 'mailer'>, booking: Booking, actor: Actor = null, note: string | null = null): Promise<Booking> {
   const now = new Date()
   const [updated] = await db
     .update(bookings)
@@ -220,6 +238,8 @@ export async function cancelBooking(booking: Booking): Promise<Booking> {
     .where(eq(bookings.id, booking.id))
     .returning()
   if (!updated) throw notFound('BOOKING_NOT_FOUND', 'Booking not found.')
+  await recordEvent(booking.id, 'status_changed', actor, [{ field: 'status', from: booking.status, to: 'cancelled' }], note)
+  sendQuietly(mailer, bookingCancelledEmail(updated, note, config))
   return updated
 }
 

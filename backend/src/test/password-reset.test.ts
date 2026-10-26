@@ -21,6 +21,7 @@ describe('forgot password', () => {
     const { sent, mailer } = memoryMailer()
     const app = buildApp({ APP_URL: 'https://signaturemile.example' }, { mailer })
     const oldDevice = await registerAgent(app, 'client@example.com', 'old-password-1')
+    sent.length = 0 // the verification code sent at sign-up
 
     const asked = await request(app).post('/api/auth/forgot').send({ email: 'Client@Example.com', locale: 'es' })
     expect(asked.body).toEqual({ ok: true })
@@ -64,6 +65,7 @@ describe('forgot password', () => {
     const { sent, mailer } = memoryMailer()
     const app = buildApp({}, { mailer })
     await registerAgent(app, 'client@example.com')
+    sent.length = 0 // the verification code sent at sign-up
     await request(app).post('/api/auth/forgot').send({ email: 'client@example.com' })
     const token = linkToken((await nextEmail(sent))!.text)
 
@@ -78,6 +80,7 @@ describe('forgot password', () => {
     const { sent, mailer } = memoryMailer()
     const app = buildApp({}, { mailer })
     await registerAgent(app, 'client@example.com')
+    sent.length = 0 // the verification code sent at sign-up
     const user = (await db.select().from(users).where(eq(users.email, 'client@example.com')))[0]!
 
     for (let i = 1; i <= 4; i += 1) {

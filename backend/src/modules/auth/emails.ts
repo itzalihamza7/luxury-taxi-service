@@ -1,17 +1,7 @@
+import { layout } from '../../lib/email-layout.js'
 import type { Email } from '../../lib/mailer.js'
 
 type Locale = 'en' | 'es'
-
-const escape = (value: string) => value.replace(/[&<>"']/g, (character) => `&#${character.charCodeAt(0)};`)
-
-/** A plain, readable message: the same text as HTML, with one button. */
-function layout(paragraphs: string[], button?: { label: string; url: string }): string {
-  const body = paragraphs.map((paragraph) => `<p style="margin:0 0 16px;line-height:1.55">${escape(paragraph)}</p>`).join('')
-  const action = button
-    ? `<p style="margin:24px 0"><a href="${escape(button.url)}" style="display:inline-block;background:#080c13;color:#e3cc9f;text-decoration:none;padding:12px 22px;border-radius:999px;font-weight:600">${escape(button.label)}</a></p><p style="margin:0 0 16px;font-size:13px;color:#555;word-break:break-all">${escape(button.url)}</p>`
-    : ''
-  return `<!doctype html><html><body style="margin:0;background:#f2eee6;padding:24px;font-family:Arial,Helvetica,sans-serif;color:#0c121b;font-size:15px"><div style="max-width:520px;margin:0 auto;background:#fff;border-radius:10px;padding:28px"><p style="margin:0 0 20px;font-family:Georgia,serif;font-size:20px;letter-spacing:2px">SIGNATUREMILE</p>${body}${action}</div></body></html>`
-}
 
 const copy = {
   en: {
@@ -53,7 +43,7 @@ export function resetEmail(to: string, name: string, url: string, minutes: numbe
     to,
     subject: c.resetSubject,
     text: `${paragraphs.join('\n\n')}\n\n${url}\n`,
-    html: layout(paragraphs, { label: c.resetButton, url }),
+    html: layout(paragraphs, { button: { label: c.resetButton, url } }),
   }
 }
 

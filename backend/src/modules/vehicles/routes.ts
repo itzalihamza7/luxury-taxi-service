@@ -18,7 +18,7 @@ export function serializeVehicle(vehicle: Vehicle) {
     highlights: vehicle.highlights,
     imageUrl: vehicle.imageUrl,
     /** Lowest fare for a transfer, and the hourly hire rate. */
-    fromCents: vehicle.minFareCents,
+    fromCents: vehicle.zoneFareCents,
     hourlyRateCents: vehicle.hourlyRateCents,
   }
 }
@@ -39,7 +39,7 @@ export function compactVehicle(vehicle: Vehicle) {
     category: vehicle.category,
     passengers: vehicle.passengers,
     luggage: vehicle.luggage,
-    fromCents: vehicle.minFareCents,
+    fromCents: vehicle.zoneFareCents,
     hourlyRateCents: vehicle.hourlyRateCents,
   }
 }
