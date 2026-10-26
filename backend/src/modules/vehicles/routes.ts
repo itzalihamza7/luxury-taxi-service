@@ -25,6 +25,25 @@ export function serializeVehicle(vehicle: Vehicle) {
 
 export type PublicVehicle = ReturnType<typeof serializeVehicle>
 
+/*
+ * `?view=compact`: what an AI assistant needs to name and choose a vehicle, without the
+ * descriptions in two languages. Assistants such as the website chat read only the first couple
+ * of thousand characters of an answer, and the full fleet is several times that.
+ */
+export const wantsCompact = (query: unknown) => (query as { view?: unknown } | undefined)?.view === 'compact'
+
+export function compactVehicle(vehicle: Vehicle) {
+  return {
+    id: vehicle.id,
+    name: vehicle.name,
+    category: vehicle.category,
+    passengers: vehicle.passengers,
+    luggage: vehicle.luggage,
+    fromCents: vehicle.minFareCents,
+    hourlyRateCents: vehicle.hourlyRateCents,
+  }
+}
+
 export function listActiveVehicles(): Promise<Vehicle[]> {
   return db.select().from(vehicles).where(eq(vehicles.active, true)).orderBy(asc(vehicles.sortOrder), asc(vehicles.name))
 }
@@ -32,9 +51,9 @@ export function listActiveVehicles(): Promise<Vehicle[]> {
 export function vehiclesRouter(): Router {
   const router = Router()
 
-  router.get('/', async (_req, res) => {
+  router.get('/', async (req, res) => {
     const rows = await listActiveVehicles()
-    res.json({ vehicles: rows.map(serializeVehicle) })
+    res.json({ vehicles: rows.map(wantsCompact(req.query) ? compactVehicle : serializeVehicle) })
   })
 
   router.get('/:slug', async (req, res) => {
