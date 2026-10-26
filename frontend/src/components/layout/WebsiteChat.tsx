@@ -34,7 +34,10 @@ export function openChat() {
   findChat()?.shadowRoot?.querySelector<HTMLButtonElement>('.launcher')?.click()
 }
 
-/** Loads the chat once the page is idle, and marks its box for the page's styles. */
+/**
+ * Loads the chat as soon as the page works, and marks its box for the page's styles. The script is
+ * small; waiting for an idle moment instead could mean waiting for ever while the 3D showroom draws.
+ */
 export function WebsiteChat() {
   useEffect(() => {
     const mark = () => findChat()?.setAttribute('data-website-chat', '')
@@ -43,5 +46,5 @@ export function WebsiteChat() {
     mark()
     return () => observer.disconnect()
   }, [])
-  return <Script src={`${CHAT_ORIGIN}/widget.js`} data-agent={CHAT_WIDGET} strategy="lazyOnload" />
+  return <Script src={`${CHAT_ORIGIN}/widget.js`} data-agent={CHAT_WIDGET} strategy="afterInteractive" />
 }
