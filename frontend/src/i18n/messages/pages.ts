@@ -14,6 +14,8 @@ const en = {
       'Ten seconds of film: the car draws up on a tree-lined boulevard, the rear door opens and the seat is waiting for you. Scroll through it, and see how every journey with us begins.',
     showroomLabel: 'The Mercedes-Maybach, in 3D',
     showroomScroll: 'Scroll to walk around the car',
+    showroomChapters: ['Arrive', 'The fleet', 'Every ride'],
+    showroomSkip: 'Skip to prices',
     fleetStageEyebrow: 'The fleet',
     fleetStageTitle: 'Seven classes, *one standard*.',
     fleetStageText:
@@ -309,6 +311,8 @@ const es: typeof en = {
       'Diez segundos de película: el coche llega por un bulevar arbolado, se abre la puerta trasera y el asiento le espera. Recórrala al desplazarse y vea cómo empieza cada trayecto con nosotros.',
     showroomLabel: 'El Mercedes-Maybach, en 3D',
     showroomScroll: 'Desplácese para rodear el coche',
+    showroomChapters: ['Llegue', 'La flota', 'Cada trayecto'],
+    showroomSkip: 'Ir a los precios',
     fleetStageEyebrow: 'La flota',
     fleetStageTitle: 'Siete categorías, *un mismo nivel*.',
     fleetStageText:

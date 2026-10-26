@@ -1,5 +1,12 @@
 @import 'tailwindcss';
 
+/* Little height to spare: small phones, phones with the browser's bars showing, laptops. */
+@custom-variant short (@media (max-height: 760px));
+/* Hardly any height, as on a phone held sideways. */
+@custom-variant low (@media (max-height: 500px));
+/* The home page's showroom: words beside the car on a landscape screen, above it on a portrait one (its 3D camera and still image switch at the same ratio). */
+@custom-variant wide (@media (min-aspect-ratio: 11/10));
+
 @theme inline {
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-display: var(--font-instrument), ui-serif, Georgia, 'Times New Roman', serif;
@@ -42,6 +49,8 @@
   --animate-pop: pop 0.18s var(--ease-out-expo) both;
   /* The scroll cue over the Experience page's film: a short line running down its track. */
   --animate-scroll-cue: scroll-cue 2s ease-in-out infinite;
+  /* A ring easing out of a play button: close enough that it never reaches the edge of a phone's screen. */
+  --animate-halo: halo 2.4s cubic-bezier(0, 0, 0.2, 1) infinite;
 
   @keyframes rise {
     from {
@@ -92,6 +101,13 @@
     }
     to {
       transform: translateY(340%);
+    }
+  }
+  @keyframes halo {
+    75%,
+    100% {
+      opacity: 0;
+      transform: scale(1.45);
     }
   }
 }
