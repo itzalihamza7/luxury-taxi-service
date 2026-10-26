@@ -232,7 +232,7 @@ export function settingsFields(m: ManageMessages): FieldDef[] {
   return [
     heading(b.contact),
     { kind: 'text', path: 'phone', label: b.phone, placeholder: '+34 600 111 222' },
-    { kind: 'text', path: 'whatsapp', label: b.whatsapp, hint: b.whatsappHint, placeholder: '34600111222' },
+    { kind: 'text', path: 'whatsapp', label: b.whatsapp, hint: b.whatsappHint, placeholder: '+34 667 60 46 11' },
     { kind: 'text', path: 'email', label: b.email },
     heading(b.social, b.socialHint),
     { kind: 'text', path: 'social.instagram', label: 'Instagram' },

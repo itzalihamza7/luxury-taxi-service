@@ -127,10 +127,14 @@ const link = z
 /** Business details shown across the website. Stored under the `site` settings key. */
 export const siteSettingsSchema = z.object({
   phone,
-  /** Digits only, with country code: used for the WhatsApp link. */
+  /**
+   * Used for the WhatsApp link, which needs digits only, with the country code. Accepted as people
+   * write it ("+34 667 60 46 11", "0034 667…") and stored as digits ("34667604611").
+   */
   whatsapp: z
     .string()
     .trim()
+    .transform((value) => value.replace(/\D/g, '').replace(/^00/, ''))
     .refine((value) => /^\d{7,15}$/.test(value), { message: 'invalid_phone' }),
   email,
   /** Leave a link empty to hide it. */
