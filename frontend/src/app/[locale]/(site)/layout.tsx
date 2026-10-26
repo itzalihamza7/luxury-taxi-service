@@ -5,10 +5,11 @@ import { Footer } from '@/components/layout/Footer'
 import { Header } from '@/components/layout/Header'
 import { HeaderPhone, ServiceLinks } from '@/components/layout/HeaderData'
 import { MobileBar } from '@/components/layout/MobileBar'
+import { WebsiteChat } from '@/components/layout/WebsiteChat'
 import { WhatsAppTracker } from '@/components/layout/WhatsAppTracker'
 import { currentYear } from '@/lib/clock'
 
-/** The frame of the public website: header, footer, the phone action bar and the cookie notice. */
+/** The frame of the public website: header, footer, the phone action bar, the cookie notice and the chat. */
 export default async function SiteLayout({ children }: { children: ReactNode }) {
   const year = await currentYear()
 
@@ -46,6 +47,7 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
       </Suspense>
       <CookieConsent />
       <WhatsAppTracker />
+      <WebsiteChat />
     </>
   )
 }

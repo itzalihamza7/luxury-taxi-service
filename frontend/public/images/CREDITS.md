@@ -49,4 +49,4 @@ compressed, a helper plane hidden, the paint given a clear coat, and the lights 
 | File | Shows | Source | Author |
 | --- | --- | --- | --- |
 | `../models/maybach.glb` | Mercedes-Benz Maybach 2022, adapted for the web | [Sketchfab](https://sketchfab.com/3d-models/mercedes-benz-maybach-2022-979f37a878f04b2a8d888b62ea6027e9) | [Mpgs Studios](https://sketchfab.com/mpgs.studio) |
-| `site/showroom.jpg`, `site/showroom-tall.jpg` | The showroom's opening frame, rendered from that model | as above | as above |
+| `site/showroom-night.jpg`, `site/showroom-night-tall.jpg` | The showroom's opening frame, rendered from that model | as above | as above |

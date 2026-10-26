@@ -26,8 +26,9 @@ the company's contact details.
 - Customer accounts with their bookings and profile, an account menu in the header, and password
   reset by email (a one-time link valid for an hour).
 - Service, fleet, route, event and journal pages, all edited from the admin panel.
-- A home page that opens on the Mercedes-Maybach in a 3D studio: the camera walks around the car
-  as the visitor scrolls, and the instant price follows.
+- A home page that opens on the Mercedes-Maybach in 3D, against the city's lights at night: the
+  camera walks around the car as the visitor scrolls, a chapter bar shows the way, and the instant
+  price follows.
 - An Experience page (`/experience`): a film of the car's arrival, played by the scroll, and what a
   journey includes, moment by moment.
 - Optional online payment through PayPal Checkout.
@@ -134,22 +135,32 @@ week, unless the new files get new names.
 
 ## Home page 3D showroom
 
-The home page opens on the fleet's Mercedes-Maybach in a dark studio, drawn with
-[three.js](https://threejs.org) through React Three Fiber and drei
+The home page opens on the fleet's Mercedes-Maybach at night, against the out-of-focus lights of
+the city, drawn with [three.js](https://threejs.org) through React Three Fiber and drei
 ([`frontend/src/components/showroom/`](frontend/src/components/showroom/)). The section is pinned
-while the visitor scrolls: the camera walks from the front three-quarter view to the side, the rear
-and above the roof, three short blocks of words take turns, and the price widget follows.
+while the visitor scrolls: the camera walks from the front three-quarter view to the side and the
+rear, three short blocks of words take turns (one is always on screen), and the price widget
+follows. A chapter bar at the bottom names the three parts, shows how far along the visitor is,
+jumps to any of them and offers a way straight to the prices.
 
-- **Loading.** The opening frame is a still, cropped wide or tall to match the screen, so the page
-  shows at once. three.js and the model load only on this page, after the page itself, and the 3D
-  view fades in when it is ready. Visitors who prefer reduced motion, devices without WebGL and
-  data-saver mode keep the still.
+- **Framing.** The page measures the room each block of words leaves for the car (beside it on a
+  landscape screen, below it on a portrait one, clear of the header and the chapter bar), and the
+  camera stands back until the car's outline fits that room, using a shifted lens rather than
+  turning. The car stays whole and beside or below the words, from a phone held sideways to a wide
+  monitor.
+- **Loading.** The opening frame is a still (`showroom-night.jpg`, 3:2, and `showroom-night-tall.jpg`,
+  about 1:2), cropped to the screen, so the page shows at once. three.js and the model load only on
+  this page, after the page itself, and the 3D view fades in when it is ready. Visitors who prefer
+  reduced motion, devices without WebGL and data-saver mode keep the still. When the scene changes,
+  render new stills from it and give them new names, so no cache keeps showing the old ones.
 - **Cost.** The model is 0.74 MB, its decoder 0.25 MB (both cached for a week). Nothing is drawn
   while the section is off screen, the resolution drops on a struggling GPU, and phones get a
   lighter scene.
-- **Studio.** Lighting comes from soft boxes reflected in the paint (no image files); one light
-  sweeps along the car on larger screens. The floor and horizon are drawn in exact colours,
-  outside the tone mapping the car gets, so they meet without a line.
+- **Night.** Lighting comes from soft boxes and street lamps reflected in the paint (no image
+  files); one light sweeps along the car on larger screens. The city is a few hundred soft discs of
+  light on a ring behind the car, mirrored in the wet floor, with a warm glow that follows the
+  camera. The floor and sky are drawn in exact colours, outside the tone mapping the car gets, so
+  they meet without a line.
 - **The model** is "Mercedes-Benz Maybach 2022" by Mpgs Studios, under
   [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/): the credit is on the site's Credits page,
   linked from every footer, and listed in `frontend/public/images/CREDITS.md`. It was reduced from 2.4 million to 185,000
@@ -180,6 +191,25 @@ gets a little more:
   number. The agent fills the number in from the line the call comes from, so a caller only hears
   about their own rides.
 - **Bookings** the agent makes are marked `agent` and show an "AI agent" badge in the admin panel.
+
+## Website chat
+
+Every public page carries a chat with the same kind of agent, from
+[Vesper](https://github.com/itzalihamza7/Voice-agent-for-businesses) (business "SignatureMile"
+at https://13-61-49-4.sslip.io). It answers from 25 of the site's pages, quotes and books rides
+through `/api`, and can pass a visitor on to WhatsApp or a phone call.
+
+- **On the page.** [`WebsiteChat`](frontend/src/components/layout/WebsiteChat.tsx) loads Vesper's
+  script once the page is idle. Its round button shows from 1024 px; below that it would cover the
+  bar of buttons at the bottom, which gets a Chat button instead. The address and the chat's id are
+  in [`frontend/src/lib/website-chat.ts`](frontend/src/lib/website-chat.ts); the Content Security
+  Policy and the microphone permission (for voice) allow that address only.
+- **Bookings.** Vesper lets the chat change data (a quote, a booking) once the site has proven it
+  is the business's: the token in `frontend/public/.well-known/vesper-verify.txt` does that. An
+  agent key from Business details can also be added to the connection in Vesper, so the chat's
+  bookings get the "AI agent" badge and their own rate limits.
+- **Settings** (which sites may show it, colour, WhatsApp and phone hand-off, a daily AI cost cap
+  of $5) are in Vesper under Agents → the agent → Website chat.
 
 ## Getting started
 

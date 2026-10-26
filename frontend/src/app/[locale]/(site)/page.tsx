@@ -215,15 +215,17 @@ export default async function HomePage() {
       <Showroom
         label={h.showroomLabel}
         scroll={h.showroomScroll}
+        chapters={h.showroomChapters}
+        skip={{ href: '#quote', label: h.showroomSkip }}
         still={<ShowroomStill />}
         stages={[
           <Fragment key="opening">
             <Eyebrow onDark>{t.tagline}</Eyebrow>
-            <h1 className="display mt-6 text-[3.25rem] leading-[0.95] text-bone-50 sm:text-7xl xl:text-[6.5rem]">
+            <h1 className="display mt-6 text-[3.25rem] leading-[0.95] text-bone-50 short:mt-4 short:text-[2.875rem] sm:text-7xl short:sm:text-6xl xl:text-[6.5rem] short:xl:text-[5.25rem]">
               <Accent text={h.heroTitle} />
             </h1>
-            <p className="mt-6 max-w-lg text-base leading-relaxed text-bone-100/80 sm:text-lg">{h.heroLead}</p>
-            <div className="mt-8 flex flex-wrap items-center gap-4">
+            <p className="mt-6 max-w-lg text-base leading-relaxed text-bone-100/80 short:mt-4 low:hidden sm:text-lg short:sm:text-base">{h.heroLead}</p>
+            <div className="mt-8 flex flex-wrap items-center gap-4 short:mt-6">
               <ButtonLink href="#quote" size="lg" arrow>
                 {t.actions.getPrice}
               </ButtonLink>
@@ -235,10 +237,10 @@ export default async function HomePage() {
             {/* For visitors not ready to book: the film, one click away, on a line of its own. */}
             <Link
               href="/experience"
-              className="group mt-7 inline-flex items-center gap-4 text-sm font-medium tracking-wide text-bone-50 transition-colors hover:text-gold-300"
+              className="group mt-7 inline-flex items-center gap-4 text-sm font-medium tracking-wide text-bone-50 transition-colors hover:text-gold-300 short:mt-5 low:hidden"
             >
-              <span className="relative flex size-12 shrink-0 items-center justify-center rounded-full bg-gold-400 text-ink-950 shadow-[0_10px_30px_-12px_rgba(212,182,126,0.8)] transition-transform duration-300 ease-out-expo group-hover:scale-105">
-                <span aria-hidden className="absolute inset-0 animate-ping rounded-full border border-gold-300/50 [animation-duration:2.4s]" />
+              <span className="relative flex size-12 shrink-0 items-center justify-center rounded-full bg-gold-400 text-ink-950 shadow-[0_10px_30px_-12px_rgba(212,182,126,0.8)] transition-transform duration-300 ease-out-expo group-hover:scale-105 short:size-11">
+                <span aria-hidden className="absolute inset-0 animate-halo rounded-full border border-gold-300/60" />
                 <Play aria-hidden className="ml-0.5 size-4 fill-current" />
               </span>
               <span className="flex flex-col">
@@ -249,11 +251,11 @@ export default async function HomePage() {
           </Fragment>,
           <Fragment key="fleet">
             <Eyebrow onDark>{h.fleetStageEyebrow}</Eyebrow>
-            <h2 className="display mt-6 text-5xl leading-[0.98] text-bone-50 sm:text-6xl xl:text-7xl">
+            <h2 className="display mt-6 text-5xl leading-[0.98] text-bone-50 short:mt-4 short:text-[2.5rem] sm:text-6xl short:sm:text-5xl xl:text-7xl short:xl:text-6xl">
               <Accent text={h.fleetStageTitle} />
             </h2>
-            <p className="mt-6 max-w-md text-base leading-relaxed text-bone-100/75 sm:text-lg">{h.fleetStageText}</p>
-            <div className="mt-8">
+            <p className="mt-6 max-w-md text-base leading-relaxed text-bone-100/75 short:mt-4 low:hidden sm:text-lg short:sm:text-base">{h.fleetStageText}</p>
+            <div className="mt-8 short:mt-6">
               <ButtonLink href="/fleet" variant="outline-light" arrow>
                 {t.actions.viewFleet}
               </ButtonLink>
@@ -261,11 +263,11 @@ export default async function HomePage() {
           </Fragment>,
           <Fragment key="ride">
             <Eyebrow onDark>{h.rideStageEyebrow}</Eyebrow>
-            <h2 className="display mt-6 text-5xl leading-[0.98] text-bone-50 sm:text-6xl xl:text-7xl">
+            <h2 className="display mt-6 text-5xl leading-[0.98] text-bone-50 short:mt-4 short:text-[2.5rem] sm:text-6xl short:sm:text-5xl xl:text-7xl short:xl:text-6xl">
               <Accent text={h.rideStageTitle} />
             </h2>
-            <p className="mt-6 max-w-md text-base leading-relaxed text-bone-100/75 sm:text-lg">{h.rideStageText}</p>
-            <div className="mt-8">
+            <p className="mt-6 max-w-md text-base leading-relaxed text-bone-100/75 short:mt-4 low:hidden sm:text-lg short:sm:text-base">{h.rideStageText}</p>
+            <div className="mt-8 short:mt-6">
               <ButtonLink href="#quote" size="lg" arrow>
                 {t.actions.getPrice}
               </ButtonLink>

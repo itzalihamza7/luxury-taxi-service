@@ -164,6 +164,7 @@ export function Header({ serviceLinks, mobileServiceLinks, phone }: Props) {
 
   const toggle = (id: Section) => () => setMenu((current) => (current === id ? null : id))
   const solid = scrolled || open
+  // Tucked away, the bar moves past its own height, so the glow under "Book a ride" goes with it.
   const hidden = tucked && !open && !focused && menu === null
   const compact = scrolled && !open
 
@@ -183,7 +184,7 @@ export function Header({ serviceLinks, mobileServiceLinks, phone }: Props) {
       }}
       className={`no-print fixed inset-x-0 top-0 z-50 text-bone-50 transition-[translate,background-color,border-color,box-shadow] duration-500 ease-out-expo ${
         solid ? 'border-b border-gold-300/15 bg-ink-950/85 shadow-[0_12px_40px_-24px_rgba(0,0,0,0.8)] backdrop-blur-xl' : 'border-b border-transparent'
-      } ${hidden ? '-translate-y-full' : 'translate-y-0'}`}
+      } ${hidden ? '-translate-y-[calc(100%+2.5rem)]' : 'translate-y-0'}`}
     >
       <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-10 focus:rounded-full focus:bg-gold-400 focus:px-4 focus:py-2 focus:text-sm focus:text-ink-950">
         {t.nav.skip}
