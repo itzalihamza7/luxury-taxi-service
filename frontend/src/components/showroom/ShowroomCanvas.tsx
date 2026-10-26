@@ -333,15 +333,14 @@ function lightLayer(random: () => number, count: number, near: number, far: numb
 }
 
 /** Madrid at night behind the car, out of focus as through a fast lens, and mirrored in the wet floor. */
-function City({ compact }: { compact: boolean }) {
+function City() {
   const { layers, disc, streak } = useMemo(() => {
     const random = seeded(11)
-    const scale = compact ? 0.6 : 1
     return {
       layers: [
-        { geometry: lightLayer(random, Math.round(220 * scale), 42, 60), size: 1.2 },
-        { geometry: lightLayer(random, Math.round(120 * scale), 28, 42), size: 2 },
-        { geometry: lightLayer(random, Math.round(40 * scale), 18, 28), size: 3.2 },
+        { geometry: lightLayer(random, 220, 42, 60), size: 1.2 },
+        { geometry: lightLayer(random, 120, 28, 42), size: 2 },
+        { geometry: lightLayer(random, 40, 18, 28), size: 3.2 },
       ],
       // A real lens draws an out-of-focus light as a soft disc with a slightly brighter rim.
       disc: glowTexture([
@@ -360,7 +359,7 @@ function City({ compact }: { compact: boolean }) {
         0.4,
       ),
     }
-  }, [compact])
+  }, [])
   return (
     <group>
       {layers.map((layer) => (
@@ -541,7 +540,8 @@ function Scene({ progress, pointer, frame, compact, onReady }: Omit<Props, 'acti
       <fog attach="fog" args={[HORIZON, 12, 36]} />
       <Studio progress={progress} sweep={!compact} />
       <Stage />
-      <City compact={compact} />
+      {/* On a phone the lights read as coloured dots around the words: there the warm glow alone sets the night. */}
+      {compact ? null : <City />}
       <Halo />
       <Car intro={intro} outlineRef={outline} onReady={onReady} />
       <ContactShadows position={[0, 0.004, 0]} scale={12} resolution={compact ? 512 : 1024} far={1.6} blur={2.4} opacity={0.9} frames={1} color="#000000" />

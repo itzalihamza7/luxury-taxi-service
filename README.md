@@ -148,7 +148,7 @@ jumps to any of them and offers a way straight to the prices.
   camera stands back until the car's outline fits that room, using a shifted lens rather than
   turning. The car stays whole and beside or below the words, from a phone held sideways to a wide
   monitor.
-- **Loading.** The opening frame is a still (`showroom-night.jpg`, 3:2, and `showroom-night-tall.jpg`,
+- **Loading.** The opening frame is a still (`showroom-night.jpg`, 3:2, and `showroom-mobile.jpg`,
   about 1:2), cropped to the screen, so the page shows at once. three.js and the model load only on
   this page, after the page itself, and the 3D view fades in when it is ready. Visitors who prefer
   reduced motion, devices without WebGL and data-saver mode keep the still. When the scene changes,
@@ -157,10 +157,11 @@ jumps to any of them and offers a way straight to the prices.
   while the section is off screen, the resolution drops on a struggling GPU, and phones get a
   lighter scene.
 - **Night.** Lighting comes from soft boxes and street lamps reflected in the paint (no image
-  files); one light sweeps along the car on larger screens. The city is a few hundred soft discs of
-  light on a ring behind the car, mirrored in the wet floor, with a warm glow that follows the
-  camera. The floor and sky are drawn in exact colours, outside the tone mapping the car gets, so
-  they meet without a line.
+  files); one light sweeps along the car on larger screens. From 1024 px the city is a few hundred
+  soft discs of light on a ring behind the car, mirrored in the wet floor; on phones and tablets they
+  read as coloured dots around the words, so there a warm glow that follows the camera sets the
+  night alone. The floor and sky are drawn in exact colours, outside the tone mapping the car gets,
+  so they meet without a line.
 - **The model** is "Mercedes-Benz Maybach 2022" by Mpgs Studios, under
   [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/): the credit is on the site's Credits page,
   linked from every footer, and listed in `frontend/public/images/CREDITS.md`. It was reduced from 2.4 million to 185,000
