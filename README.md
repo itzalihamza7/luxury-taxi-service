@@ -200,8 +200,8 @@ at https://13-61-49-4.sslip.io). It answers from 25 of the site's pages, quotes 
 through `/api`, and can pass a visitor on to WhatsApp or a phone call.
 
 - **On the page.** [`WebsiteChat`](frontend/src/components/layout/WebsiteChat.tsx) loads Vesper's
-  script once the page is idle. Its round button shows from 1024 px; below that it would cover the
-  bar of buttons at the bottom, which gets a Chat button instead. The address and the chat's id are
+  script as soon as the page works. Its round button shows from 1024 px; below that it would cover
+  the bar of buttons at the bottom, which gets a Chat button instead. The address and the chat's id are
   in [`frontend/src/lib/website-chat.ts`](frontend/src/lib/website-chat.ts); the Content Security
   Policy and the microphone permission (for voice) allow that address only.
 - **Bookings.** Vesper lets the chat change data (a quote, a booking) once the site has proven it
