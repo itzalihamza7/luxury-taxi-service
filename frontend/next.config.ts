@@ -1,14 +1,16 @@
 import type { NextConfig } from 'next'
+import { CHAT_ORIGIN } from './src/lib/website-chat'
 
 /**
- * What pages may load: only this site's own scripts, styles, images and fonts.
- * Next.js needs inline scripts to start the page; development also needs eval
- * and a websocket for hot reload, so the policy is sent by production builds only.
+ * What pages may load: only this site's own scripts, styles, images and fonts, and the website
+ * chat from Vesper (its script, its settings and its panel). Next.js needs inline scripts to
+ * start the page; development also needs eval and a websocket for hot reload, so the policy is
+ * sent by production builds only.
  */
 const contentSecurityPolicy = [
   "default-src 'self'",
   // 'wasm-unsafe-eval' lets WebAssembly compile (and nothing else): the home page's 3D car is decoded with it.
-  "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'",
+  `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' ${CHAT_ORIGIN}`,
   // The decoder runs in a worker that three.js starts from a blob: address.
   "worker-src 'self' blob:",
   "style-src 'self' 'unsafe-inline'",
@@ -16,8 +18,8 @@ const contentSecurityPolicy = [
   // The Experience page's film is downloaded, then played from memory (a blob: address).
   "media-src 'self' blob:",
   "font-src 'self'",
-  "connect-src 'self'",
-  "frame-src 'none'",
+  `connect-src 'self' ${CHAT_ORIGIN}`,
+  `frame-src ${CHAT_ORIGIN}`,
   "frame-ancestors 'self'",
   "object-src 'none'",
   "base-uri 'self'",
@@ -28,7 +30,8 @@ const securityHeaders = [
   { key: 'X-Content-Type-Options', value: 'nosniff' },
   { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
   { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-  { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+  // Only the chat's panel may ask for the microphone, for visitors who talk to it.
+  { key: 'Permissions-Policy', value: `camera=(), microphone=("${CHAT_ORIGIN}"), geolocation=()` },
   // Lets nginx-style reverse proxies pass streamed HTML through without buffering.
   { key: 'X-Accel-Buffering', value: 'no' },
   ...(process.env.NODE_ENV === 'production' ? [{ key: 'Content-Security-Policy', value: contentSecurityPolicy }] : []),

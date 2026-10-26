@@ -274,8 +274,22 @@
   }
 }
 
+/*
+ * The website chat (WebsiteChat). Below 1024 px its round button would cover the bar of buttons at
+ * the bottom of the screen, which offers the chat instead: the button is hidden, its panel is not.
+ */
+@media (width < 64rem) {
+  [data-website-chat] {
+    visibility: hidden;
+  }
+  [data-website-chat]::part(panel) {
+    visibility: visible;
+  }
+}
+
 @media print {
-  .no-print {
+  .no-print,
+  [data-website-chat] {
     display: none !important;
   }
   body {

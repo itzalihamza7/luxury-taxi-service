@@ -192,6 +192,25 @@ gets a little more:
   about their own rides.
 - **Bookings** the agent makes are marked `agent` and show an "AI agent" badge in the admin panel.
 
+## Website chat
+
+Every public page carries a chat with the same kind of agent, from
+[Vesper](https://github.com/itzalihamza7/Voice-agent-for-businesses) (business "SignatureMile"
+at https://13-61-49-4.sslip.io). It answers from 25 of the site's pages, quotes and books rides
+through `/api`, and can pass a visitor on to WhatsApp or a phone call.
+
+- **On the page.** [`WebsiteChat`](frontend/src/components/layout/WebsiteChat.tsx) loads Vesper's
+  script once the page is idle. Its round button shows from 1024 px; below that it would cover the
+  bar of buttons at the bottom, which gets a Chat button instead. The address and the chat's id are
+  in [`frontend/src/lib/website-chat.ts`](frontend/src/lib/website-chat.ts); the Content Security
+  Policy and the microphone permission (for voice) allow that address only.
+- **Bookings.** Vesper lets the chat change data (a quote, a booking) once the site has proven it
+  is the business's: the token in `frontend/public/.well-known/vesper-verify.txt` does that. An
+  agent key from Business details can also be added to the connection in Vesper, so the chat's
+  bookings get the "AI agent" badge and their own rate limits.
+- **Settings** (which sites may show it, colour, WhatsApp and phone hand-off, a daily AI cost cap
+  of $5) are in Vesper under Agents → the agent → Website chat.
+
 ## Getting started
 
 Requirements: [DDEV](https://ddev.com) and Docker.
