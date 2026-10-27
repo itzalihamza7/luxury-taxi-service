@@ -278,6 +278,11 @@
  * The website chat (WebsiteChat). Below 1024 px its round button would cover the bar of buttons at
  * the bottom of the screen, which offers the chat instead: the button is hidden, its panel is not.
  */
+/* Off the public pages (the console, after moving there within the app). */
+[data-website-chat][hidden] {
+  display: none !important;
+}
+
 @media (width < 64rem) {
   [data-website-chat] {
     visibility: hidden;
