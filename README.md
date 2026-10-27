@@ -298,6 +298,8 @@ followed by the same command. Without the second file the stack runs plain HTTP 
 - `SITE_URL` is read at build time for canonical links, the sitemap and payment return links.
 - Pages are streamed; proxies should not buffer responses (`X-Accel-Buffering: no` is sent).
 - Back up the `db-data` volume: it holds bookings, accounts, content and uploaded photos.
+- After a release that adds pages, `bash deploy/indexnow.sh` sends every page in the live sitemap to
+  Bing and the other IndexNow search engines. Google takes the sitemap through Search Console.
 
 ## Configuration
 
