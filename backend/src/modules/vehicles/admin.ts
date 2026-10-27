@@ -17,10 +17,12 @@ const vehicleSchema = z.object({
   bodyType: z.enum(['hatchback', 'sedan', 'limousine', 'van', 'minibus']),
   passengers: z.number().int().min(1).max(60),
   luggage: z.number().int().min(0).max(60),
-  baseFareCents: cents,
+  /** Inside the M-30, and between the airport and the M-30. */
+  zoneFareCents: cents,
+  /** Per road kilometre beyond the M-30. */
   perKmCents: cents,
-  hourlyRateCents: cents,
-  minFareCents: cents,
+  /** Empty: hourly hire is agreed case by case, and can be booked without a price. */
+  hourlyRateCents: cents.nullable(),
   tagline: localizedText(80),
   description: localizedText(1200),
   highlights: localizedLines(200, 8),

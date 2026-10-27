@@ -24,7 +24,7 @@ interface AdminVehicle extends Draft {
   bodyType: BodyType
   passengers: number
   luggage: number
-  minFareCents: number
+  zoneFareCents: number
   imageUrl: string | null
   sortOrder: number
   active: boolean
@@ -134,7 +134,7 @@ export function FleetManager({ m }: { m: ManageMessages }) {
                     {vehicle.active ? null : <span className="ml-3 rounded-full bg-ink-900/5 px-2.5 py-0.5 text-xs font-normal text-ink-900/60">{m.hidden}</span>}
                   </p>
                   <p className="truncate text-sm text-ink-900/60">
-                    {fill(m.fleet.seats, { passengers: vehicle.passengers, luggage: vehicle.luggage })} · {fill(m.fleet.from, { price: formatMoney(vehicle.minFareCents, 'EUR', locale) })}
+                    {fill(m.fleet.seats, { passengers: vehicle.passengers, luggage: vehicle.luggage })} · {fill(m.fleet.from, { price: formatMoney(vehicle.zoneFareCents, 'EUR', locale) })}
                   </p>
                 </div>
                 {vehicle.active ? (

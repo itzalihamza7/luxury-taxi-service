@@ -20,8 +20,10 @@ export interface Vehicle {
   description: Localized
   highlights: Localized<string[]>
   imageUrl: string | null
+  /** The fixed price inside the M-30 (and airport <-> M-30): the lowest transfer fare. */
   fromCents: number
-  hourlyRateCents: number
+  /** Null when hourly hire is agreed case by case. */
+  hourlyRateCents: number | null
 }
 
 export type PlaceKind = 'airport' | 'station' | 'venue' | 'landmark' | 'city' | 'address'
@@ -43,7 +45,8 @@ export interface RouteInfo {
 
 export interface QuoteOption {
   vehicleId: string
-  totalCents: number
+  /** Null when the price is agreed with the business after booking. */
+  totalCents: number | null
   available: boolean
   reason?: 'passengers' | 'luggage'
   vehicle: Vehicle
@@ -63,7 +66,40 @@ export interface Quote {
 
 export type BookingStatus = 'pending' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled'
 export type PaymentMethod = 'chauffeur' | 'online'
-export type PaymentStatus = 'unpaid' | 'paid'
+/** `partly_paid`: an advance has been received, the rest is still due. */
+export type PaymentStatus = 'unpaid' | 'partly_paid' | 'paid'
+
+export type BookingEventKind = 'created' | 'edited' | 'status_changed' | 'payment_requested' | 'payment_received' | 'payment_cancelled'
+
+/** One field that changed: dates as ISO strings, prices in cents, the rest as shown. */
+export interface BookingChange {
+  field: string
+  from: string | null
+  to: string | null
+}
+
+/** A step in a booking's history. `actorName` is the team member; null for the customer or the website. */
+export interface BookingEvent {
+  id: string
+  kind: BookingEventKind
+  actorName: string | null
+  changes: BookingChange[]
+  note: string | null
+  createdAt: string
+}
+
+/** A payment the team asked for, through their payment link. */
+export interface BookingPayment {
+  id: string
+  kind: 'advance' | 'full' | 'balance'
+  amountCents: number
+  currency: string
+  /** Only while it can be paid. */
+  link: string | null
+  status: 'requested' | 'paid' | 'cancelled'
+  requestedAt: string
+  paidAt: string | null
+}
 
 export interface Booking {
   reference: string
@@ -80,7 +116,8 @@ export interface Booking {
   luggage: number
   vehicleName: string
   route: RouteInfo | null
-  totalCents: number
+  /** Null until the business sets the price, when it is agreed with the customer. */
+  totalCents: number | null
   currency: string
   paymentMethod: PaymentMethod
   paymentStatus: PaymentStatus
@@ -91,6 +128,15 @@ export interface Booking {
   source: 'website' | 'operator' | 'agent'
   canCancel: boolean
   createdAt: string
+  /** On the booking's own page (and in the console): its history, newest first, and payment requests. */
+  events?: BookingEvent[]
+  payments?: BookingPayment[]
+}
+
+/** A booking as the team sees it in the console. */
+export interface AdminBooking extends Booking {
+  guestCode: string | null
+  payments?: (BookingPayment & { whatsappUrl: string | null })[]
 }
 
 export interface User {
@@ -100,6 +146,8 @@ export interface User {
   phone: string | null
   /** `superadmin` can also appoint and remove other super admins. */
   role: UserRole
+  /** Proved with a code by email; then the bookings made with this address join the account. */
+  emailVerified: boolean
 }
 
 export type UserRole = 'customer' | 'admin' | 'superadmin'

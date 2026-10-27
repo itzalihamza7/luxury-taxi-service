@@ -12,7 +12,7 @@ import { fill } from '@/i18n/config'
 import type { BookingMessages } from '@/i18n/messages/booking'
 import { api, ApiError, errorMessage } from '@/lib/api'
 import { clearDraft, clearFieldErrors, emptyDraft, loadDraft, normalizeFields, quoteRequest, rememberBooking, RIDE_FIELDS, saveDraft, validateRide, type Draft } from '@/lib/booking-draft'
-import { formatBags, formatDistance, formatDuration, formatFormDateTime, formatMoney, formatPassengers } from '@/lib/format'
+import { formatBags, formatDistance, formatDuration, formatFormDateTime, formatMoney, formatPassengers, formatPrice } from '@/lib/format'
 import { useAppConfig, useHydrated } from '@/lib/hooks'
 import { RIDE_TYPES, type Booking, type Quote, type QuoteOption, type RideType } from '@/lib/types'
 import { BookingDetails } from './BookingDetails'
@@ -170,7 +170,7 @@ function Wizard({ b }: { b: BookingMessages }) {
           vehicleId,
           contact: draft.contact,
           flightNumber: draft.flightNumber || null,
-          paymentMethod: config.onlinePayments ? draft.paymentMethod : 'chauffeur',
+          paymentMethod: config.onlinePayments && selected?.totalCents !== null ? draft.paymentMethod : 'chauffeur',
           acceptTerms: true,
           locale,
         },
@@ -287,9 +287,13 @@ function Wizard({ b }: { b: BookingMessages }) {
               {copied ? b.done.copied : b.done.copy}
             </Button>
           </div>
-          <p className="mt-3 text-sm text-ink-900/60">{b.done.keep}</p>
+          <p className="mt-3 text-sm text-ink-900/60">{done.isGuest ? b.done.keep : b.done.keepAccount}</p>
           <p className="mt-2 text-sm font-medium">
-            {done.paymentStatus === 'paid' ? b.done.paid : fill(b.done.payOnDay, { price: formatMoney(done.totalCents, done.currency, locale) })}
+            {done.paymentStatus === 'paid'
+              ? b.done.paid
+              : done.totalCents === null
+                ? b.done.onRequest
+                : fill(b.done.price, { price: formatMoney(done.totalCents, done.currency, locale) })}
           </p>
 
           <div className="mt-9 border-t border-ink-900/10 pt-8">
@@ -297,8 +301,8 @@ function Wizard({ b }: { b: BookingMessages }) {
           </div>
 
           <div className="no-print mt-9 flex flex-wrap gap-3">
-            <ButtonLink href={user ? '/account' : '/booking/track'} variant="dark" arrow>
-              {user ? b.done.account : b.done.track}
+            <ButtonLink href={done.isGuest ? `/booking/${done.reference}` : '/account'} variant="dark" arrow>
+              {done.isGuest ? b.done.track : b.done.account}
             </ButtonLink>
             <Button variant="outline" onClick={() => window.print()}>
               <Printer aria-hidden className="size-4" />
@@ -320,10 +324,10 @@ function Wizard({ b }: { b: BookingMessages }) {
     vehicle: b.vehicle.title,
     contact: b.contact.title,
     review: b.review.title,
-    payment: b.payment.title,
+    payment: config.onlinePayments && selected?.totalCents !== null ? b.payment.title : b.payment.confirmTitle,
   }
   const stepIndex = STEP_ORDER.indexOf(step)
-  const online = config.onlinePayments && draft.paymentMethod === 'online'
+  const online = config.onlinePayments && draft.paymentMethod === 'online' && selected?.totalCents !== null
   const primaryLabel = step === 'ride' ? b.ride.submit : step === 'payment' ? (redirecting ? b.payment.redirecting : online ? b.payment.confirmOnline : b.payment.confirm) : t.actions.next
   // The sign-in and registration forms have their own submit button.
   const gated = step === 'contact' && !user && authMode !== 'guest'
@@ -346,7 +350,7 @@ function Wizard({ b }: { b: BookingMessages }) {
             {step === 'vehicle' && quote ? <VehicleStep draft={draft} patch={patch} quote={quote} error={errors.vehicle ? b.vehicle.chooseOne : undefined} b={b} /> : null}
             {step === 'contact' ? <ContactStep draft={draft} patch={patch} errors={errors} mode={authMode} onMode={setAuthMode} b={b} /> : null}
             {step === 'review' && quote && selected ? <ReviewStep draft={draft} quote={quote} option={selected} onEdit={goTo} b={b} /> : null}
-            {step === 'payment' ? <PaymentStep draft={draft} patch={patch} config={config} accepted={accepted} onAccept={(value) => { setAccepted(value); setErrors({}) }} errors={errors} b={b} /> : null}
+            {step === 'payment' ? <PaymentStep draft={draft} patch={patch} config={config} accepted={accepted} onAccept={(value) => { setAccepted(value); setErrors({}) }} errors={errors} b={b} priceOnRequest={selected?.totalCents === null} /> : null}
           </div>
 
           <div className="mt-9 flex flex-wrap items-center justify-between gap-4 border-t border-ink-900/10 pt-6">
@@ -427,7 +431,7 @@ function Summary({ draft, quote, selected, b }: { draft: Draft; quote: Quote | n
               </div>
               {selected && quote ? (
                 <p className="font-display text-4xl text-bone-50" data-testid="summary-price">
-                  {formatMoney(selected.totalCents, quote.currency, locale)}
+                  {formatPrice(selected.totalCents, quote.currency, locale, t.payment.onRequest)}
                 </p>
               ) : (
                 <p className="max-w-[11rem] text-right text-xs text-bone-100/55">{s.pricePending}</p>

@@ -55,7 +55,7 @@ describe('starting content', () => {
     await seed()
     expect(await total('faq')).toBe(starting.faq.length)
     // The fleet already in place is left alone.
-    expect((await db.select({ total: count() }).from(vehicles))[0]?.total).toBe(7)
+    expect((await db.select({ total: count() }).from(vehicles))[0]?.total).toBe(8)
   })
 
   it('does not bring back what the operator deleted', async () => {
@@ -238,12 +238,20 @@ describe('business details', () => {
     expect((await admin.get('/api/admin/settings')).body.settings.social.instagram).toBe('https://instagram.com/example')
   })
 
+  it('takes the WhatsApp number as people write it, and keeps its digits for the link', async () => {
+    const admin = await adminAgent(app)
+    const saved = await admin.put('/api/admin/settings').send({ ...details, phone: '+34 667 60 46 11', whatsapp: '+34 667 60 46 11' })
+    expect(saved.status).toBe(200)
+    expect(saved.body.settings).toMatchObject({ phone: '+34 667 60 46 11', whatsapp: '34667604611' })
+    expect((await admin.put('/api/admin/settings').send({ ...details, whatsapp: '0034 667 604 611' })).body.settings.whatsapp).toBe('34667604611')
+  })
+
   it('rejects details that would break links', async () => {
     const admin = await adminAgent(app)
     const response = await admin.put('/api/admin/settings').send({
       ...details,
       phone: 'call us',
-      whatsapp: '+34 611 222 333',
+      whatsapp: 'on request',
       email: 'not-an-email',
       social: { ...details.social, instagram: 'http://instagram.com/example', facebook: 'javascript:alert(1)' },
       legal: { ...details.legal, companyName: '' },

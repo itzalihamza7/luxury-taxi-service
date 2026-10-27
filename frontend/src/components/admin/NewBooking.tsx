@@ -14,9 +14,9 @@ import type { ManageMessages } from '@/i18n/messages/manage'
 import { api, ApiError, errorMessage, fieldMessage } from '@/lib/api'
 import { clearFieldErrors, emptyDraft, normalizeFields, quoteRequest, RIDE_FIELDS, validateRide, type Draft } from '@/lib/booking-draft'
 import { whatsappHref } from '@/lib/contact'
-import { formatBags, formatDateTime, formatFormDateTime, formatMoney, formatPassengers } from '@/lib/format'
+import { formatBags, formatDateTime, formatFormDateTime, formatPassengers, formatPrice } from '@/lib/format'
 import { useAppConfig } from '@/lib/hooks'
-import type { Booking, Quote, SiteSettings } from '@/lib/types'
+import type { AdminBooking, Quote, SiteSettings } from '@/lib/types'
 import { useAdminSummary } from './AdminShell'
 import { Card, CardHeader, Lead } from './ui'
 
@@ -53,7 +53,7 @@ function validateCustomer(contact: Draft['contact']): Record<string, string> {
 }
 
 /** The text to send the customer: what was booked, and where to follow it. */
-function confirmationMessage(booking: Booking, language: Locale, text: ManageMessages['newBooking']['confirmation'], timeZone: string): string {
+function confirmationMessage(booking: AdminBooking, language: Locale, text: ManageMessages['newBooking']['confirmation'], timeZone: string): string {
   const c = text[language]
   const lines = [
     fill(c.hello, { name: booking.contact.name.split(' ')[0] ?? booking.contact.name, brand: site.name }),
@@ -65,10 +65,11 @@ function confirmationMessage(booking: Booking, language: Locale, text: ManageMes
     booking.dropoff ? `${c.to}: ${booking.dropoff.label}` : null,
     booking.hours ? `${c.hours}: ${fill(c.hoursValue, { count: booking.hours })}` : null,
     `${c.vehicle}: ${booking.vehicleName}`,
-    `${c.price}: ${formatMoney(booking.totalCents, booking.currency, language)}`,
+    `${c.price}: ${formatPrice(booking.totalCents, booking.currency, language, c.onRequest)}`,
     '',
     c.follow,
-    `${window.location.origin}${href(language, '/booking/track')}?ref=${booking.reference}`,
+    `${window.location.origin}${href(language, `/booking/${booking.reference}`)}`,
+    booking.guestCode ? `${c.code}: ${booking.guestCode}` : null,
   ]
   return lines.filter((line) => line !== null).join('\n')
 }
@@ -95,7 +96,7 @@ export function NewBooking({ b, m }: Props) {
   const [errors, setErrors] = useState<Errors>({})
   const [formError, setFormError] = useState<string | null>(null)
   const [busy, setBusy] = useState<'quote' | 'save' | null>(null)
-  const [done, setDone] = useState<{ booking: Booking; account: Account | null; message: string } | null>(null)
+  const [done, setDone] = useState<{ booking: AdminBooking; account: Account | null; message: string } | null>(null)
   const [copied, setCopied] = useState(false)
 
   // Whether bookings join the account of a customer who signs up later decides what the form says about that.
@@ -195,7 +196,7 @@ export function NewBooking({ b, m }: Props) {
     setFormError(null)
     setErrors({})
     try {
-      const result = await api<{ booking: Booking; account: Account | null }>('/admin/bookings', {
+      const result = await api<{ booking: AdminBooking; account: Account | null }>('/admin/bookings', {
         method: 'POST',
         body: {
           quoteId: quote.id,
@@ -398,7 +399,7 @@ export function NewBooking({ b, m }: Props) {
                           {option.available ? null : ` · ${n.tooSmall}`}
                         </span>
                       </span>
-                      <span className="text-sm font-semibold tabular-nums">{formatMoney(option.totalCents, quote.currency, locale)}</span>
+                      <span className="text-sm font-semibold tabular-nums">{formatPrice(option.totalCents, quote.currency, locale, t.payment.onRequest)}</span>
                     </label>
                   )
                 })}
@@ -439,13 +440,13 @@ export function NewBooking({ b, m }: Props) {
             {draft.rideType === 'hourly' ? line(b.review.duration, fill(t.units.hours, { count: draft.hours })) : null}
             {line(b.review.passengers, `${formatPassengers(draft.adults + draft.children, t)} · ${formatBags(draft.luggage, t)}`)}
             {line(b.review.vehicle, selected?.vehicle.name)}
-            {agreed !== null && agreedValid && selected && quote ? line(n.calculated, formatMoney(selected.totalCents, quote.currency, locale)) : null}
+            {agreed !== null && agreedValid && selected && quote ? line(n.calculated, formatPrice(selected.totalCents, quote.currency, locale, t.payment.onRequest)) : null}
           </dl>
           <div className="border-t border-ink-900/10 p-5">
             <div className="flex items-baseline justify-between gap-4">
               <p className="text-sm text-ink-900/60">{n.price}</p>
               <p className="text-2xl font-semibold tracking-tight tabular-nums" data-testid="summary-price">
-                {totalCents !== undefined && quote ? formatMoney(totalCents, quote.currency, locale) : '–'}
+                {totalCents !== undefined && quote ? formatPrice(totalCents, quote.currency, locale, t.payment.onRequest) : '–'}
               </p>
             </div>
             <Button size="lg" variant="dark" loading={busy === 'save'} disabled={busy !== null} onClick={() => void create()} className="mt-5 w-full" data-testid="create-booking">

@@ -57,6 +57,41 @@
       "when": 1792927254696,
       "tag": "0007_agent_keys",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1793039084216,
+      "tag": "0008_booking_flow",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1793039133735,
+      "tag": "0009_fleet_rates",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1793039170261,
+      "tag": "0010_vehicle_zone_rates",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1793039179307,
+      "tag": "0011_sprinter_hourly_and_phone",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1793059550260,
+      "tag": "0012_payment_faq",
+      "breakpoints": true
     }
   ]
 }

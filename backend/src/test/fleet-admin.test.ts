@@ -17,10 +17,9 @@ const vehiclePayload = (overrides: Record<string, unknown> = {}) => ({
   bodyType: 'sedan',
   passengers: 3,
   luggage: 2,
-  baseFareCents: 2500,
+  zoneFareCents: 7000,
   perKmCents: 210,
   hourlyRateCents: 7000,
-  minFareCents: 7000,
   tagline: { en: 'Electric sedan', es: 'Berlina eléctrica' },
   description: { en: 'Quiet, quick and fully electric.', es: 'Silencioso, rápido y totalmente eléctrico.' },
   highlights: { en: ['Zero tailpipe emissions'], es: ['Cero emisiones'] },
@@ -47,8 +46,10 @@ describe('adding and editing vehicles', () => {
   it('lists every vehicle with its rates, in display order', async () => {
     const admin = await adminAgent(app)
     const response = await admin.get('/api/admin/vehicles')
-    expect(response.body.vehicles).toHaveLength(7)
-    expect(response.body.vehicles[0]).toMatchObject({ slug: 'mercedes-e-class', perKmCents: 190, sortOrder: 10, active: true })
+    // Hidden vehicles too: the V-Class VIP and the Yaris, off the price list of 26 October 2026.
+    expect(response.body.vehicles).toHaveLength(8)
+    expect(response.body.vehicles[0]).toMatchObject({ slug: 'mercedes-e-class', zoneFareCents: 9000, perKmCents: 230, hourlyRateCents: 8500, sortOrder: 10, active: true })
+    expect(response.body.vehicles.find((vehicle: { slug: string }) => vehicle.slug === 'mercedes-sprinter').hourlyRateCents).toBeNull()
   })
 
   it('adds a vehicle, which the website then offers', async () => {
@@ -103,19 +104,23 @@ describe('adding and editing vehicles', () => {
   it('updates prices, position and visibility', async () => {
     const admin = await adminAgent(app)
     const { vehicles } = (await admin.get('/api/admin/vehicles')).body as { vehicles: Record<string, unknown>[] }
-    const yaris = vehicles.find((vehicle) => vehicle.slug === 'toyota-yaris')
-    if (!yaris) throw new Error('fixture vehicle missing')
+    const corolla = vehicles.find((vehicle) => vehicle.slug === 'toyota-corolla')
+    if (!corolla) throw new Error('fixture vehicle missing')
 
-    const moved = await admin.put(`/api/admin/vehicles/${String(yaris.id)}`).send({ ...yaris, minFareCents: 4500, sortOrder: 1 })
-    expect(moved.body.vehicle).toMatchObject({ minFareCents: 4500, sortOrder: 1 })
-    expect((await publicSlugs())[0]).toBe('toyota-yaris')
-    expect((await request(app).get('/api/vehicles/toyota-yaris')).body.vehicle.fromCents).toBe(4500)
+    const moved = await admin.put(`/api/admin/vehicles/${String(corolla.id)}`).send({ ...corolla, zoneFareCents: 4500, sortOrder: 1 })
+    expect(moved.body.vehicle).toMatchObject({ zoneFareCents: 4500, sortOrder: 1 })
+    expect((await publicSlugs())[0]).toBe('toyota-corolla')
+    expect((await request(app).get('/api/vehicles/toyota-corolla')).body.vehicle.fromCents).toBe(4500)
+
+    // An empty hourly rate: hourly hire is agreed case by case.
+    const onRequest = await admin.put(`/api/admin/vehicles/${String(corolla.id)}`).send({ ...corolla, hourlyRateCents: null })
+    expect(onRequest.body.vehicle.hourlyRateCents).toBeNull()
 
     // A hidden vehicle disappears from the website but stays in the console.
-    await admin.put(`/api/admin/vehicles/${String(yaris.id)}`).send({ ...yaris, active: false })
-    expect(await publicSlugs()).not.toContain('toyota-yaris')
-    expect((await request(app).get('/api/vehicles/toyota-yaris')).status).toBe(404)
-    expect(((await admin.get('/api/admin/vehicles')).body.vehicles as { slug: string }[]).map((vehicle) => vehicle.slug)).toContain('toyota-yaris')
+    await admin.put(`/api/admin/vehicles/${String(corolla.id)}`).send({ ...corolla, active: false })
+    expect(await publicSlugs()).not.toContain('toyota-corolla')
+    expect((await request(app).get('/api/vehicles/toyota-corolla')).status).toBe(404)
+    expect(((await admin.get('/api/admin/vehicles')).body.vehicles as { slug: string }[]).map((vehicle) => vehicle.slug)).toContain('toyota-corolla')
   })
 
   it('deletes a vehicle that was never booked, and keeps one that was', async () => {

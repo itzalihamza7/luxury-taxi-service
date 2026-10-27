@@ -8,7 +8,10 @@ import { conflict, notFound } from '../../lib/errors.js'
 import { normalizeReference } from '../../lib/reference.js'
 import { parse } from '../../lib/validate.js'
 import { requireAdmin } from '../auth/session.js'
-import { findBookingByReference, serializeBooking } from '../bookings/service.js'
+import { bookingConfirmedEmail } from '../bookings/emails.js'
+import { recordEvent, sendQuietly } from '../bookings/flow.js'
+import { cancelBooking, findBookingByReference, serializeBooking } from '../bookings/service.js'
+import { actorOf, bookingActionsRouter, serializeAdminBooking } from './booking-actions.js'
 import { analyticsAdminRouter } from '../analytics/routes.js'
 import { usersAdminRouter } from '../users/admin.js'
 import { agentKeysAdminRouter } from '../phone-agent/admin.js'
@@ -41,9 +44,12 @@ const listSchema = z.object({
 const updateSchema = z
   .object({
     status: z.enum(STATUSES).optional(),
-    paymentStatus: z.enum(['unpaid', 'paid']).optional(),
+    paymentStatus: z.enum(['unpaid', 'partly_paid', 'paid']).optional(),
+    /** Why: shown to the customer. Required to cancel. */
+    note: z.string().trim().max(1000).optional(),
   })
   .refine((value) => value.status !== undefined || value.paymentStatus !== undefined, { message: 'required', path: ['status'] })
+  .refine((value) => value.status !== 'cancelled' || (value.note?.length ?? 0) >= 3, { message: 'required', path: ['note'] })
 
 const pageSchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
@@ -67,6 +73,7 @@ export function adminRouter(context: AppContext): Router {
   router.use(operatorBookingsRouter(context))
   router.use(analyticsAdminRouter())
   router.use(usersAdminRouter(context))
+  router.use(bookingActionsRouter(context))
   router.use(agentKeysAdminRouter())
 
   /** Places a route or event can point at, so "book this" opens with the destination filled in. */
@@ -120,7 +127,7 @@ export function adminRouter(context: AppContext): Router {
       .offset((page - 1) * pageSize)
 
     res.json({
-      bookings: rows.map((row) => serializeBooking(row, config)),
+      bookings: rows.map((row) => ({ ...serializeBooking(row, config), guestCode: row.guestCode })),
       total: totals?.total ?? 0,
       page,
       pageSize,
@@ -133,22 +140,35 @@ export function adminRouter(context: AppContext): Router {
     if (!booking) throw notFound('BOOKING_NOT_FOUND', 'Booking not found.')
 
     const now = new Date()
-    const changes: Partial<typeof bookings.$inferInsert> = { updatedAt: now }
+    const actor = actorOf(req.user)
+    const note = input.note || null
 
     if (input.status && input.status !== booking.status) {
       if (!TRANSITIONS[booking.status].includes(input.status)) {
         throw conflict('INVALID_STATUS_CHANGE', `A ${booking.status} booking cannot be moved to ${input.status}.`)
       }
-      changes.status = input.status
-      if (input.status === 'cancelled') changes.cancelledAt = now
+      // Cancelling records its reason and tells the customer.
+      if (input.status === 'cancelled') {
+        res.json({ booking: await serializeAdminBooking(await cancelBooking(context, booking, actor, note), config) })
+        return
+      }
     }
+
+    const changes: Partial<typeof bookings.$inferInsert> = { updatedAt: now }
+    if (input.status && input.status !== booking.status) changes.status = input.status
     if (input.paymentStatus && input.paymentStatus !== booking.paymentStatus) {
       changes.paymentStatus = input.paymentStatus
       changes.paidAt = input.paymentStatus === 'paid' ? now : null
     }
 
     const [updated] = await db.update(bookings).set(changes).where(eq(bookings.id, booking.id)).returning()
-    res.json({ booking: serializeBooking(updated ?? booking, config) })
+    if (changes.status) {
+      await recordEvent(booking.id, 'status_changed', actor, [{ field: 'status', from: booking.status, to: changes.status }], note)
+      // The step the customer waits for once they have paid.
+      if (changes.status === 'confirmed' && updated) sendQuietly(context.mailer, bookingConfirmedEmail(updated, config))
+    }
+    if (changes.paymentStatus) await recordEvent(booking.id, 'status_changed', actor, [{ field: 'paymentStatus', from: booking.paymentStatus, to: changes.paymentStatus }], note)
+    res.json({ booking: await serializeAdminBooking(updated ?? booking, config) })
   })
 
   router.get('/messages', async (req, res) => {

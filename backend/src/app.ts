@@ -10,6 +10,7 @@ import { adminRouter } from './modules/admin/routes.js'
 import { analyticsRouter } from './modules/analytics/routes.js'
 import { authRouter } from './modules/auth/routes.js'
 import { passwordResetRouter } from './modules/auth/password-reset.js'
+import { verifyEmailRouter } from './modules/auth/verify-email.js'
 import { attachUser } from './modules/auth/session.js'
 import { bookingsRouter } from './modules/bookings/routes.js'
 import { contactRouter } from './modules/contact/routes.js'
@@ -82,6 +83,7 @@ export function createApp(config: Config, overrides: Partial<Pick<AppContext, 'm
 
   app.use('/api/auth', authRouter(context))
   app.use('/api/auth', passwordResetRouter(context))
+  app.use('/api/auth', verifyEmailRouter(context))
   app.use('/api/vehicles', vehiclesRouter())
   app.use('/api/places', placesRouter(context))
   app.use('/api/quotes', quotesRouter(context))

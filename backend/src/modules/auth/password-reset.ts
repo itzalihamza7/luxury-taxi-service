@@ -1,5 +1,5 @@
 import { createHash, randomBytes } from 'node:crypto'
-import { and, eq, gt, isNull, lt } from 'drizzle-orm'
+import { and, eq, gt, isNull, lt, sql } from 'drizzle-orm'
 import { Router } from 'express'
 import { z } from 'zod'
 import type { AppContext } from '../../context.js'
@@ -73,7 +73,8 @@ export function passwordResetRouter({ config, mailer, rateLimit }: AppContext): 
 
     const [user] = await db
       .update(users)
-      .set({ passwordHash: await hashPassword(input.password), updatedAt: now })
+      // The link came by email, so the address is the customer's.
+      .set({ passwordHash: await hashPassword(input.password), emailVerifiedAt: sql`coalesce(${users.emailVerifiedAt}, now())`, updatedAt: now })
       .where(eq(users.id, claimed.userId))
       .returning()
     if (!user) throw badRequest('RESET_LINK_INVALID', 'This link has expired or was already used. Please ask for a new one.')

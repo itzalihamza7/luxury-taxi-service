@@ -2,6 +2,11 @@ import { fill, localeTags, type Locale } from '@/i18n/config'
 import type { CommonMessages } from '@/i18n/messages/common'
 
 /** `15900` -> `€159` / `159 €`. Decimals only appear when the amount has cents. */
+/** A price, or `onRequest` (e.g. "Price on request") when it is agreed with the business after booking. */
+export function formatPrice(cents: number | null, currency: string, locale: Locale, onRequest: string): string {
+  return cents === null ? onRequest : formatMoney(cents, currency, locale)
+}
+
 export function formatMoney(cents: number, currency: string, locale: Locale): string {
   return new Intl.NumberFormat(localeTags[locale], {
     style: 'currency',

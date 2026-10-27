@@ -89,10 +89,11 @@ export function operatorBookingsRouter(context: AppContext): Router {
         locale: input.locale,
       },
       undefined,
-      { userId: account?.id ?? null, totalCents: input.priceCents },
+      { userId: account?.id ?? null, totalCents: input.priceCents, actor: { id: req.user!.id, name: req.user!.name } },
     )
     res.status(created ? 201 : 200).json({
-      booking: serializeBooking(booking, context.config),
+      // With the guest code, for the message the operator sends the customer.
+      booking: { ...serializeBooking(booking, context.config), guestCode: booking.guestCode },
       /** The account the booking now appears in, if any. */
       account: account ? summary(account) : null,
     })

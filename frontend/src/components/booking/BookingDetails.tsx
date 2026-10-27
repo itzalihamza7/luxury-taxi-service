@@ -8,8 +8,10 @@ import { useI18n } from '@/i18n/client'
 import { fill } from '@/i18n/config'
 import type { BookingMessages } from '@/i18n/messages/booking'
 import { api, errorMessage } from '@/lib/api'
-import { formatBags, formatDateTime, formatDistance, formatDuration, formatMoney, formatPassengers } from '@/lib/format'
+import { formatBags, formatDateTime, formatDistance, formatDuration, formatPrice, formatPassengers } from '@/lib/format'
 import type { Booking, BookingStatus } from '@/lib/types'
+import { BookingHistory } from './BookingHistory'
+import { BookingPayments } from './BookingPayments'
 
 const TIMELINE: Exclude<BookingStatus, 'cancelled'>[] = ['pending', 'confirmed', 'in_progress', 'completed']
 
@@ -37,13 +39,14 @@ function Row({ label, children }: { label: string; children: ReactNode }) {
 
 /**
  * Everything about one booking: status, ride, payment and (when allowed) a
- * cancel button. Used on the confirmation, tracking, account and admin screens.
+ * cancel button; on the booking's own page also its payment requests and history.
+ * Used on the confirmation, booking, account and admin screens.
  */
 export function BookingDetails({
   booking,
   b,
   timeZone,
-  /** Needed to cancel as a guest: the email address or phone number the booking was made with. Signed-in owners are recognised by their session. */
+  /** Needed to cancel as a guest: the guest code (or the email address or phone number the booking was made with). Signed-in owners are recognised by their session. */
   proof,
   onChange,
   hideCancel,
@@ -51,7 +54,7 @@ export function BookingDetails({
   booking: Booking
   b: BookingMessages
   timeZone: string
-  proof?: { email?: string; phone?: string }
+  proof?: { code?: string; email?: string; phone?: string }
   onChange?: (booking: Booking) => void
   hideCancel?: boolean
 }) {
@@ -141,12 +144,14 @@ export function BookingDetails({
         <div>
           <p className="eyebrow text-ink-900/60">{b.details.payment}</p>
           <p className="mt-2 text-sm text-ink-900/70">
-            {t.payment[booking.paymentMethod]} · <span className={booking.paymentStatus === 'paid' ? 'font-semibold text-emerald-700' : ''}>{t.payment[booking.paymentStatus]}</span>
+            {booking.paymentMethod === 'online' ? `${t.payment.online} · ` : null}
+            <span className={booking.paymentStatus === 'unpaid' ? '' : 'font-semibold text-emerald-700'}>{t.payment[booking.paymentStatus]}</span>
           </p>
         </div>
-        <p className="font-display text-4xl">{formatMoney(booking.totalCents, booking.currency, locale)}</p>
+        <p className="font-display text-4xl">{formatPrice(booking.totalCents, booking.currency, locale, t.payment.onRequest)}</p>
       </div>
       {cancelled && booking.paymentStatus === 'paid' ? <p className="mt-3 text-sm text-ink-900/65">{b.details.refundNote}</p> : null}
+      {booking.payments ? <BookingPayments booking={booking} payments={booking.payments} b={b} timeZone={timeZone} /> : null}
 
       {/* Cancel */}
       {hideCancel || cancelled || booking.status === 'completed' ? null : booking.canCancel ? (
@@ -158,6 +163,8 @@ export function BookingDetails({
       ) : (
         <p className="no-print mt-6 text-sm text-ink-900/60">{b.details.cancelClosed}</p>
       )}
+
+      {booking.events && booking.events.length > 0 ? <BookingHistory events={booking.events} b={b} timeZone={timeZone} currency={booking.currency} /> : null}
 
       <dialog ref={dialog} aria-labelledby={`cancel-${booking.reference}`} className="m-auto w-[min(28rem,calc(100vw-2rem))] rounded-lg bg-bone-50 p-0 text-ink-900 shadow-2xl backdrop:bg-ink-950/70 backdrop:backdrop-blur-sm">
         <div className="p-7">

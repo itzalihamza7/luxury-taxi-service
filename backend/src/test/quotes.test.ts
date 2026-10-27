@@ -2,6 +2,7 @@ import request from 'supertest'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { db } from '../db/client.js'
 import { quotes, vehicles } from '../db/schema.js'
+import { metresBeyondZone } from '../lib/zone.js'
 import { buildApp, localDateTime, PLACES, quotePayload, requestQuote, resetDatabase, TIME_ZONE } from './helpers.js'
 
 const app = buildApp()
@@ -18,7 +19,7 @@ describe('POST /api/quotes', () => {
     expect(response.status).toBe(201)
 
     const { quote } = response.body
-    expect(quote.options).toHaveLength(7)
+    expect(quote.options).toHaveLength(6)
     expect(quote.currency).toBe('EUR')
     expect(quote.route.source).toBe('estimate')
     // Barajas T4 to Puerta del Sol is about 19 km by road (a measured route).
@@ -26,10 +27,11 @@ describe('POST /api/quotes', () => {
     expect(quote.route.distanceM).toBeLessThan(20_000)
 
     const options = bySlug(quote)
-    // Short transfer: the E-Class is on its minimum fare, and the economy car is cheapest.
-    expect(options['mercedes-e-class']?.totalCents).toBe(6000)
-    expect(options['toyota-yaris']?.totalCents).toBe(4000)
-    expect(options['mercedes-maybach']?.totalCents).toBe(19_000)
+    // The airport to the centre: the fixed price of each vehicle, whatever the distance.
+    expect(options['mercedes-e-class']?.totalCents).toBe(9000)
+    expect(options['toyota-corolla']?.totalCents).toBe(7000)
+    expect(options['mercedes-maybach']?.totalCents).toBe(30_000)
+    expect(options['toyota-yaris']).toBeUndefined()
     expect(quote.options.every((option: { totalCents: number }) => option.totalCents % 100 === 0)).toBe(true)
 
     const expiresInMinutes = (new Date(quote.expiresAt).getTime() - Date.now()) / 60_000
@@ -49,13 +51,23 @@ describe('POST /api/quotes', () => {
     expect(local).toContain('14:30')
   })
 
-  it('scales with distance: a long transfer costs base + distance', async () => {
+  it('charges the fixed price anywhere inside the M-30', async () => {
+    const bernabeu = { label: 'Estadio Santiago Bernabéu', lat: 40.4531, lng: -3.6883 }
+    const local = bySlug(await requestQuote(app, { pickup: PLACES.sol, dropoff: bernabeu, rideType: 'local' }))
+    expect(local['mercedes-e-class']?.totalCents).toBe(9000)
+    expect(local['mercedes-v-class']?.totalCents).toBe(9000)
+    expect(local['mercedes-s-class']?.totalCents).toBe(15_000)
+  })
+
+  it('adds each kilometre beyond the M-30 to the fixed price', async () => {
     const quote = await requestQuote(app, { pickup: PLACES.sol, dropoff: PLACES.toledo, rideType: 'city_to_city' })
     const eClass = bySlug(quote)['mercedes-e-class']
-    const km = (quote.route?.distanceM ?? 0) / 1000
-    // 20.00 base + 1.90/km, rounded up to the next euro.
-    expect(eClass?.totalCents).toBe(Math.ceil((2000 + 190 * km) / 100) * 100)
-    expect(eClass?.totalCents).toBeGreaterThan(6000)
+    const beyondKm = metresBeyondZone(PLACES.sol, PLACES.toledo, quote.route?.distanceM ?? 0) / 1000
+    // 90.00 fixed + 2.30 for each km beyond the M-30, rounded up to the next euro.
+    expect(eClass?.totalCents).toBe(Math.ceil((9000 + 230 * beyondKm) / 100) * 100)
+    // Most of the 70-odd km to Toledo lie beyond the M-30.
+    expect(beyondKm).toBeGreaterThan(55)
+    expect(bySlug(quote)['mercedes-maybach']?.totalCents).toBe(Math.ceil((30_000 + 600 * beyondKm) / 100) * 100)
   })
 
   it('prices a return trip at twice the single journey', async () => {
@@ -70,8 +82,10 @@ describe('POST /api/quotes', () => {
   it('prices hourly hire by the hour and needs no drop-off', async () => {
     const quote = await requestQuote(app, { rideType: 'hourly', dropoff: null, hours: 4 })
     expect(quote.route).toBeNull()
-    expect(bySlug(quote)['mercedes-e-class']?.totalCents).toBe(4 * 6500)
-    expect(bySlug(quote)['mercedes-s-class']?.totalCents).toBe(4 * 9500)
+    expect(bySlug(quote)['mercedes-e-class']?.totalCents).toBe(4 * 8500)
+    expect(bySlug(quote)['mercedes-s-class']?.totalCents).toBe(4 * 12_000)
+    // The Sprinter has no hourly rate: it can still be booked, at a price agreed afterwards.
+    expect(bySlug(quote)['mercedes-sprinter']).toMatchObject({ totalCents: null, available: true })
   })
 
   it('marks vehicles that are too small for the party or its luggage', async () => {
@@ -101,9 +115,9 @@ describe('compact answers for AI assistants (?view=compact)', () => {
     const response = await request(app).post('/api/quotes?view=compact').send(quotePayload())
     expect(response.status).toBe(201)
     const { quote } = response.body
-    expect(quote.options).toHaveLength(7)
+    expect(quote.options).toHaveLength(6)
     expect(quote.options.find((option: { vehicleName: string }) => option.vehicleName === 'Mercedes-Maybach S-Class')).toMatchObject({
-      totalCents: 19_000,
+      totalCents: 30_000,
       available: true,
       passengers: expect.any(Number),
       luggage: expect.any(Number),
@@ -117,7 +131,7 @@ describe('compact answers for AI assistants (?view=compact)', () => {
   it('lists the fleet without its descriptions', async () => {
     const response = await request(app).get('/api/vehicles?view=compact')
     expect(response.status).toBe(200)
-    expect(response.body.vehicles).toHaveLength(7)
+    expect(response.body.vehicles).toHaveLength(6)
     expect(response.body.vehicles[0]).toEqual({
       id: expect.any(String),
       name: expect.any(String),
@@ -125,7 +139,7 @@ describe('compact answers for AI assistants (?view=compact)', () => {
       passengers: expect.any(Number),
       luggage: expect.any(Number),
       fromCents: expect.any(Number),
-      hourlyRateCents: expect.any(Number),
+      hourlyRateCents: 8500,
     })
     expect(JSON.stringify(response.body).length).toBeLessThan(LIMIT)
     // Without the parameter, the website's own answer is unchanged.

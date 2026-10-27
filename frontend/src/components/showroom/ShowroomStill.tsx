@@ -14,7 +14,7 @@ export function ShowroomStill() {
   } = getImageProps({ ...common, src: '/images/site/showroom-night.jpg', width: 1920, height: 1296 })
   const {
     props: { srcSet: tall, ...image },
-  } = getImageProps({ ...common, src: '/images/site/showroom-night-tall.jpg', width: 780, height: 1520 })
+  } = getImageProps({ ...common, src: '/images/site/showroom-mobile.jpg', width: 780, height: 1520 })
   return (
     <picture>
       {/* The same switch as the 3D camera's: wider than 11:10 is a landscape screen. */}

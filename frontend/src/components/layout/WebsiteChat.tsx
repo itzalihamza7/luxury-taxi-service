@@ -40,11 +40,21 @@ export function openChat() {
  */
 export function WebsiteChat() {
   useEffect(() => {
-    const mark = () => findChat()?.setAttribute('data-website-chat', '')
+    const mark = () => {
+      const chat = findChat()
+      if (!chat) return
+      chat.setAttribute('data-website-chat', '')
+      chat.hidden = false
+    }
     const observer = new MutationObserver(mark)
     observer.observe(document.body, { childList: true })
     mark()
-    return () => observer.disconnect()
+    return () => {
+      observer.disconnect()
+      // The box stays in <body> when the visitor moves on within the app (to the console, say): hide it there.
+      const chat = findChat()
+      if (chat) chat.hidden = true
+    }
   }, [])
   return <Script src={`${CHAT_ORIGIN}/widget.js`} data-agent={CHAT_WIDGET} strategy="afterInteractive" />
 }

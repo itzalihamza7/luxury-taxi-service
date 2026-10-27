@@ -47,15 +47,15 @@ export function QuickQuote({ b }: { b: BookingMessages }) {
 
   return (
     <form onSubmit={submit} noValidate className="rounded-2xl bg-bone-50 p-5 text-ink-900 shadow-[0_40px_90px_-30px_rgba(0,0,0,0.85)] ring-1 ring-white/20 sm:p-7">
-      {/* A fieldset will not shrink below its content unless told to; min-w-0 lets the row scroll instead. */}
+      {/* Every kind of ride in sight: three to a row on a phone, where a scrolling row hid half of them. */}
       <fieldset className="min-w-0">
         <legend className="sr-only">{r.type}</legend>
-        <div className="-mx-1 flex gap-1 overflow-x-auto px-1 pb-1 [scrollbar-width:none]">
+        <div className="grid grid-cols-3 gap-1.5 sm:flex sm:flex-wrap sm:gap-1">
           {RIDE_TYPES.map((type) => (
             <label
               key={type}
-              className={`relative cursor-pointer rounded-full px-3.5 py-2 text-xs font-semibold whitespace-nowrap transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-gold-500 ${
-                rideType === type ? 'bg-ink-950 text-gold-300' : 'text-ink-900/60 hover:bg-ink-900/5 hover:text-ink-900'
+              className={`relative flex min-h-10 cursor-pointer items-center justify-center rounded-lg px-2 py-1.5 text-center text-xs leading-tight font-semibold transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-gold-500 sm:rounded-full sm:px-3.5 sm:py-2 sm:whitespace-nowrap ${
+                rideType === type ? 'bg-ink-950 text-gold-300' : 'text-ink-900/65 ring-1 ring-ink-900/10 hover:bg-ink-900/5 hover:text-ink-900 sm:ring-0'
               }`}
             >
               <input type="radio" name="quick-type" value={type} checked={rideType === type} onChange={() => setRideType(type)} className="sr-only" />
@@ -86,7 +86,8 @@ export function QuickQuote({ b }: { b: BookingMessages }) {
             prefer={rideType === 'city_to_city' || rideType === 'return' ? ['city'] : rideType === 'airport' ? ['airport', 'landmark'] : ['landmark', 'station', 'venue']}
           />
         )}
-        <div className="grid grid-cols-2 gap-4">
+        {/* Side by side only where both fit: a narrow date field cuts its own date short. */}
+        <div className="grid gap-4 min-[420px]:grid-cols-2">
           <TextField id="quick-date" type="date" label={r.date} value={date} onChange={(event) => setDate(event.target.value)} error={fieldMessage(errors.date, t)} />
           <TextField id="quick-time" type="time" step={300} label={r.time} value={time} onChange={(event) => setTime(event.target.value)} error={fieldMessage(errors.time, t)} />
         </div>

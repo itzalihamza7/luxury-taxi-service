@@ -22,7 +22,8 @@ export type LocalizedList = { en: string[]; es: string[] }
 export type QuotePlace = { label: string; lat: number; lng: number }
 export type QuoteOption = {
   vehicleId: string
-  totalCents: number
+  /** Null when the price is agreed with the business (e.g. hourly hire of a vehicle without an hourly rate). */
+  totalCents: number | null
   available: boolean
   /** Why the vehicle cannot be booked for this party, if it cannot. */
   reason?: 'passengers' | 'luggage'
@@ -34,7 +35,8 @@ export type UserRole = (typeof USER_ROLES)[number]
 const RIDE_TYPES = ['one_way', 'return', 'local', 'hourly', 'city_to_city', 'airport'] as const
 const BOOKING_STATUSES = ['pending', 'confirmed', 'in_progress', 'completed', 'cancelled'] as const
 const PAYMENT_METHODS = ['chauffeur', 'online'] as const
-const PAYMENT_STATUSES = ['unpaid', 'paid'] as const
+/** `partly_paid`: an advance has been received, the rest is still due. */
+const PAYMENT_STATUSES = ['unpaid', 'partly_paid', 'paid'] as const
 const ROUTE_SOURCES = ['road', 'estimate'] as const
 /** Who entered a booking: the customer on the website, or an operator on their behalf (phone, WhatsApp). */
 /** Where a booking came from: the website, the team (by phone), or the AI phone agent. */
@@ -60,6 +62,8 @@ export const users = pgTable(
     role: text('role', { enum: USER_ROLES })
       .notNull()
       .default('customer'),
+    /** When the customer proved the address is theirs (a code by email, or a password reset). */
+    emailVerifiedAt: timestamptz('email_verified_at'),
     createdAt: timestamptz('created_at').notNull().defaultNow(),
     updatedAt: timestamptz('updated_at').notNull().defaultNow(),
   },
@@ -92,10 +96,12 @@ export const vehicles = pgTable(
     bodyType: text('body_type', { enum: ['hatchback', 'sedan', 'limousine', 'van', 'minibus'] }).notNull(),
     passengers: integer('passengers').notNull(),
     luggage: integer('luggage').notNull(),
-    baseFareCents: integer('base_fare_cents').notNull(),
+    /** The fixed price of a transfer inside the M-30, and between the airport and the M-30. */
+    zoneFareCents: integer('zone_fare_cents').notNull(),
+    /** Added for each road kilometre beyond the M-30. */
     perKmCents: integer('per_km_cents').notNull(),
-    hourlyRateCents: integer('hourly_rate_cents').notNull(),
-    minFareCents: integer('min_fare_cents').notNull(),
+    /** Hourly hire; null when it is only offered at a price agreed case by case. */
+    hourlyRateCents: integer('hourly_rate_cents'),
     tagline: jsonb('tagline').$type<Localized>().notNull(),
     description: jsonb('description').$type<Localized>().notNull(),
     highlights: jsonb('highlights').$type<LocalizedList>().notNull(),
@@ -109,7 +115,7 @@ export const vehicles = pgTable(
     check('vehicles_capacity_check', sql`${table.passengers} > 0 and ${table.luggage} >= 0`),
     check(
       'vehicles_rates_check',
-      sql`${table.baseFareCents} >= 0 and ${table.perKmCents} >= 0 and ${table.hourlyRateCents} >= 0 and ${table.minFareCents} >= 0`,
+      sql`${table.zoneFareCents} >= 0 and ${table.perKmCents} >= 0 and (${table.hourlyRateCents} is null or ${table.hourlyRateCents} >= 0)`,
     ),
   ],
 )
@@ -176,7 +182,8 @@ export const bookings = pgTable(
     durationS: integer('duration_s'),
     routeSource: text('route_source', { enum: ROUTE_SOURCES }),
 
-    totalCents: integer('total_cents').notNull(),
+    /** Null until the business sets the price, when it is agreed with the customer. */
+    totalCents: integer('total_cents'),
     currency: text('currency').notNull(),
     paymentMethod: text('payment_method', { enum: PAYMENT_METHODS }).notNull(),
     paymentStatus: text('payment_status', { enum: PAYMENT_STATUSES }).notNull().default('unpaid'),
@@ -194,6 +201,12 @@ export const bookings = pgTable(
     company: text('company'),
     notes: text('notes'),
     locale: text('locale').notNull().default('en'),
+    /**
+     * Opens the booking's page for a guest, with the reference. It is sent by email with the
+     * booking and again with each payment request, so it is kept as it is (like the booking data
+     * it protects), not hashed.
+     */
+    guestCode: text('guest_code'),
 
     createdAt: timestamptz('created_at').notNull().defaultNow(),
     updatedAt: timestamptz('updated_at').notNull().defaultNow(),
@@ -210,7 +223,7 @@ export const bookings = pgTable(
       sql`${table.status} in ('pending', 'confirmed', 'in_progress', 'completed', 'cancelled')`,
     ),
     check('bookings_payment_method_check', sql`${table.paymentMethod} in ('chauffeur', 'online')`),
-    check('bookings_payment_status_check', sql`${table.paymentStatus} in ('unpaid', 'paid')`),
+    check('bookings_payment_status_check', sql`${table.paymentStatus} in ('unpaid', 'partly_paid', 'paid')`),
     check('bookings_total_check', sql`${table.totalCents} >= 0`),
     check('bookings_source_check', sql`${table.source} in ('website', 'operator', 'agent')`),
     check('bookings_contact_check', sql`${table.contactEmail} is not null or ${table.contactPhone} is not null`),
@@ -279,6 +292,88 @@ export const passwordResets = pgTable(
   (table) => [index('password_resets_user_id_idx').on(table.userId)],
 )
 
+/**
+ * Codes that prove a customer's email address is theirs. Only a hash is kept; a code expires
+ * after a while and after a few wrong tries.
+ */
+export const emailVerifications = pgTable(
+  'email_verifications',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    /** The address the code was sent to: the account's email may change before it is used. */
+    email: text('email').notNull(),
+    codeHash: text('code_hash').notNull(),
+    attempts: integer('attempts').notNull().default(0),
+    expiresAt: timestamptz('expires_at').notNull(),
+    usedAt: timestamptz('used_at'),
+    createdAt: timestamptz('created_at').notNull().defaultNow(),
+  },
+  (table) => [index('email_verifications_user_id_idx').on(table.userId)],
+)
+
+export const BOOKING_EVENT_KINDS = ['created', 'edited', 'status_changed', 'payment_requested', 'payment_received', 'payment_cancelled'] as const
+export type BookingEventKind = (typeof BOOKING_EVENT_KINDS)[number]
+/** One field of a booking that changed: dates as ISO strings, prices in cents, everything else as shown; written out for the reader. */
+export type BookingChange = { field: string; from: string | null; to: string | null }
+
+/**
+ * A booking's history: what changed, when, who did it and why. The team sees it in the console,
+ * the customer on the booking's page.
+ */
+export const bookingEvents = pgTable(
+  'booking_events',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    bookingId: uuid('booking_id')
+      .notNull()
+      .references(() => bookings.id, { onDelete: 'cascade' }),
+    kind: text('kind', { enum: BOOKING_EVENT_KINDS }).notNull(),
+    /** The team member who made the change; null for the customer or the website itself. */
+    actorId: uuid('actor_id').references(() => users.id, { onDelete: 'set null' }),
+    /** Their name at the time, so the history stays readable if the account is removed. */
+    actorName: text('actor_name'),
+    changes: jsonb('changes').$type<BookingChange[]>().notNull().default([]),
+    /** Why: required when the team edits a booking. */
+    note: text('note'),
+    createdAt: timestamptz('created_at').notNull().defaultNow(),
+  },
+  (table) => [index('booking_events_booking_id_idx').on(table.bookingId)],
+)
+
+export const PAYMENT_REQUEST_KINDS = ['advance', 'full', 'balance'] as const
+export const PAYMENT_REQUEST_STATUSES = ['requested', 'paid', 'cancelled'] as const
+
+/**
+ * A request to pay part or all of a booking, through a payment link the team creates with
+ * their payment provider. The team marks it paid once the money has arrived.
+ */
+export const bookingPayments = pgTable(
+  'booking_payments',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    bookingId: uuid('booking_id')
+      .notNull()
+      .references(() => bookings.id, { onDelete: 'cascade' }),
+    kind: text('kind', { enum: PAYMENT_REQUEST_KINDS }).notNull(),
+    amountCents: integer('amount_cents').notNull(),
+    currency: text('currency').notNull(),
+    link: text('link').notNull(),
+    status: text('status', { enum: PAYMENT_REQUEST_STATUSES }).notNull().default('requested'),
+    requestedBy: uuid('requested_by').references(() => users.id, { onDelete: 'set null' }),
+    requestedAt: timestamptz('requested_at').notNull().defaultNow(),
+    paidAt: timestamptz('paid_at'),
+  },
+  (table) => [
+    index('booking_payments_booking_id_idx').on(table.bookingId),
+    check('booking_payments_amount_check', sql`${table.amountCents} > 0`),
+    check('booking_payments_kind_check', sql`${table.kind} in ('advance', 'full', 'balance')`),
+    check('booking_payments_status_check', sql`${table.status} in ('requested', 'paid', 'cancelled')`),
+  ],
+)
+
 export const settings = pgTable('settings', {
   key: text('key').primaryKey(),
   value: jsonb('value').$type<Record<string, unknown>>().notNull(),
@@ -316,6 +411,8 @@ export type User = typeof users.$inferSelect
 export type Vehicle = typeof vehicles.$inferSelect
 export type Quote = typeof quotes.$inferSelect
 export type Booking = typeof bookings.$inferSelect
+export type BookingEvent = typeof bookingEvents.$inferSelect
+export type BookingPayment = typeof bookingPayments.$inferSelect
 export type AgentKey = typeof agentKeys.$inferSelect
 export type ContentEntry = typeof contentEntries.$inferSelect
 export type BookingStatus = (typeof BOOKING_STATUSES)[number]

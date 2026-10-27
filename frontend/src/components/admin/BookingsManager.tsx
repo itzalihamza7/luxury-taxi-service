@@ -3,7 +3,7 @@
 import { Bot, ChevronDown, PhoneCall, RefreshCw, Search } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 import { Suspense, useCallback, useEffect, useState } from 'react'
-import { BookingDetails, StatusBadge } from '@/components/booking/BookingDetails'
+import { StatusBadge } from '@/components/booking/BookingDetails'
 import { Button } from '@/components/ui/Button'
 import { controlClass, FormMessage } from '@/components/ui/Field'
 import { useI18n } from '@/i18n/client'
@@ -12,10 +12,11 @@ import type { AccountMessages } from '@/i18n/messages/account'
 import type { BookingMessages } from '@/i18n/messages/booking'
 import type { ManageMessages } from '@/i18n/messages/manage'
 import { api, errorMessage } from '@/lib/api'
-import { formatDateTime, formatMoney } from '@/lib/format'
+import { formatDateTime, formatPrice } from '@/lib/format'
 import { useAppConfig } from '@/lib/hooks'
-import type { Booking, BookingStatus } from '@/lib/types'
+import type { AdminBooking, BookingStatus } from '@/lib/types'
 import { useAdminSummary } from './AdminShell'
+import { BookingConsole } from './BookingConsole'
 import { Card, Empty } from './ui'
 
 interface Props {
@@ -29,18 +30,6 @@ const STATUSES: BookingStatus[] = ['pending', 'confirmed', 'in_progress', 'compl
 type Filter = 'all' | 'upcoming' | BookingStatus
 const FILTERS: Filter[] = ['all', 'upcoming', ...STATUSES]
 const PAGE_SIZE = 15
-
-/** The status changes the API allows from each state. */
-const NEXT_STEPS: Record<BookingStatus, { status: BookingStatus; action: keyof AccountMessages['admin']['actions'] }[]> = {
-  pending: [{ status: 'confirmed', action: 'confirm' }],
-  confirmed: [
-    { status: 'in_progress', action: 'start' },
-    { status: 'completed', action: 'complete' },
-  ],
-  in_progress: [{ status: 'completed', action: 'complete' }],
-  completed: [],
-  cancelled: [],
-}
 
 /** The same columns for the heading row and every booking, once the screen is wide enough for a table. */
 const COLUMNS = 'xl:grid-cols-[7.5rem_10rem_minmax(0,1fr)_minmax(0,1.3fr)_5rem_12.5rem] xl:items-center xl:gap-x-4'
@@ -75,10 +64,9 @@ function Bookings({ a, b, m, initialFilter, initialSearch }: Props & { initialFi
   const [search, setSearch] = useState(initialSearch)
   const [query, setQuery] = useState(initialSearch)
   const [page, setPage] = useState(1)
-  const [list, setList] = useState<{ bookings: Booking[]; total: number } | null>(null)
+  const [list, setList] = useState<{ bookings: AdminBooking[]; total: number } | null>(null)
   // Arriving with a booking's reference opens that booking.
   const [openReference, setOpenReference] = useState<string | null>(initialSearch ? initialSearch.toUpperCase() : null)
-  const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [reload, setReload] = useState(0)
 
@@ -99,7 +87,7 @@ function Bookings({ a, b, m, initialFilter, initialSearch }: Props & { initialFi
     if (filter === 'upcoming') params.set('view', 'upcoming')
     else if (filter !== 'all') params.set('status', filter)
     if (query) params.set('q', query)
-    api<{ bookings: Booking[]; total: number }>(`/admin/bookings?${params}`)
+    api<{ bookings: AdminBooking[]; total: number }>(`/admin/bookings?${params}`)
       .then((result) => {
         if (!active) return
         setList(result)
@@ -116,19 +104,10 @@ function Bookings({ a, b, m, initialFilter, initialSearch }: Props & { initialFi
     refresh()
   }
 
-  const update = async (booking: Booking, changes: { status?: BookingStatus; paymentStatus?: 'paid' | 'unpaid' }) => {
-    if (changes.status === 'cancelled' && !window.confirm(a.cancelConfirm)) return
-    setBusy(booking.reference)
-    setError(null)
-    try {
-      const result = await api<{ booking: Booking }>(`/admin/bookings/${booking.reference}`, { method: 'PATCH', body: changes })
-      setList((current) => (current ? { ...current, bookings: current.bookings.map((row) => (row.reference === booking.reference ? result.booking : row)) } : current))
-      reloadAll()
-    } catch (caught) {
-      fail(caught)
-    } finally {
-      setBusy(null)
-    }
+  /** A booking changed in its panel: its row follows, and so do the counts. */
+  const changed = (updated: AdminBooking) => {
+    setList((current) => (current ? { ...current, bookings: current.bookings.map((row) => (row.reference === updated.reference ? updated : row)) } : current))
+    refresh()
   }
 
   const counts: Partial<Record<Filter, number>> = summary ? { ...summary.bookings, all: STATUSES.reduce((sum, status) => sum + summary.bookings[status], 0), upcoming: summary.upcoming } : {}
@@ -228,8 +207,8 @@ function Bookings({ a, b, m, initialFilter, initialSearch }: Props & { initialFi
                         </span>
                       </span>
                       <span>
-                        <span className="block font-semibold tabular-nums">{formatMoney(booking.totalCents, booking.currency, locale)}</span>
-                        <span className={`block text-xs ${booking.paymentStatus === 'paid' ? 'font-semibold text-emerald-700' : 'text-ink-900/60'}`}>{t.payment[booking.paymentStatus]}</span>
+                        <span className="block font-semibold tabular-nums">{formatPrice(booking.totalCents, booking.currency, locale, t.payment.onRequest)}</span>
+                        <span className={`block text-xs ${booking.paymentStatus === 'unpaid' ? 'text-ink-900/60' : 'font-semibold text-emerald-700'}`}>{t.payment[booking.paymentStatus]}</span>
                       </span>
                       <span className="flex items-center justify-between gap-3">
                         <StatusBadge status={booking.status} />
@@ -244,29 +223,7 @@ function Bookings({ a, b, m, initialFilter, initialSearch }: Props & { initialFi
                             <FormMessage tone="error">{a.refundDue}</FormMessage>
                           </div>
                         ) : null}
-                        <div className="mb-8 flex flex-wrap gap-2.5">
-                          {NEXT_STEPS[booking.status].map((step) => (
-                            <Button key={step.status} variant="dark" loading={busy === booking.reference} onClick={() => void update(booking, { status: step.status })}>
-                              {a.actions[step.action]}
-                            </Button>
-                          ))}
-                          <Button variant="outline" disabled={busy === booking.reference} onClick={() => void update(booking, { paymentStatus: booking.paymentStatus === 'paid' ? 'unpaid' : 'paid' })}>
-                            {booking.paymentStatus === 'paid' ? a.actions.markUnpaid : a.actions.markPaid}
-                          </Button>
-                          {booking.status !== 'completed' && booking.status !== 'cancelled' ? (
-                            <button
-                              type="button"
-                              disabled={busy === booking.reference}
-                              onClick={() => void update(booking, { status: 'cancelled' })}
-                              className="ml-auto px-3 text-sm font-medium text-red-700 underline-offset-4 hover:underline disabled:opacity-50"
-                            >
-                              {a.actions.cancel}
-                            </button>
-                          ) : null}
-                        </div>
-                        <div className="max-w-3xl">
-                          <BookingDetails booking={booking} b={b} timeZone={config.timeZone} hideCancel />
-                        </div>
+                        <BookingConsole reference={booking.reference} a={a} b={b} m={m} onChanged={changed} />
                       </div>
                     ) : null}
                   </li>

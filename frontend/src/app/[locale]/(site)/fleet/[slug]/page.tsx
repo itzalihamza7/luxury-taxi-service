@@ -100,7 +100,7 @@ async function VehicleDetails({ params }: Pick<Props, 'params'>) {
                   { icon: Users, label: f.passengers, value: String(vehicle.passengers) },
                   { icon: Luggage, label: f.luggage, value: String(vehicle.luggage) },
                   { label: f.transferFrom, value: formatMoney(vehicle.fromCents, 'EUR', locale) },
-                  { label: f.hourly, value: fill(t.units.perHour, { price: formatMoney(vehicle.hourlyRateCents, 'EUR', locale) }), small: true },
+                  { label: f.hourly, value: vehicle.hourlyRateCents === null ? t.payment.onRequest : fill(t.units.perHour, { price: formatMoney(vehicle.hourlyRateCents, 'EUR', locale) }), small: true },
                 ].map((item) => (
                   <div key={item.label} className="bg-ink-950 p-4">
                     <dt className="flex items-center gap-1.5 text-[0.6875rem] tracking-wide text-bone-100/55 uppercase">

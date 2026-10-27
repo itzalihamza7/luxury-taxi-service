@@ -8,6 +8,7 @@ import { badRequest } from '../../lib/errors.js'
 import { haversineM, isInServiceArea, type RouteResult } from '../../lib/geo.js'
 import { fareCents, RIDE_TYPES } from '../../lib/pricing.js'
 import { zonedDateTimeToUtc } from '../../lib/time.js'
+import { metresBeyondZone } from '../../lib/zone.js'
 import { parse } from '../../lib/validate.js'
 import { listActiveVehicles, serializeVehicle, wantsCompact } from '../vehicles/routes.js'
 
@@ -115,12 +116,13 @@ export async function createQuote({ config, findRoute }: AppContext, body: unkno
   }
 
   // --- Price every vehicle ------------------------------------------------
+  const beyondZoneM = route && dropoff ? metresBeyondZone(input.pickup, dropoff, route.distanceM) : 0
   const fleet = await listActiveVehicles()
   const options: QuoteOption[] = fleet.map((vehicle) => {
     const reason = passengers > vehicle.passengers ? 'passengers' : input.luggage > vehicle.luggage ? 'luggage' : undefined
     return {
       vehicleId: vehicle.id,
-      totalCents: fareCents(vehicle, { rideType: input.rideType, distanceM: route?.distanceM ?? 0, hours: hours ?? 0 }),
+      totalCents: fareCents(vehicle, { rideType: input.rideType, beyondZoneM, hours: hours ?? 0 }),
       available: !reason,
       ...(reason ? { reason } : {}),
     }
