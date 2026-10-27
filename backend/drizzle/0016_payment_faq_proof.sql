@@ -1,0 +1,9 @@
+-- "How can I pay?" follows the payment flow of 27 October 2026: the email carries the booking's page,
+-- where the payment link is (WhatsApp still carries the link itself), and the customer confirms with
+-- "Payment done" and a screenshot or PDF that the team checks. Only the answer of 0012 is replaced:
+-- an answer the team has edited in the console stays.
+UPDATE "content_entries"
+SET "data" = jsonb_set("data", '{answer}', '{"en": "Nothing is charged when you book. We check your ride, then ask for an advance or the full amount: the secure payment link is on your booking’s page, which we send you by email, and we also send it by WhatsApp. You pay on our payment provider’s secure page, and we never see or store your card details. Then tap “Payment done” on your booking’s page with a screenshot or PDF of the confirmation; we check it and confirm your booking. A ride whose price is agreed with you, such as hourly hire of the minibus, is paid the same way once the price is set.", "es": "Al reservar no se cobra nada. Revisamos su trayecto y después le pedimos un anticipo o el importe total: el enlace de pago seguro está en la página de su reserva, que le enviamos por correo, y también se lo enviamos por WhatsApp. Paga en la página segura de nuestro proveedor de pagos, y nunca vemos ni almacenamos los datos de su tarjeta. Después pulse «Pago realizado» en la página de su reserva con una captura o un PDF del justificante; lo comprobamos y confirmamos su reserva. Un servicio cuyo precio se acuerda con usted, como el minibús por horas, se paga igual una vez fijado el precio."}'::jsonb),
+    "updated_at" = now()
+WHERE "collection" = 'faq'
+  AND "data"->'answer'->>'en' LIKE 'Nothing is charged when you book. We check your ride, then send you a secure payment link, by email and WhatsApp,%';

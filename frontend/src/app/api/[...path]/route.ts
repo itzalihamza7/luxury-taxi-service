@@ -10,7 +10,8 @@ import { apiFetch, failureReason, markChanged } from '@/lib/server-api'
  */
 
 // `authorization` carries the AI phone agent's key (Bearer smk_…); the browser never sends it.
-const REQUEST_HEADERS = ['accept', 'accept-language', 'authorization', 'content-type', 'cookie', 'user-agent', 'x-forwarded-for', 'x-forwarded-proto', 'x-forwarded-host']
+// `x-guest-code` opens a guest's booking where the body is a file (proof of payment).
+const REQUEST_HEADERS = ['accept', 'accept-language', 'authorization', 'content-type', 'cookie', 'user-agent', 'x-forwarded-for', 'x-forwarded-proto', 'x-forwarded-host', 'x-guest-code']
 const RESPONSE_HEADERS = ['content-type', 'cache-control', 'retry-after']
 
 async function forward(request: NextRequest, context: RouteContext<'/api/[...path]'>): Promise<Response> {

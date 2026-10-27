@@ -11,6 +11,15 @@ const post = (overrides: Record<string, unknown> = {}) => request(app).post('/ap
 const bySlug = (quote: Awaited<ReturnType<typeof requestQuote>>) =>
   Object.fromEntries(quote.options.map((option) => [option.vehicle.slug, option]))
 
+/** Prices are quoted 10 to 90 cents under the round fare, in steps of 10 cents (€89.30 for €90). */
+const expectJustUnder = (cents: number | null | undefined, roundCents: number) => {
+  expect(cents).toBeGreaterThanOrEqual(roundCents - 90)
+  expect(cents).toBeLessThanOrEqual(roundCents - 10)
+  expect((cents ?? 0) % 10).toBe(0)
+}
+/** The round fare a quoted price sits just under. */
+const roundUp = (cents: number | null | undefined) => Math.ceil((cents ?? 0) / 100) * 100
+
 beforeEach(resetDatabase)
 
 describe('POST /api/quotes', () => {
@@ -28,11 +37,12 @@ describe('POST /api/quotes', () => {
 
     const options = bySlug(quote)
     // The airport to the centre: the fixed price of each vehicle, whatever the distance.
-    expect(options['mercedes-e-class']?.totalCents).toBe(9000)
-    expect(options['toyota-corolla']?.totalCents).toBe(7000)
-    expect(options['mercedes-maybach']?.totalCents).toBe(30_000)
+    expectJustUnder(options['mercedes-e-class']?.totalCents, 9000)
+    expectJustUnder(options['toyota-corolla']?.totalCents, 7000)
+    expectJustUnder(options['mercedes-maybach']?.totalCents, 30_000)
     expect(options['toyota-yaris']).toBeUndefined()
-    expect(quote.options.every((option: { totalCents: number }) => option.totalCents % 100 === 0)).toBe(true)
+    // Never a round figure: €89.30, not €90.
+    expect(quote.options.every((option: { totalCents: number }) => option.totalCents % 100 >= 10 && option.totalCents % 10 === 0)).toBe(true)
 
     const expiresInMinutes = (new Date(quote.expiresAt).getTime() - Date.now()) / 60_000
     expect(expiresInMinutes).toBeGreaterThan(28)
@@ -54,20 +64,26 @@ describe('POST /api/quotes', () => {
   it('charges the fixed price anywhere inside the M-30', async () => {
     const bernabeu = { label: 'Estadio Santiago Bernabéu', lat: 40.4531, lng: -3.6883 }
     const local = bySlug(await requestQuote(app, { pickup: PLACES.sol, dropoff: bernabeu, rideType: 'local' }))
-    expect(local['mercedes-e-class']?.totalCents).toBe(9000)
-    expect(local['mercedes-v-class']?.totalCents).toBe(9000)
-    expect(local['mercedes-s-class']?.totalCents).toBe(15_000)
+    expectJustUnder(local['mercedes-e-class']?.totalCents, 9000)
+    expectJustUnder(local['mercedes-v-class']?.totalCents, 9000)
+    expectJustUnder(local['mercedes-s-class']?.totalCents, 15_000)
+  })
+
+  it('quotes the same journey at the same price every time', async () => {
+    const first = bySlug(await requestQuote(app, { pickup: PLACES.sol, dropoff: PLACES.toledo }))
+    const again = bySlug(await requestQuote(app, { pickup: PLACES.sol, dropoff: PLACES.toledo }))
+    for (const slug of Object.keys(first)) expect(again[slug]?.totalCents).toBe(first[slug]?.totalCents)
   })
 
   it('adds each kilometre beyond the M-30 to the fixed price', async () => {
     const quote = await requestQuote(app, { pickup: PLACES.sol, dropoff: PLACES.toledo, rideType: 'city_to_city' })
     const eClass = bySlug(quote)['mercedes-e-class']
     const beyondKm = metresBeyondZone(PLACES.sol, PLACES.toledo, quote.route?.distanceM ?? 0) / 1000
-    // 90.00 fixed + 2.30 for each km beyond the M-30, rounded up to the next euro.
-    expect(eClass?.totalCents).toBe(Math.ceil((9000 + 230 * beyondKm) / 100) * 100)
+    // 90.00 fixed + 2.30 for each km beyond the M-30, rounded up to the next euro, then quoted just under it.
+    expectJustUnder(eClass?.totalCents, Math.ceil((9000 + 230 * beyondKm) / 100) * 100)
     // Most of the 70-odd km to Toledo lie beyond the M-30.
     expect(beyondKm).toBeGreaterThan(55)
-    expect(bySlug(quote)['mercedes-maybach']?.totalCents).toBe(Math.ceil((30_000 + 600 * beyondKm) / 100) * 100)
+    expectJustUnder(bySlug(quote)['mercedes-maybach']?.totalCents, Math.ceil((30_000 + 600 * beyondKm) / 100) * 100)
   })
 
   it('prices a return trip at twice the single journey', async () => {
@@ -76,14 +92,14 @@ describe('POST /api/quotes', () => {
     const returned = bySlug(
       await requestQuote(app, { rideType: 'return', pickup: PLACES.sol, dropoff: PLACES.toledo, returnDate: back.date, returnTime: back.time }),
     )
-    expect(returned['mercedes-e-class']?.totalCents).toBe((single['mercedes-e-class']?.totalCents ?? 0) * 2)
+    expectJustUnder(returned['mercedes-e-class']?.totalCents, roundUp(single['mercedes-e-class']?.totalCents) * 2)
   })
 
   it('prices hourly hire by the hour and needs no drop-off', async () => {
     const quote = await requestQuote(app, { rideType: 'hourly', dropoff: null, hours: 4 })
     expect(quote.route).toBeNull()
-    expect(bySlug(quote)['mercedes-e-class']?.totalCents).toBe(4 * 8500)
-    expect(bySlug(quote)['mercedes-s-class']?.totalCents).toBe(4 * 12_000)
+    expectJustUnder(bySlug(quote)['mercedes-e-class']?.totalCents, 4 * 8500)
+    expectJustUnder(bySlug(quote)['mercedes-s-class']?.totalCents, 4 * 12_000)
     // The Sprinter has no hourly rate: it can still be booked, at a price agreed afterwards.
     expect(bySlug(quote)['mercedes-sprinter']).toMatchObject({ totalCents: null, available: true })
   })
@@ -116,8 +132,9 @@ describe('compact answers for AI assistants (?view=compact)', () => {
     expect(response.status).toBe(201)
     const { quote } = response.body
     expect(quote.options).toHaveLength(6)
-    expect(quote.options.find((option: { vehicleName: string }) => option.vehicleName === 'Mercedes-Maybach S-Class')).toMatchObject({
-      totalCents: 30_000,
+    const maybach = quote.options.find((option: { vehicleName: string }) => option.vehicleName === 'Mercedes-Maybach S-Class')
+    expectJustUnder(maybach?.totalCents, 30_000)
+    expect(maybach).toMatchObject({
       available: true,
       passengers: expect.any(Number),
       luggage: expect.any(Number),

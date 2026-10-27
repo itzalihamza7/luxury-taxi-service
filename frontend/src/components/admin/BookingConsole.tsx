@@ -1,6 +1,6 @@
 'use client'
 
-import { Check, Copy, ExternalLink, MessageCircle, Pencil, Send } from 'lucide-react'
+import { Check, Copy, ExternalLink, FileCheck2, MessageCircle, Pencil, Send } from 'lucide-react'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { BookingDetails } from '@/components/booking/BookingDetails'
 import { BookingHistory } from '@/components/booking/BookingHistory'
@@ -198,6 +198,15 @@ export function BookingConsole({ reference, a, b, m, onChanged }: Props) {
                   <span className="mt-1 block truncate text-xs text-ink-900/55">
                     {formatDateTime(payment.paidAt ?? payment.requestedAt, locale, config.timeZone)} · {payment.link}
                   </span>
+                  {payment.status === 'requested' && payment.proofUploadedAt && payment.proofUrl ? (
+                    <span className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-900">
+                      {fill(k.proofReceived, { date: formatDateTime(payment.proofUploadedAt, locale, config.timeZone) })}
+                      <a href={payment.proofUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-semibold underline underline-offset-4">
+                        <FileCheck2 aria-hidden className="size-3.5" />
+                        {k.viewProof}
+                      </a>
+                    </span>
+                  ) : null}
                 </span>
                 {payment.status === 'requested' ? (
                   <span className="flex flex-wrap items-center gap-2">

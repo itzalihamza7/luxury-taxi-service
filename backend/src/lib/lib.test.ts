@@ -7,7 +7,7 @@ import { knownRoutesFromMadrid } from '../modules/places/catalog.js'
 import { errorHandler } from './errors.js'
 import { createRouteFinder, estimateRoute, haversineM, isInServiceArea } from './geo.js'
 import { hashPassword, verifyPassword } from './password.js'
-import { fareCents, transferFareCents, type VehicleRates } from './pricing.js'
+import { fareCents, justUnderCents, transferFareCents, type VehicleRates } from './pricing.js'
 import { createRateLimiter } from './rate-limit.js'
 import { generateReference, normalizeReference } from './reference.js'
 import { zonedDateTimeToUtc } from './time.js'
@@ -97,6 +97,17 @@ describe('pricing', () => {
   it('never returns a negative or fractional amount', () => {
     expect(transferFareCents(rates, -500)).toBe(9000)
     expect(Number.isInteger(transferFareCents(rates, 12_345))).toBe(true)
+  })
+
+  it('quotes just under the round fare: 10 to 90 cents less, in steps of 10, the same for the same seed', () => {
+    const quoted = Array.from({ length: 200 }, (_, index) => justUnderCents(9000, `vehicle|journey-${index}`))
+    expect(quoted.every((cents) => cents >= 8910 && cents <= 8990 && cents % 10 === 0)).toBe(true)
+    // Spread over the whole range, not stuck on one figure.
+    expect(new Set(quoted).size).toBe(9)
+    expect(justUnderCents(30_000, 'maybach|sol-barajas')).toBe(justUnderCents(30_000, 'maybach|sol-barajas'))
+    expect(justUnderCents(30_000, 'maybach|sol-barajas')).toBeLessThan(30_000)
+    // A euro or less is left alone.
+    expect(justUnderCents(100, 'x')).toBe(100)
   })
 })
 

@@ -209,6 +209,9 @@ function Bookings({ a, b, m, initialFilter, initialSearch }: Props & { initialFi
                       <span>
                         <span className="block font-semibold tabular-nums">{formatPrice(booking.totalCents, booking.currency, locale, t.payment.onRequest)}</span>
                         <span className={`block text-xs ${booking.paymentStatus === 'unpaid' ? 'text-ink-900/60' : 'font-semibold text-emerald-700'}`}>{t.payment[booking.paymentStatus]}</span>
+                        {booking.proofToCheck ? (
+                          <span className="mt-1 inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-[0.6875rem] font-semibold text-amber-900">{m.bookings.proofToCheck}</span>
+                        ) : null}
                       </span>
                       <span className="flex items-center justify-between gap-3">
                         <StatusBadge status={booking.status} />

@@ -69,7 +69,7 @@ export type PaymentMethod = 'chauffeur' | 'online'
 /** `partly_paid`: an advance has been received, the rest is still due. */
 export type PaymentStatus = 'unpaid' | 'partly_paid' | 'paid'
 
-export type BookingEventKind = 'created' | 'edited' | 'status_changed' | 'payment_requested' | 'payment_received' | 'payment_cancelled'
+export type BookingEventKind = 'created' | 'edited' | 'status_changed' | 'payment_requested' | 'payment_proof' | 'payment_received' | 'payment_cancelled'
 
 /** One field that changed: dates as ISO strings, prices in cents, the rest as shown. */
 export interface BookingChange {
@@ -98,6 +98,8 @@ export interface BookingPayment {
   link: string | null
   status: 'requested' | 'paid' | 'cancelled'
   requestedAt: string
+  /** When the customer uploaded proof of it ("Payment done"); the team then checks it. */
+  proofUploadedAt: string | null
   paidAt: string | null
 }
 
@@ -136,7 +138,9 @@ export interface Booking {
 /** A booking as the team sees it in the console. */
 export interface AdminBooking extends Booking {
   guestCode: string | null
-  payments?: (BookingPayment & { whatsappUrl: string | null })[]
+  /** A customer has uploaded proof of a payment the team has not checked yet. */
+  proofToCheck?: boolean
+  payments?: (BookingPayment & { whatsappUrl: string | null; proofUrl: string | null })[]
 }
 
 export interface User {

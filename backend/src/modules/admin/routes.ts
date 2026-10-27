@@ -1,9 +1,9 @@
-import { and, asc, count, desc, eq, gte, ilike, or, type SQL } from 'drizzle-orm'
+import { and, asc, count, desc, eq, gte, ilike, inArray, isNotNull, or, type SQL } from 'drizzle-orm'
 import { Router } from 'express'
 import { z } from 'zod'
 import type { AppContext } from '../../context.js'
 import { db } from '../../db/client.js'
-import { bookings, contactMessages, newsletterSubscribers, type BookingStatus } from '../../db/schema.js'
+import { bookingPayments, bookings, contactMessages, newsletterSubscribers, type BookingStatus } from '../../db/schema.js'
 import { conflict, notFound } from '../../lib/errors.js'
 import { normalizeReference } from '../../lib/reference.js'
 import { parse } from '../../lib/validate.js'
@@ -126,8 +126,17 @@ export function adminRouter(context: AppContext): Router {
       .limit(pageSize)
       .offset((page - 1) * pageSize)
 
+    // Bookings where a customer has uploaded proof of a payment that is still to be checked.
+    const withProof = rows.length
+      ? await db
+          .selectDistinct({ bookingId: bookingPayments.bookingId })
+          .from(bookingPayments)
+          .where(and(inArray(bookingPayments.bookingId, rows.map((row) => row.id)), eq(bookingPayments.status, 'requested'), isNotNull(bookingPayments.proofUploadedAt)))
+      : []
+    const proofToCheck = new Set(withProof.map((row) => row.bookingId))
+
     res.json({
-      bookings: rows.map((row) => ({ ...serializeBooking(row, config), guestCode: row.guestCode })),
+      bookings: rows.map((row) => ({ ...serializeBooking(row, config), guestCode: row.guestCode, proofToCheck: proofToCheck.has(row.id) })),
       total: totals?.total ?? 0,
       page,
       pageSize,

@@ -46,15 +46,16 @@ const copy = {
     questions: 'Questions? Reply to this email, or call or WhatsApp us.',
     receivedSubject: (ref: string) => `Booking received: ${ref}`,
     received: (ref: string) => `Thank you for booking with SignatureMile. We have received your booking ${ref} and are checking it now.`,
-    receivedNext: 'Next, we will send you a secure payment link for an advance or the full amount. Your booking is confirmed as soon as it is paid.',
+    receivedNext: 'Next, we will ask you for an advance or the full amount: the secure payment link will be on your booking’s page. Your booking is confirmed as soon as it is paid.',
     receivedOnRequest: 'The price of this ride is agreed with you: we will be in touch to confirm it, then send you a secure payment link. Your booking is confirmed as soon as it is paid.',
     confirmedSubject: (ref: string) => `Booking confirmed: ${ref}`,
     confirmed: (ref: string) => `Your booking ${ref} is confirmed. We look forward to driving you.`,
     paymentSubject: (ref: string) => `Payment to confirm your booking ${ref}`,
     kind: { advance: 'advance', full: 'full amount', balance: 'remaining balance' },
-    payment: (ref: string, kind: string, amount: string) => `To confirm your booking ${ref}, please pay the ${kind} of ${amount}. Open your booking to pay with the secure link, or use the link below.`,
-    paymentAfter: 'Once we have received it, we will confirm your booking by email.',
-    paymentLink: (link: string) => `Payment link: ${link}`,
+    payment: (ref: string, kind: string, amount: string) => `To confirm your booking ${ref}, please pay the ${kind} of ${amount}. Open your booking with the button below: the secure payment link is there.`,
+    paymentRemaining: (amount: string) => `After this payment, ${amount} remains to be paid.`,
+    paymentProof: 'Once you have paid, tap “Payment done” on the same page and upload a screenshot or PDF of the payment confirmation.',
+    paymentAfter: 'We will check it and confirm your booking by email.',
     updatedSubject: (ref: string) => `Your booking ${ref} was updated`,
     updated: (ref: string) => `We have updated your booking ${ref}.`,
     note: (note: string) => `Note from our team: ${note}`,
@@ -106,15 +107,16 @@ const copy = {
     questions: '¿Alguna pregunta? Responda a este correo, o llámenos o escríbanos por WhatsApp.',
     receivedSubject: (ref: string) => `Reserva recibida: ${ref}`,
     received: (ref: string) => `Gracias por reservar con SignatureMile. Hemos recibido su reserva ${ref} y la estamos revisando.`,
-    receivedNext: 'A continuación le enviaremos un enlace de pago seguro para un anticipo o el importe total. Su reserva queda confirmada en cuanto se paga.',
+    receivedNext: 'A continuación le pediremos un anticipo o el importe total: el enlace de pago seguro estará en la página de su reserva. Su reserva queda confirmada en cuanto se paga.',
     receivedOnRequest: 'El precio de este servicio se acuerda con usted: le contactaremos para confirmarlo y después le enviaremos un enlace de pago seguro. Su reserva queda confirmada en cuanto se paga.',
     confirmedSubject: (ref: string) => `Reserva confirmada: ${ref}`,
     confirmed: (ref: string) => `Su reserva ${ref} está confirmada. Será un placer llevarle.`,
     paymentSubject: (ref: string) => `Pago para confirmar su reserva ${ref}`,
     kind: { advance: 'anticipo', full: 'importe total', balance: 'importe pendiente' },
-    payment: (ref: string, kind: string, amount: string) => `Para confirmar su reserva ${ref}, pague el ${kind} de ${amount}. Abra su reserva para pagar con el enlace seguro, o use el enlace de abajo.`,
-    paymentAfter: 'En cuanto lo recibamos, le confirmaremos la reserva por correo.',
-    paymentLink: (link: string) => `Enlace de pago: ${link}`,
+    payment: (ref: string, kind: string, amount: string) => `Para confirmar su reserva ${ref}, pague el ${kind} de ${amount}. Abra su reserva con el botón de abajo: allí encontrará el enlace de pago seguro.`,
+    paymentRemaining: (amount: string) => `Después de este pago, quedarán ${amount} por pagar.`,
+    paymentProof: 'Cuando haya pagado, pulse «Pago realizado» en la misma página y suba una captura de pantalla o un PDF del justificante de pago.',
+    paymentAfter: 'Lo comprobaremos y le confirmaremos la reserva por correo.',
     updatedSubject: (ref: string) => `Se ha actualizado su reserva ${ref}`,
     updated: (ref: string) => `Hemos actualizado su reserva ${ref}.`,
     note: (note: string) => `Nota de nuestro equipo: ${note}`,
@@ -214,13 +216,23 @@ export function bookingReceivedEmail(booking: Booking, config: Config): Email {
   })
 }
 
-export function paymentRequestedEmail(booking: Booking, payment: BookingPayment, config: Config): Email {
+/**
+ * Asks for a payment. The email carries the booking's page, not the payment link: the customer pays
+ * there and uploads the confirmation with "Payment done". `remainingCents` is what is still to pay
+ * once this payment is in (an advance leaves the rest).
+ */
+export function paymentRequestedEmail(booking: Booking, payment: BookingPayment, remainingCents: number, config: Config): Email {
   const locale = localeOf(booking)
   const c = copy[locale]
   const amount = formatMoney(payment.amountCents, payment.currency, locale)
-  return compose(booking, config, c.paymentSubject(booking.reference), [c.hello(firstName(booking.contactName)), c.payment(booking.reference, c.kind[payment.kind], amount), c.paymentAfter], {
-    text: [c.paymentLink(payment.link)],
-  })
+  const remaining = remainingCents > 0 ? [c.paymentRemaining(formatMoney(remainingCents, payment.currency, locale))] : []
+  return compose(booking, config, c.paymentSubject(booking.reference), [
+    c.hello(firstName(booking.contactName)),
+    c.payment(booking.reference, c.kind[payment.kind], amount),
+    ...remaining,
+    c.paymentProof,
+    c.paymentAfter,
+  ])
 }
 
 export function bookingUpdatedEmail(booking: Booking, changes: BookingChange[], note: string, config: Config): Email {

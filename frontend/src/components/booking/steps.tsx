@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowUpDown, Banknote, Check, CreditCard, Info, LockKeyhole, Luggage, Users } from 'lucide-react'
+import { ArrowUpDown, Banknote, Check, CreditCard, Info, LockKeyhole, Luggage, Route, Users } from 'lucide-react'
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { VehicleImage } from '@/components/art/VehicleArt'
 import { useAuth } from '@/components/auth/AuthProvider'
@@ -12,7 +12,7 @@ import { fill } from '@/i18n/config'
 import type { BookingMessages } from '@/i18n/messages/booking'
 import { api, ApiError, errorMessage, fieldMessage } from '@/lib/api'
 import type { Draft } from '@/lib/booking-draft'
-import { earliestPickup, formatBags, formatFormDateTime, formatPrice, formatPassengers, zonedFormValues } from '@/lib/format'
+import { earliestPickup, formatBags, formatDistance, formatDuration, formatFormDateTime, formatPrice, formatPassengers, zonedFormValues } from '@/lib/format'
 import { RIDE_TYPES, type AppConfig, type Place, type PlaceKind, type Quote, type QuoteOption, type RideType, type User } from '@/lib/types'
 import { Stepper } from './controls'
 import { PlaceInput } from './PlaceInput'
@@ -199,13 +199,30 @@ function reason(option: QuoteOption, draft: Draft, b: BookingMessages): string |
   return option.reason === 'luggage' ? fill(b.vehicle.tooSmallLuggage, { count: draft.luggage }) : fill(b.vehicle.tooSmallPassengers, { count: draft.adults + draft.children })
 }
 
+/** What the prices are for: the kind of ride, the road distance and drive time (each way for a return), or the hours. */
+function journeyFacts(quote: Quote, b: BookingMessages, t: ReturnType<typeof useI18n>['t']): string[] {
+  const eachWay = (value: string) => (quote.rideType === 'return' ? fill(b.vehicle.eachWay, { value }) : value)
+  const facts = [t.rideTypes[quote.rideType]]
+  if (quote.route) {
+    const estimated = quote.route.source === 'estimate' ? ` (${b.summary.estimated})` : ''
+    facts.push(`${eachWay(formatDistance(quote.route.distanceM, t))}${estimated}`, `${t.units.approx} ${eachWay(formatDuration(quote.route.durationS, t))}`)
+  }
+  if (quote.rideType === 'hourly' && quote.hours) facts.push(fill(b.ride.hoursOption, { count: quote.hours }))
+  return facts
+}
+
 export function VehicleStep({ draft, patch, quote, error, b }: { draft: Draft; patch: Patch; quote: Quote; error?: string; b: BookingMessages }) {
   const { t, locale } = useI18n()
   const anyAvailable = quote.options.some((option) => option.available)
 
   return (
     <div>
-      <p className="text-sm leading-relaxed text-ink-900/60">{b.vehicle.lead}</p>
+      <p className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-md bg-bone-100 px-4 py-3 text-sm text-ink-900">
+        <Route aria-hidden className="size-4 shrink-0 text-gold-600" />
+        <span className="font-semibold">{b.vehicle.journey}:</span>
+        <span>{journeyFacts(quote, b, t).join(' · ')}</span>
+      </p>
+      <p className="mt-4 text-sm leading-relaxed text-ink-900/60">{b.vehicle.lead}</p>
       {!anyAvailable ? (
         <div className="mt-6">
           <FormMessage tone="error">{b.vehicle.none}</FormMessage>

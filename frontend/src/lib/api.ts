@@ -58,6 +58,25 @@ export async function uploadImage(image: Blob): Promise<string> {
   return (await readResponse<{ media: { url: string } }>(response)).media.url
 }
 
+/**
+ * "Payment done": upload proof of a payment (a screenshot or PDF) from the booking's page. A guest
+ * proves the booking is theirs with the guest code; an account owner with the session.
+ */
+export async function uploadPaymentProof<T>(reference: string, paymentId: string, file: File, code?: string): Promise<T> {
+  let response: Response
+  try {
+    response = await fetch(`/api/bookings/${encodeURIComponent(reference)}/payments/${encodeURIComponent(paymentId)}/proof`, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { Accept: 'application/json', 'Content-Type': file.type, ...(code ? { 'X-Guest-Code': code } : {}) },
+      body: file,
+    })
+  } catch {
+    throw new ApiError(0, 'network', 'Network error')
+  }
+  return (await readResponse<{ booking: T }>(response)).booking
+}
+
 /** Translate an error into a message for the visitor. Unknown errors get a generic message. */
 export function errorMessage(error: unknown, t: CommonMessages): string {
   if (error instanceof ApiError) {

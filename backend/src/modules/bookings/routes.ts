@@ -1,13 +1,14 @@
-import { Router } from 'express'
+import express, { Router } from 'express'
 import { z } from 'zod'
 import type { AppContext } from '../../context.js'
 import { and, eq, isNull } from 'drizzle-orm'
 import { db } from '../../db/client.js'
-import { bookings } from '../../db/schema.js'
-import { conflict, forbidden, HttpError, notFound } from '../../lib/errors.js'
+import { bookingPayments, bookings, paymentProofs } from '../../db/schema.js'
+import { badRequest, conflict, forbidden, HttpError, notFound } from '../../lib/errors.js'
 import { normalizeReference } from '../../lib/reference.js'
-import { blankAsMissing, email, locale, optionalText, parse, personName, phone } from '../../lib/validate.js'
+import { blankAsMissing, email, isUuid, locale, optionalText, parse, personName, phone } from '../../lib/validate.js'
 import { isStaff, requireUser } from '../auth/session.js'
+import { sniffImageType } from '../media/routes.js'
 import {
   cancelBooking,
   canCancel,
@@ -18,7 +19,7 @@ import {
   serializeBooking,
   serializeBookingInFull,
 } from './service.js'
-import { claimBookingsByVerifiedEmail, guestCodeMatches } from './flow.js'
+import { claimBookingsByVerifiedEmail, guestCodeMatches, recordEvent } from './flow.js'
 
 const createSchema = z.object({
   quoteId: z.uuid(),
@@ -58,6 +59,15 @@ const claimSchema = z.object({ reference: z.string().trim().min(4).max(20), code
 
 const bookingNotFound = () =>
   notFound('BOOKING_NOT_FOUND', 'We could not find a booking with that reference and email or phone number.')
+
+/** Proof of payment: a screenshot or a PDF of the confirmation. */
+const PROOF_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf']
+const PROOF_MAX_BYTES = 8 * 1024 * 1024
+
+/** The proof's type, judged by the file's first bytes rather than by what the sender claims. */
+export function sniffProofType(bytes: Buffer): string | null {
+  return sniffImageType(bytes) ?? (bytes.length >= 5 && bytes.toString('latin1', 0, 5) === '%PDF-' ? 'application/pdf' : null)
+}
 
 export function bookingsRouter(context: AppContext): Router {
   const { config, rateLimit } = context
@@ -147,6 +157,44 @@ export function bookingsRouter(context: AppContext): Router {
     }
     res.json({ booking: await serializeBookingInFull(await cancelBooking(context, booking), config) })
   })
+
+  /**
+   * "Payment done": the customer uploads proof of an open payment request, a screenshot or PDF of
+   * the confirmation. A guest sends the guest code in the `X-Guest-Code` header, as the body is the
+   * file. A new upload replaces the last one. The payment stays requested until the team has
+   * checked the proof and marks it received.
+   */
+  router.post(
+    '/:reference/payments/:id/proof',
+    rateLimit({ name: 'proof', windowMs: 60_000, limit: 10 }),
+    express.raw({ type: PROOF_TYPES, limit: PROOF_MAX_BYTES }),
+    async (req, res) => {
+      const booking = await findBookingByReference(normalizeReference(String(req.params.reference)))
+      const isOwner = Boolean(booking && req.user && booking.userId === req.user.id)
+      const byGuest = Boolean(booking && booking.userId === null && guestCodeMatches(booking, req.get('x-guest-code')))
+      if (!booking || !(isOwner || byGuest)) throw notFound('BOOKING_NOT_FOUND', 'We could not find a booking with that reference and guest code.')
+      if (booking.status !== 'pending' && booking.status !== 'confirmed') throw conflict('BOOKING_CLOSED', `A ${booking.status} booking cannot take a payment.`)
+
+      const id = String(req.params.id)
+      const [payment] = isUuid(id) ? await db.select().from(bookingPayments).where(and(eq(bookingPayments.id, id), eq(bookingPayments.bookingId, booking.id))) : []
+      if (!payment) throw notFound('PAYMENT_NOT_FOUND', 'Payment request not found.')
+      if (payment.status !== 'requested') throw conflict('PAYMENT_CLOSED', `This payment is already ${payment.status}.`)
+
+      const bytes: unknown = req.body
+      const contentType = Buffer.isBuffer(bytes) && bytes.length > 0 ? sniffProofType(bytes) : null
+      if (!Buffer.isBuffer(bytes) || !contentType) throw badRequest('UNSUPPORTED_PROOF', 'Upload a screenshot (JPEG, PNG or WebP) or a PDF of your payment confirmation.')
+
+      const now = new Date()
+      const file = { contentType, size: bytes.length, data: bytes, uploadedAt: now }
+      await db.insert(paymentProofs).values({ paymentId: payment.id, ...file }).onConflictDoUpdate({ target: paymentProofs.paymentId, set: file })
+      await db.update(bookingPayments).set({ proofUploadedAt: now }).where(eq(bookingPayments.id, payment.id))
+      await recordEvent(booking.id, 'payment_proof', null, [
+        { field: 'paymentKind', from: null, to: payment.kind },
+        { field: 'paymentAmountCents', from: null, to: String(payment.amountCents) },
+      ])
+      res.json({ booking: await serializeBookingInFull(booking, config) })
+    },
+  )
 
   return router
 }

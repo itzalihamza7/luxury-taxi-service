@@ -227,17 +227,25 @@ through `/api`, and can pass a visitor on to WhatsApp or a phone call.
 - **Hourly hire** is the hours at the hourly rate. A vehicle without one (the Sprinter) can still
   be booked: the price is "on request", and the team sets it afterwards.
 - **Return trips** cost two transfers.
+- **Shown just under the round figure**: each price is quoted and charged 10–90 cents below the
+  whole euro (€89.30 rather than €90), picked from the vehicle and the journey, so the same trip
+  always gets the same price. The vehicle step shows what the price is for: the ride type, road
+  distance and drive time (each way for a return), or the hours.
 
 **A booking** goes through these steps, each with an email to the customer in their language:
 
 1. **Received.** The email has the booking, a link to its page and a **guest code**. A guest opens
    the page with the reference and that code; a booking in an account opens after logging in.
 2. **Payment requested.** In Bookings the team asks for an advance, the full amount or the balance,
-   pasting a payment link from their provider. The customer gets it by email (with the page link
-   and guest code again), and the console offers the same message on WhatsApp with one tap. The
-   link shows on the booking's page as a "Pay" button.
-3. **Paid.** The team marks the payment received; the booking is partly paid or paid.
-4. **Confirmed.** The team confirms the booking and the customer is told.
+   pasting a payment link from their provider. The email carries the booking's page and guest code,
+   not the link, and says what remains after an advance; the console offers a WhatsApp message with
+   the link itself, with one tap. On the booking's page the link is a "Pay" button.
+3. **Proof.** Having paid, the customer taps "Payment done" on the booking's page, which only works
+   with a screenshot or PDF of the confirmation attached (up to 8 MB). The console marks the booking
+   "Proof to check" and opens the file for the team.
+4. **Paid.** The team checks the proof and marks the payment received; the booking is partly paid or
+   paid.
+5. **Confirmed.** The team confirms the booking and the customer is told.
 
 The team can **edit** a booking at any step (date and time, places, vehicle, price, passengers,
 contact). A note is required: the customer gets the changes and the note by email, and the
