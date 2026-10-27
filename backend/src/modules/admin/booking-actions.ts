@@ -211,9 +211,10 @@ export function bookingActionsRouter(context: AppContext): Router {
       { field: 'paymentKind', from: null, to: payment.kind },
       { field: 'paymentAmountCents', from: null, to: String(payment.amountCents) },
     ])
-    // What is left once this payment is in: an advance always tells the customer the rest.
-    const received = (await listPayments(booking.id)).filter((item) => item.status === 'paid').reduce((sum, item) => sum + item.amountCents, 0)
-    sendQuietly(mailer, paymentRequestedEmail(booking, payment, Math.max(0, booking.totalCents - received - payment.amountCents), config))
+    // What is left beyond every payment asked for so far (received or still open, this one included):
+    // an advance tells the customer the rest, and an open advance is not counted as still owed.
+    const asked = (await listPayments(booking.id)).filter((item) => item.status !== 'cancelled').reduce((sum, item) => sum + item.amountCents, 0)
+    sendQuietly(mailer, paymentRequestedEmail(booking, payment, Math.max(0, booking.totalCents - asked), config))
     res.status(201).json({ booking: await serializeAdminBooking(booking, config), whatsappUrl: paymentWhatsappUrl(booking, payment, config) })
   })
 

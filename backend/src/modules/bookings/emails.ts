@@ -202,7 +202,7 @@ function compose(booking: Booking, config: Config, subject: string, paragraphs: 
     to: booking.contactEmail ?? '',
     subject,
     text: `${text.join('\n\n')}\n`,
-    html: layout(paragraphs, { details: rows, code, button: { label: c.view, url }, footer: [...(extra.text ?? []), ...footer] }),
+    html: layout(paragraphs, { appUrl: config.APP_URL, details: rows, code, button: { label: c.view, url }, footer: [...(extra.text ?? []), ...footer] }),
   }
 }
 
@@ -218,8 +218,8 @@ export function bookingReceivedEmail(booking: Booking, config: Config): Email {
 
 /**
  * Asks for a payment. The email carries the booking's page, not the payment link: the customer pays
- * there and uploads the confirmation with "Payment done". `remainingCents` is what is still to pay
- * once this payment is in (an advance leaves the rest).
+ * there and uploads the confirmation with "Payment done". `remainingCents` is what is left beyond
+ * the payments asked for so far, this one included (an advance leaves the rest).
  */
 export function paymentRequestedEmail(booking: Booking, payment: BookingPayment, remainingCents: number, config: Config): Email {
   const locale = localeOf(booking)
@@ -257,7 +257,7 @@ export function bookingCancelledEmail(booking: Booking, note: string | null, con
   return compose(booking, config, c.cancelledSubject(booking.reference), paragraphs)
 }
 
-export function verifyEmailCodeEmail(to: string, name: string, code: string, minutes: number, locale: Locale): Email {
+export function verifyEmailCodeEmail(to: string, name: string, code: string, minutes: number, locale: Locale, appUrl: string): Email {
   const c = copy[locale]
   const paragraphs = [c.hello(firstName(name)), c.verify]
   const after = c.verifyAfter(minutes)
@@ -265,6 +265,6 @@ export function verifyEmailCodeEmail(to: string, name: string, code: string, min
     to,
     subject: c.verifySubject(code),
     text: `${[...paragraphs, code, after].join('\n\n')}\n`,
-    html: layout(paragraphs, { code: { label: c.verifyCode, value: code }, footer: [after] }),
+    html: layout(paragraphs, { appUrl, code: { label: c.verifyCode, value: code }, footer: [after] }),
   }
 }

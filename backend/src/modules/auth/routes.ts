@@ -63,7 +63,7 @@ export function authRouter({ config, mailer, rateLimit }: AppContext): Router {
     const linkedBookings = (await getSiteSettings()).linkBookingsOnSignup ? await claimOperatorBookings(user) : 0
 
     // A code to prove the email is theirs: then the bookings made with it join the account too.
-    const verificationSent = await sendVerificationCode(mailer, user, input.locale).then(
+    const verificationSent = await sendVerificationCode(mailer, user, input.locale, config.APP_URL).then(
       () => true,
       (error: unknown) => {
         console.error('[auth] could not send the verification code:', error instanceof Error ? error.message : error)

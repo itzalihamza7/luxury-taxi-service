@@ -112,6 +112,9 @@ describe('the team takes a booking from received to confirmed', () => {
     expect(paymentEmail.text).not.toContain('https://pay.example.com/abc')
     expect(paymentEmail.text).toContain(`https://signaturemile.example/en/booking/${reference}`)
     expect(paymentEmail.text).toContain(code)
+    // Every email opens with the logo from the website, linking home.
+    expect(paymentEmail.html).toContain('<a href="https://signaturemile.example" style="display:inline-block;margin:0 0 24px;text-decoration:none"><img src="https://signaturemile.example/images/logo.png"')
+    expect(paymentEmail.html).toContain('alt="SignatureMile · Private chauffeurs"')
 
     // The customer finds the link on the booking's page.
     const page = await request(app).post(`/api/bookings/${reference}/open`).send({ code })
@@ -135,7 +138,7 @@ describe('the team takes a booking from received to confirmed', () => {
   })
 
   it('settles the booking with the rest, and lets the team withdraw a link', async () => {
-    const { app } = setUp()
+    const { sent, app } = setUp()
     const admin = await adminAgent(app)
     const booked = (await bookRide(app)).response.body.booking
     const reference = booked.reference as string
@@ -150,6 +153,12 @@ describe('the team takes a booking from received to confirmed', () => {
     const advance = (await ask({ kind: 'advance', amountCents: 4000 })).body.booking.payments[1].id as string
     await admin.post(`/api/admin/bookings/${reference}/payments/${advance}/paid`)
     const balance = (await ask({ kind: 'balance', amountCents: total - 4000 })).body.booking.payments[2].id as string
+    // The balance settles everything asked for: its email (the third payment email) names nothing left to pay.
+    const paymentEmails = () => sent.filter((email) => email.subject === `Payment to confirm your booking ${reference}`)
+    for (let i = 0; i < 100 && paymentEmails().length < 3; i += 1) await new Promise((resolve) => setTimeout(resolve, 20))
+    expect(paymentEmails()).toHaveLength(3)
+    expect(paymentEmails()[2]?.text).toContain(`remaining balance of €${((total - 4000) / 100).toFixed(2)}`)
+    expect(paymentEmails()[2]?.text).not.toContain('remains to be paid')
     expect((await admin.post(`/api/admin/bookings/${reference}/payments/${balance}/paid`)).body.booking.paymentStatus).toBe('paid')
   })
 
@@ -295,6 +304,7 @@ describe('accounts and guest bookings', () => {
     // The code was sent at sign-up.
     const codeEmail = sent.find((email) => email.subject.startsWith('Your SignatureMile code'))!
     expect(codeEmail.to).toBe('client@example.com')
+    expect(codeEmail.html).toContain('<img src="https://signaturemile.example/images/logo.png"')
     const wrong = codeIn(codeEmail) === '000000' ? '111111' : '000000'
     expect((await customer.post('/api/auth/email/verify').send({ code: wrong })).body.error.code).toBe('CODE_INVALID')
     const verified = await customer.post('/api/auth/email/verify').send({ code: codeIn(codeEmail) })

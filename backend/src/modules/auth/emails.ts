@@ -36,19 +36,19 @@ const copy = {
   },
 } as const
 
-export function resetEmail(to: string, name: string, url: string, minutes: number, locale: Locale): Email {
+export function resetEmail(to: string, name: string, url: string, minutes: number, locale: Locale, appUrl: string): Email {
   const c = copy[locale]
   const paragraphs = c.resetText(name, minutes)
   return {
     to,
     subject: c.resetSubject,
     text: `${paragraphs.join('\n\n')}\n\n${url}\n`,
-    html: layout(paragraphs, { button: { label: c.resetButton, url } }),
+    html: layout(paragraphs, { appUrl, button: { label: c.resetButton, url } }),
   }
 }
 
-export function passwordChangedEmail(to: string, name: string, locale: Locale): Email {
+export function passwordChangedEmail(to: string, name: string, locale: Locale, appUrl: string): Email {
   const c = copy[locale]
   const paragraphs = c.changedText(name)
-  return { to, subject: c.changedSubject, text: `${paragraphs.join('\n\n')}\n`, html: layout(paragraphs) }
+  return { to, subject: c.changedSubject, text: `${paragraphs.join('\n\n')}\n`, html: layout(paragraphs, { appUrl }) }
 }
