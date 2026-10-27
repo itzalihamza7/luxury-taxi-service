@@ -19,10 +19,12 @@ the company's contact details.
 **Website**
 
 - Instant fixed-price quotes for one-way, return, hourly, city-to-city and airport rides, with
-  airport, station and address suggestions.
+  airport, station and address suggestions: a fixed price inside the M-30, plus each km beyond it
+  (see [Prices and the booking flow](#prices-and-the-booking-flow)).
 - A five-step booking flow that keeps the customer's progress on the device, prefills details for
   signed-in customers and handles an expired price without losing the booking.
-- Booking tracking and cancellation with the reference and the email address or phone number.
+- A page for each booking, opened with its reference and the guest code from the booking email
+  (or the customer's account): status, payment links, the history of every change, cancellation.
 - Customer accounts with their bookings and profile, an account menu in the header, and password
   reset by email (a one-time link valid for an hour).
 - Service, fleet, route, event and journal pages, all edited from the admin panel.
@@ -40,7 +42,7 @@ the company's contact details.
 | Page | Purpose |
 | --- | --- |
 | Overview | Pending confirmations, the next rides and the day's numbers |
-| Bookings | Search and filter, confirm, start and complete rides, record payments, cancel |
+| Bookings | Search and filter; edit a booking with a note the customer sees; ask for an advance or the full amount through a payment link (email, and WhatsApp with one tap); record payments; confirm, start, complete and cancel |
 | New booking | Enter a ride for a customer who phoned or wrote, with an agreed price and a ready-to-send WhatsApp confirmation |
 | Messages | Contact-form messages |
 | Users | Search, edit and delete accounts; assign roles (customer, admin, super admin) |
@@ -211,6 +213,41 @@ through `/api`, and can pass a visitor on to WhatsApp or a phone call.
   bookings get the "AI agent" badge and their own rate limits.
 - **Settings** (which sites may show it, colour, WhatsApp and phone hand-off, a daily AI cost cap
   of $5) are in Vesper under Agents → the agent → Website chat.
+
+## Prices and the booking flow
+
+**Prices** come from each vehicle's three rates (Fleet in the console), from the price list of
+26 October 2026:
+
+- **Transfers** inside the M-30 ring road, or between the airport (T1–T4S) and the M-30, cost the
+  vehicle's fixed price. Each road kilometre beyond the M-30 adds its price per km. Without a
+  routing server the road is not known, so the share of the straight line outside the M-30 (and
+  the airport) is applied to the road distance. The M-30's outline is in
+  [`backend/src/lib/zone.ts`](backend/src/lib/zone.ts), traced from OpenStreetMap.
+- **Hourly hire** is the hours at the hourly rate. A vehicle without one (the Sprinter) can still
+  be booked: the price is "on request", and the team sets it afterwards.
+- **Return trips** cost two transfers.
+
+**A booking** goes through these steps, each with an email to the customer in their language:
+
+1. **Received.** The email has the booking, a link to its page and a **guest code**. A guest opens
+   the page with the reference and that code; a booking in an account opens after logging in.
+2. **Payment requested.** In Bookings the team asks for an advance, the full amount or the balance,
+   pasting a payment link from their provider. The customer gets it by email (with the page link
+   and guest code again), and the console offers the same message on WhatsApp with one tap. The
+   link shows on the booking's page as a "Pay" button.
+3. **Paid.** The team marks the payment received; the booking is partly paid or paid.
+4. **Confirmed.** The team confirms the booking and the customer is told.
+
+The team can **edit** a booking at any step (date and time, places, vehicle, price, passengers,
+contact). A note is required: the customer gets the changes and the note by email, and the
+booking's page keeps the whole history, with who made each change. Customers cannot change a
+booking; they can cancel it free of charge up to 24 hours before pickup.
+
+**Accounts.** A customer confirms their email address with a six-digit code sent at sign-up; then
+every booking made with that address, as a guest too, appears in their account. A booking made
+with another email or phone number joins with its reference and guest code. Neither happens before
+the proof, so nobody can read someone else's bookings by signing up with their details.
 
 ## Getting started
 

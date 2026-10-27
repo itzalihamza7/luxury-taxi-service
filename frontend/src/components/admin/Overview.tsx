@@ -11,7 +11,7 @@ import { fill } from '@/i18n/config'
 import type { AccountMessages } from '@/i18n/messages/account'
 import type { ManageMessages } from '@/i18n/messages/manage'
 import { api, errorMessage } from '@/lib/api'
-import { formatDateTime, formatMoney } from '@/lib/format'
+import { formatDateTime, formatPrice } from '@/lib/format'
 import { useAppConfig } from '@/lib/hooks'
 import type { Booking } from '@/lib/types'
 import { useAdminSummary } from './AdminShell'
@@ -128,7 +128,7 @@ export function Overview({ a, m }: Props) {
                       </span>
                     </span>
                     <span className="flex items-center gap-4 sm:justify-end">
-                      <span className="font-medium tabular-nums">{formatMoney(booking.totalCents, booking.currency, locale)}</span>
+                      <span className="font-medium tabular-nums">{formatPrice(booking.totalCents, booking.currency, locale, t.payment.onRequest)}</span>
                       <StatusBadge status={booking.status} />
                     </span>
                   </Link>

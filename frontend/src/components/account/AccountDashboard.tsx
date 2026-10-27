@@ -1,19 +1,20 @@
 'use client'
 
-import { ChevronDown, LogOut } from 'lucide-react'
+import { ArrowRight, ChevronDown, LogOut, MailCheck, PlusCircle } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState, type FormEvent } from 'react'
 import { useAuth } from '@/components/auth/AuthProvider'
 import { BookingDetails, StatusBadge } from '@/components/booking/BookingDetails'
 import { Button, ButtonLink } from '@/components/ui/Button'
 import { FormMessage, TextField } from '@/components/ui/Field'
+import { Link } from '@/components/ui/Link'
 import { Accent } from '@/components/ui/Section'
 import { useI18n } from '@/i18n/client'
 import { fill, href } from '@/i18n/config'
 import type { AccountMessages } from '@/i18n/messages/account'
 import type { BookingMessages } from '@/i18n/messages/booking'
 import { api, ApiError, errorMessage, fieldMessage } from '@/lib/api'
-import { formatDateTime, formatMoney } from '@/lib/format'
+import { formatDateTime, formatPrice } from '@/lib/format'
 import { useAppConfig, useHydrated } from '@/lib/hooks'
 import type { Booking, User } from '@/lib/types'
 
@@ -48,6 +49,8 @@ function Dashboard({ a, b }: Props) {
   const [bookings, setBookings] = useState<Booking[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [openReference, setOpenReference] = useState<string | null>(null)
+  /** Bookings that joined the account just now, by email verification or with a guest code. */
+  const [joined, setJoined] = useState<string | null>(null)
 
   // Signed-out visitors are sent to sign in, and brought back here afterwards.
   useEffect(() => {
@@ -100,7 +103,7 @@ function Dashboard({ a, b }: Props) {
                 </span>
               </span>
               <span className="flex items-center justify-between gap-5 sm:justify-end">
-                <span className="font-display text-2xl">{formatMoney(booking.totalCents, booking.currency, locale)}</span>
+                <span className="font-display text-2xl">{formatPrice(booking.totalCents, booking.currency, locale, t.payment.onRequest)}</span>
                 <span className="inline-flex items-center gap-1 text-sm text-ink-900/60">
                   {open ? a.hide : a.view}
                   <ChevronDown aria-hidden className={`size-4 transition-transform ${open ? 'rotate-180' : ''}`} />
@@ -110,6 +113,10 @@ function Dashboard({ a, b }: Props) {
             {open ? (
               <div className="border-t border-ink-900/10 p-5 sm:p-8">
                 <BookingDetails booking={booking} b={b} timeZone={config.timeZone} onChange={replace} />
+                <Link href={`/booking/${booking.reference}`} className="mt-6 inline-flex items-center gap-2 text-sm font-medium underline decoration-gold-600/50 underline-offset-4 hover:decoration-gold-600">
+                  {b.details.openPage}
+                  <ArrowRight aria-hidden className="size-4" />
+                </Link>
               </div>
             ) : null}
           </li>
@@ -152,6 +159,14 @@ function Dashboard({ a, b }: Props) {
           <FormMessage tone="success">{linked === 1 ? a.linkedOne : fill(a.linkedMany, { count: linked })}</FormMessage>
         </div>
       ) : null}
+      {joined && tab === 'bookings' ? (
+        <div className="mt-8">
+          <FormMessage tone="success">{joined}</FormMessage>
+        </div>
+      ) : null}
+      {tab === 'bookings' && !user.emailVerified ? (
+        <VerifyEmail user={user} a={a} onVerified={(count) => setJoined(count === 0 ? a.verified : count === 1 ? `${a.verified} ${a.linkedOne}` : `${a.verified} ${fill(a.linkedMany, { count })}`)} />
+      ) : null}
 
       <div className="mt-8">
         {tab === 'profile' ? (
@@ -183,6 +198,15 @@ function Dashboard({ a, b }: Props) {
             ) : null}
           </div>
         )}
+        {tab === 'bookings' && bookings !== null ? (
+          <AddBooking
+            a={a}
+            onAdded={(booking) => {
+              setBookings((current) => [booking, ...(current ?? []).filter((item) => item.reference !== booking.reference)])
+              setJoined(fill(a.added, { reference: booking.reference }))
+            }}
+          />
+        ) : null}
       </div>
     </div>
   )
@@ -235,5 +259,123 @@ function Profile({ user, a, onSignOut }: { user: User; a: AccountMessages['accou
         </Button>
       </div>
     </div>
+  )
+}
+
+/** The six-digit code sent at sign-up: it proves the address, and the bookings made with it join the account. */
+function VerifyEmail({ user, a, onVerified }: { user: User; a: AccountMessages['account']; onVerified: (linked: number) => void }) {
+  const { t, locale } = useI18n()
+  const { setUser } = useAuth()
+  const [code, setCode] = useState('')
+  const [busy, setBusy] = useState<'verify' | 'resend' | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [sent, setSent] = useState(false)
+
+  const verify = async (event: FormEvent) => {
+    event.preventDefault()
+    setBusy('verify')
+    setError(null)
+    try {
+      const result = await api<{ user: User; linkedBookings: number }>('/auth/email/verify', { method: 'POST', body: { code: code.trim() } })
+      onVerified(result.linkedBookings)
+      // The bookings list reloads for the new user, and picks up the bookings that joined.
+      setUser(result.user)
+    } catch (caught) {
+      setError(errorMessage(caught, t))
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  const resend = async () => {
+    setBusy('resend')
+    setError(null)
+    try {
+      await api('/auth/email/send-code', { method: 'POST', body: { locale } })
+      setSent(true)
+    } catch (caught) {
+      setError(errorMessage(caught, t))
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  return (
+    <form onSubmit={verify} noValidate className="mt-8 rounded-md border border-gold-600/30 bg-gold-100/40 p-5 sm:p-6">
+      <p className="flex items-center gap-2 font-semibold">
+        <MailCheck aria-hidden className="size-5 text-gold-700" />
+        {a.verifyTitle}
+      </p>
+      <p className="mt-2 text-sm leading-relaxed text-ink-900/70">{fill(a.verifyText, { email: user.email })}</p>
+      <div className="mt-4 flex flex-wrap items-end gap-3">
+        <TextField
+          id="verify-code"
+          label={a.verifyCode}
+          inputMode="numeric"
+          autoComplete="one-time-code"
+          maxLength={6}
+          value={code}
+          onChange={(event) => setCode(event.target.value.replace(/\D/g, ''))}
+          className="w-44"
+        />
+        <Button type="submit" variant="dark" loading={busy === 'verify'} disabled={busy !== null || code.length !== 6}>
+          {a.verifySubmit}
+        </Button>
+        <button type="button" onClick={() => void resend()} disabled={busy !== null} className="h-12 text-sm font-medium text-ink-900/70 underline-offset-4 hover:text-ink-900 hover:underline disabled:opacity-50">
+          {a.verifyResend}
+        </button>
+      </div>
+      {sent ? <p className="mt-3 text-sm text-emerald-800">{fill(a.verifySent, { email: user.email })}</p> : null}
+      {error ? (
+        <div className="mt-3">
+          <FormMessage tone="error">{error}</FormMessage>
+        </div>
+      ) : null}
+    </form>
+  )
+}
+
+/** A booking made with another email or phone (or as a guest) joins the account with its guest code. */
+function AddBooking({ a, onAdded }: { a: AccountMessages['account']; onAdded: (booking: Booking) => void }) {
+  const { t } = useI18n()
+  const [form, setForm] = useState({ reference: '', code: '' })
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const submit = async (event: FormEvent) => {
+    event.preventDefault()
+    setBusy(true)
+    setError(null)
+    try {
+      const result = await api<{ booking: Booking }>('/bookings/claim', { method: 'POST', body: { reference: form.reference.trim(), code: form.code.trim() } })
+      onAdded(result.booking)
+      setForm({ reference: '', code: '' })
+    } catch (caught) {
+      setError(errorMessage(caught, t))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <form onSubmit={submit} noValidate className="mt-10 rounded-md border border-ink-900/10 bg-white p-5 sm:p-6">
+      <p className="flex items-center gap-2 font-semibold">
+        <PlusCircle aria-hidden className="size-5 text-gold-700" />
+        {a.addTitle}
+      </p>
+      <p className="mt-2 text-sm leading-relaxed text-ink-900/65">{a.addText}</p>
+      <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+        <TextField id="add-reference" label={a.addReference} autoCapitalize="characters" spellCheck={false} value={form.reference} onChange={(event) => setForm({ ...form, reference: event.target.value.toUpperCase() })} />
+        <TextField id="add-code" label={a.addCode} autoCapitalize="characters" spellCheck={false} value={form.code} onChange={(event) => setForm({ ...form, code: event.target.value.toUpperCase() })} />
+        <Button type="submit" variant="outline" loading={busy} disabled={form.reference.trim().length < 4 || form.code.trim().length < 4}>
+          {a.addSubmit}
+        </Button>
+      </div>
+      {error ? (
+        <div className="mt-3">
+          <FormMessage tone="error">{error}</FormMessage>
+        </div>
+      ) : null}
+    </form>
   )
 }

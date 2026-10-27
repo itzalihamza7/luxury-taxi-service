@@ -107,7 +107,7 @@ export function RegisterForm({ a }: { a: AccountMessages['register'] }) {
     setError(null)
     setErrors({})
     try {
-      const { user, linkedBookings } = await api<{ user: User; linkedBookings: number }>('/auth/register', { method: 'POST', body: form })
+      const { user, linkedBookings } = await api<{ user: User; linkedBookings: number }>('/auth/register', { method: 'POST', body: { ...form, locale } })
       setUser(user)
       const target = destination(user, locale)
       // Bookings the team took for this customer are now in the account: say so there.

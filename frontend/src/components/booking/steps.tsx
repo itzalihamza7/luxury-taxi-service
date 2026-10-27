@@ -12,7 +12,7 @@ import { fill } from '@/i18n/config'
 import type { BookingMessages } from '@/i18n/messages/booking'
 import { api, ApiError, errorMessage, fieldMessage } from '@/lib/api'
 import type { Draft } from '@/lib/booking-draft'
-import { earliestPickup, formatBags, formatFormDateTime, formatMoney, formatPassengers, zonedFormValues } from '@/lib/format'
+import { earliestPickup, formatBags, formatFormDateTime, formatPrice, formatPassengers, zonedFormValues } from '@/lib/format'
 import { RIDE_TYPES, type AppConfig, type Place, type PlaceKind, type Quote, type QuoteOption, type RideType, type User } from '@/lib/types'
 import { Stepper } from './controls'
 import { PlaceInput } from './PlaceInput'
@@ -258,7 +258,7 @@ export function VehicleStep({ draft, patch, quote, error, b }: { draft: Draft; p
               </div>
 
               <div className="col-span-2 flex items-center justify-between gap-4 border-t border-ink-900/10 pt-3 sm:col-span-1 sm:flex-col sm:items-end sm:border-0 sm:pt-0">
-                <p className="font-display text-3xl">{formatMoney(option.totalCents, quote.currency, locale)}</p>
+                <p className="font-display text-3xl">{formatPrice(option.totalCents, quote.currency, locale, t.payment.onRequest)}</p>
                 <span
                   className={`inline-flex h-9 items-center gap-1.5 rounded-full px-4 text-xs font-semibold ${
                     selected ? 'bg-ink-950 text-gold-300' : option.available ? 'border border-ink-900/20 text-ink-900' : 'text-ink-900/60'
@@ -525,7 +525,7 @@ export function ReviewStep({
             <p className="font-display text-2xl">{option.vehicle.name}</p>
             <p className="text-sm text-ink-900/60">{option.vehicle.tagline[locale]}</p>
           </div>
-          <p className="font-display text-3xl">{formatMoney(option.totalCents, quote.currency, locale)}</p>
+          <p className="font-display text-3xl">{formatPrice(option.totalCents, quote.currency, locale, t.payment.onRequest)}</p>
         </div>
       </ReviewBlock>
 
@@ -552,12 +552,15 @@ export function PaymentStep({
   onAccept,
   errors,
   b,
+  priceOnRequest = false,
 }: {
   draft: Draft
   patch: Patch
   config: AppConfig
   accepted: boolean
   onAccept: (value: boolean) => void
+  /** The chosen ride has no price yet: it is agreed with the business after booking. */
+  priceOnRequest?: boolean
   errors: Errors
   b: BookingMessages
 }) {
@@ -587,11 +590,30 @@ export function PaymentStep({
 
   return (
     <div className="space-y-6">
-      <fieldset className="space-y-3">
-        <legend className="sr-only">{p.title}</legend>
-        {option('chauffeur', p.chauffeur, p.chauffeurText, <Banknote aria-hidden className="size-5" />)}
-        {option('online', p.online, config.onlinePayments ? p.onlineText : p.onlineUnavailable, <CreditCard aria-hidden className="size-5" />, !config.onlinePayments)}
-      </fieldset>
+      {config.onlinePayments && !priceOnRequest ? (
+        <fieldset className="space-y-3">
+          <legend className="sr-only">{p.title}</legend>
+          {option('chauffeur', p.chauffeur, p.chauffeurText, <Banknote aria-hidden className="size-5" />)}
+          {option('online', p.online, p.onlineText, <CreditCard aria-hidden className="size-5" />)}
+        </fieldset>
+      ) : (
+        // Paid through a secure link the team sends once they have checked the ride.
+        <div className="rounded-md border border-ink-900/15 bg-white p-5 sm:p-6">
+          <p className="flex items-center gap-2 font-semibold">
+            <CreditCard aria-hidden className="size-5 text-gold-600" />
+            {p.howTitle}
+          </p>
+          <ol className="mt-4 space-y-3">
+            {p.howSteps.map((text, index) => (
+              <li key={text} className="flex gap-3 text-sm leading-relaxed text-ink-900/70">
+                <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-ink-950 text-xs font-semibold text-gold-300">{index + 1}</span>
+                {text}
+              </li>
+            ))}
+          </ol>
+          {priceOnRequest ? <p className="mt-4 rounded-md bg-bone-100 px-3 py-2 text-sm text-ink-900/75">{p.howOnRequest}</p> : null}
+        </div>
+      )}
 
       <p className="flex items-center gap-2 text-xs text-ink-900/60">
         <LockKeyhole aria-hidden className="size-3.5 text-gold-600" />

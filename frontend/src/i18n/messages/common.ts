@@ -90,7 +90,10 @@ const en = {
     chauffeur: 'Pay the chauffeur',
     online: 'Paid online',
     unpaid: 'Unpaid',
+    partly_paid: 'Advance paid',
     paid: 'Paid',
+    /** A ride whose price is agreed with the business after booking. */
+    onRequest: 'Price on request',
   },
   units: {
     passengers: '{count} passengers',
@@ -330,7 +333,9 @@ const es: typeof en = {
     chauffeur: 'Pago al chófer',
     online: 'Pago online',
     unpaid: 'Pendiente de pago',
+    partly_paid: 'Anticipo pagado',
     paid: 'Pagado',
+    onRequest: 'Precio a consultar',
   },
   units: {
     passengers: '{count} pasajeros',
