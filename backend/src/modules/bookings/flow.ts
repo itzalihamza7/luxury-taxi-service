@@ -72,6 +72,8 @@ export function serializePayment(payment: BookingPayment) {
     link: payment.status === 'requested' ? payment.link : null,
     status: payment.status,
     requestedAt: payment.requestedAt.toISOString(),
+    /** When the customer uploaded proof of it ("Payment done"); the team then checks and marks it received. */
+    proofUploadedAt: payment.proofUploadedAt?.toISOString() ?? null,
     paidAt: payment.paidAt?.toISOString() ?? null,
   }
 }

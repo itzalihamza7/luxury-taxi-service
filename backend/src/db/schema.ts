@@ -314,7 +314,7 @@ export const emailVerifications = pgTable(
   (table) => [index('email_verifications_user_id_idx').on(table.userId)],
 )
 
-export const BOOKING_EVENT_KINDS = ['created', 'edited', 'status_changed', 'payment_requested', 'payment_received', 'payment_cancelled'] as const
+export const BOOKING_EVENT_KINDS = ['created', 'edited', 'status_changed', 'payment_requested', 'payment_proof', 'payment_received', 'payment_cancelled'] as const
 export type BookingEventKind = (typeof BOOKING_EVENT_KINDS)[number]
 /** One field of a booking that changed: dates as ISO strings, prices in cents, everything else as shown; written out for the reader. */
 export type BookingChange = { field: string; from: string | null; to: string | null }
@@ -364,6 +364,8 @@ export const bookingPayments = pgTable(
     status: text('status', { enum: PAYMENT_REQUEST_STATUSES }).notNull().default('requested'),
     requestedBy: uuid('requested_by').references(() => users.id, { onDelete: 'set null' }),
     requestedAt: timestamptz('requested_at').notNull().defaultNow(),
+    /** When the customer last uploaded proof of this payment (the file is in `payment_proofs`). */
+    proofUploadedAt: timestamptz('proof_uploaded_at'),
     paidAt: timestamptz('paid_at'),
   },
   (table) => [
@@ -373,6 +375,21 @@ export const bookingPayments = pgTable(
     check('booking_payments_status_check', sql`${table.status} in ('requested', 'paid', 'cancelled')`),
   ],
 )
+
+/**
+ * The customer's proof of a payment: a screenshot or PDF of the confirmation, uploaded from the
+ * booking's page with "Payment done". Only the team can open it; it checks it before marking the
+ * payment received. Kept apart from `booking_payments` so listing payments never loads the files.
+ */
+export const paymentProofs = pgTable('payment_proofs', {
+  paymentId: uuid('payment_id')
+    .primaryKey()
+    .references(() => bookingPayments.id, { onDelete: 'cascade' }),
+  contentType: text('content_type').notNull(),
+  size: integer('size').notNull(),
+  data: bytea('data').notNull(),
+  uploadedAt: timestamptz('uploaded_at').notNull().defaultNow(),
+})
 
 export const settings = pgTable('settings', {
   key: text('key').primaryKey(),

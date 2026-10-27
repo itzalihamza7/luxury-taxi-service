@@ -6,6 +6,8 @@
 export const escapeHtml = (value: string) => value.replace(/[&<>"']/g, (character) => `&#${character.charCodeAt(0)};`)
 
 export interface LayoutOptions {
+  /** The website's address: the logo at the top is its `/images/logo.png`, and it links there. */
+  appUrl: string
   button?: { label: string; url: string }
   /** Rows of a small table (e.g. a booking's date, places and vehicle), after the paragraphs. */
   details?: [label: string, value: string][]
@@ -15,7 +17,13 @@ export interface LayoutOptions {
   footer?: string[]
 }
 
-export function layout(paragraphs: string[], { button, details, code, footer }: LayoutOptions = {}): string {
+/** The logo (public/images/logo.png, 1200x262) at 200px wide; its text stands in when images are off. */
+function logo(appUrl: string): string {
+  const home = escapeHtml(appUrl.replace(/\/+$/, ''))
+  return `<a href="${home}" style="display:inline-block;margin:0 0 24px;text-decoration:none"><img src="${home}/images/logo.png" width="200" height="44" alt="SignatureMile · Private chauffeurs" style="display:block;width:200px;max-width:100%;height:auto;border:0;outline:none;text-decoration:none;font-family:Georgia,serif;font-size:18px;color:#0c121b"></a>`
+}
+
+export function layout(paragraphs: string[], { appUrl, button, details, code, footer }: LayoutOptions): string {
   const body = paragraphs.map((paragraph) => `<p style="margin:0 0 16px;line-height:1.55">${escapeHtml(paragraph)}</p>`).join('')
   const table = details?.length
     ? `<table role="presentation" style="width:100%;border-collapse:collapse;margin:4px 0 20px;font-size:14px">${details
@@ -32,5 +40,5 @@ export function layout(paragraphs: string[], { button, details, code, footer }: 
     ? `<p style="margin:24px 0"><a href="${escapeHtml(button.url)}" style="display:inline-block;background:#080c13;color:#e3cc9f;text-decoration:none;padding:12px 22px;border-radius:999px;font-weight:600">${escapeHtml(button.label)}</a></p><p style="margin:0 0 16px;font-size:13px;color:#555;word-break:break-all">${escapeHtml(button.url)}</p>`
     : ''
   const after = (footer ?? []).map((paragraph) => `<p style="margin:0 0 12px;font-size:13px;line-height:1.5;color:#555">${escapeHtml(paragraph)}</p>`).join('')
-  return `<!doctype html><html><body style="margin:0;background:#f2eee6;padding:24px;font-family:Arial,Helvetica,sans-serif;color:#0c121b;font-size:15px"><div style="max-width:520px;margin:0 auto;background:#fff;border-radius:10px;padding:28px"><p style="margin:0 0 20px;font-family:Georgia,serif;font-size:20px;letter-spacing:2px">SIGNATUREMILE</p>${body}${table}${codeBox}${action}${after}</div></body></html>`
+  return `<!doctype html><html><body style="margin:0;background:#f2eee6;padding:24px;font-family:Arial,Helvetica,sans-serif;color:#0c121b;font-size:15px"><div style="max-width:520px;margin:0 auto;background:#fff;border-radius:10px;padding:28px">${logo(appUrl)}${body}${table}${codeBox}${action}${after}</div></body></html>`
 }

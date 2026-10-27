@@ -383,6 +383,8 @@ function Summary({ draft, quote, selected, b }: { draft: Draft; quote: Quote | n
   const { t, locale } = useI18n()
   const s = b.summary
   const hasRoute = Boolean(draft.pickup && (draft.dropoff || draft.rideType === 'hourly'))
+  // A return is priced as two journeys: its distance and time are for each of them.
+  const eachWay = (value: string) => (quote?.rideType === 'return' ? fill(b.vehicle.eachWay, { value }) : value)
 
   const row = (label: string, value: string | null | undefined) =>
     value ? (
@@ -419,8 +421,8 @@ function Summary({ draft, quote, selected, b }: { draft: Draft; quote: Quote | n
               {draft.rideType === 'return' ? row(b.review.returnWhen, formatFormDateTime(draft.returnDate, draft.returnTime, locale)) : null}
               {draft.rideType === 'hourly' ? row(b.review.duration, fill(t.units.hours, { count: draft.hours })) : null}
               {row(b.review.passengers, `${formatPassengers(draft.adults + draft.children, t)} · ${formatBags(draft.luggage, t)}`)}
-              {quote?.route ? row(s.distance, `${formatDistance(quote.route.distanceM, t)}${quote.route.source === 'estimate' ? ` (${s.estimated})` : ''}`) : null}
-              {quote?.route ? row(s.duration, `${t.units.approx} ${formatDuration(quote.route.durationS, t)}`) : null}
+              {quote?.route ? row(s.distance, `${eachWay(formatDistance(quote.route.distanceM, t))}${quote.route.source === 'estimate' ? ` (${s.estimated})` : ''}`) : null}
+              {quote?.route ? row(s.duration, `${t.units.approx} ${eachWay(formatDuration(quote.route.durationS, t))}`) : null}
               {row(b.review.vehicle, selected?.vehicle.name)}
             </dl>
 

@@ -25,14 +25,14 @@ const requestSchema = z.object({ locale })
 const verifySchema = z.object({ code: z.string().trim().regex(/^\d{6}$/, 'invalid_code') })
 
 /** Sends a new code (the previous ones stop working). */
-export async function sendVerificationCode(mailer: Mailer, user: Pick<SessionUser, 'id' | 'email' | 'name'>, language: 'en' | 'es'): Promise<void> {
+export async function sendVerificationCode(mailer: Mailer, user: Pick<SessionUser, 'id' | 'email' | 'name'>, language: 'en' | 'es', appUrl: string): Promise<void> {
   const code = String(randomInt(0, 1_000_000)).padStart(6, '0')
   await db.update(emailVerifications).set({ usedAt: new Date() }).where(and(eq(emailVerifications.userId, user.id), isNull(emailVerifications.usedAt)))
   await db.insert(emailVerifications).values({ userId: user.id, email: user.email, codeHash: hashCode(code), expiresAt: new Date(Date.now() + CODE_MINUTES * 60_000) })
-  await mailer.send(verifyEmailCodeEmail(user.email, user.name, code, CODE_MINUTES, language))
+  await mailer.send(verifyEmailCodeEmail(user.email, user.name, code, CODE_MINUTES, language, appUrl))
 }
 
-export function verifyEmailRouter({ mailer, rateLimit }: AppContext): Router {
+export function verifyEmailRouter({ config, mailer, rateLimit }: AppContext): Router {
   const router = Router()
 
   router.post('/email/send-code', requireUser, rateLimit({ name: 'verify-send', windowMs: 10 * 60_000, limit: 5 }), async (req, res) => {
@@ -41,7 +41,7 @@ export function verifyEmailRouter({ mailer, rateLimit }: AppContext): Router {
       res.json({ sent: false, user: publicUser(req.user!) })
       return
     }
-    await sendVerificationCode(mailer, req.user!, input.locale)
+    await sendVerificationCode(mailer, req.user!, input.locale, config.APP_URL)
     res.json({ sent: true })
   })
 

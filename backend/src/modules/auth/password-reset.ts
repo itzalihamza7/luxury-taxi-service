@@ -55,7 +55,7 @@ export function passwordResetRouter({ config, mailer, rateLimit }: AppContext): 
         expiresAt: new Date(Date.now() + config.RESET_TOKEN_TTL_MINUTES * 60_000),
       })
       const url = `${config.APP_URL.replace(/\/+$/, '')}/${input.locale}/reset-password?token=${token}`
-      await mailer.send(resetEmail(user.email, user.name.split(' ')[0] ?? user.name, url, config.RESET_TOKEN_TTL_MINUTES, input.locale))
+      await mailer.send(resetEmail(user.email, user.name.split(' ')[0] ?? user.name, url, config.RESET_TOKEN_TTL_MINUTES, input.locale, config.APP_URL))
     })().catch((error: unknown) => console.error('[password-reset] could not send the link:', error instanceof Error ? error.message : error))
   })
 
@@ -85,7 +85,7 @@ export function passwordResetRouter({ config, mailer, rateLimit }: AppContext): 
     await startSession(req, res, user.id, config.SESSION_TTL_DAYS)
     res.json({ user: publicUser(user) })
 
-    mailer.send(passwordChangedEmail(user.email, user.name.split(' ')[0] ?? user.name, input.locale)).catch((error: unknown) => {
+    mailer.send(passwordChangedEmail(user.email, user.name.split(' ')[0] ?? user.name, input.locale, config.APP_URL)).catch((error: unknown) => {
       console.error('[password-reset] could not send the confirmation:', error instanceof Error ? error.message : error)
     })
   })

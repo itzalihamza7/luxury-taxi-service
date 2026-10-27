@@ -151,7 +151,7 @@ export function BookingDetails({
         <p className="font-display text-4xl">{formatPrice(booking.totalCents, booking.currency, locale, t.payment.onRequest)}</p>
       </div>
       {cancelled && booking.paymentStatus === 'paid' ? <p className="mt-3 text-sm text-ink-900/65">{b.details.refundNote}</p> : null}
-      {booking.payments ? <BookingPayments booking={booking} payments={booking.payments} b={b} timeZone={timeZone} /> : null}
+      {booking.payments ? <BookingPayments booking={booking} payments={booking.payments} b={b} timeZone={timeZone} code={proof?.code} onChange={onChange} /> : null}
 
       {/* Cancel */}
       {hideCancel || cancelled || booking.status === 'completed' ? null : booking.canCancel ? (

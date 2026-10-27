@@ -4,7 +4,7 @@ import { z } from 'zod'
 import type { Config } from '../../config.js'
 import type { AppContext } from '../../context.js'
 import { db } from '../../db/client.js'
-import { bookingPayments, bookings, vehicles, type Booking, type BookingChange } from '../../db/schema.js'
+import { bookingPayments, bookings, paymentProofs, vehicles, type Booking, type BookingChange } from '../../db/schema.js'
 import { badRequest, conflict, notFound } from '../../lib/errors.js'
 import { normalizeReference } from '../../lib/reference.js'
 import { zonedDateTimeToUtc } from '../../lib/time.js'
@@ -69,11 +69,13 @@ export async function serializeAdminBooking(booking: Booking, config: Config) {
   return {
     ...serializeBooking(booking, config),
     guestCode: booking.guestCode,
+    proofToCheck: payments.some((payment) => payment.status === 'requested' && payment.proofUploadedAt !== null),
     events: events.map(serializeEvent),
     payments: payments.map((payment) => ({
       ...serializePayment(payment),
       link: payment.link,
       whatsappUrl: payment.status === 'requested' ? paymentWhatsappUrl(booking, payment, config) : null,
+      proofUrl: payment.proofUploadedAt ? `/api/admin/bookings/${booking.reference}/payments/${payment.id}/proof` : null,
     })),
   }
 }
@@ -209,8 +211,28 @@ export function bookingActionsRouter(context: AppContext): Router {
       { field: 'paymentKind', from: null, to: payment.kind },
       { field: 'paymentAmountCents', from: null, to: String(payment.amountCents) },
     ])
-    sendQuietly(mailer, paymentRequestedEmail(booking, payment, config))
+    // What is left beyond every payment asked for so far (received or still open, this one included):
+    // an advance tells the customer the rest, and an open advance is not counted as still owed.
+    const asked = (await listPayments(booking.id)).filter((item) => item.status !== 'cancelled').reduce((sum, item) => sum + item.amountCents, 0)
+    sendQuietly(mailer, paymentRequestedEmail(booking, payment, Math.max(0, booking.totalCents - asked), config))
     res.status(201).json({ booking: await serializeAdminBooking(booking, config), whatsappUrl: paymentWhatsappUrl(booking, payment, config) })
+  })
+
+  /** The customer's proof of a payment (a screenshot or PDF), to check before marking it received. */
+  router.get('/bookings/:reference/payments/:id/proof', async (req, res) => {
+    const booking = await findOrFail(req.params.reference)
+    const id = String(req.params.id)
+    const [proof] = isUuid(id)
+      ? await db
+          .select({ contentType: paymentProofs.contentType, data: paymentProofs.data })
+          .from(paymentProofs)
+          .innerJoin(bookingPayments, eq(bookingPayments.id, paymentProofs.paymentId))
+          .where(and(eq(paymentProofs.paymentId, id), eq(bookingPayments.bookingId, booking.id)))
+      : []
+    if (!proof) throw notFound('PROOF_NOT_FOUND', 'No proof has been uploaded for this payment.')
+    // The type was checked from the file's bytes on upload; the browser must not guess another.
+    res.set({ 'Content-Type': proof.contentType, 'Content-Disposition': 'inline', 'Cache-Control': 'private, no-store', 'X-Content-Type-Options': 'nosniff' })
+    res.send(proof.data)
   })
 
   /** The money has arrived (or the request is withdrawn). The booking's payment status follows. */

@@ -49,6 +49,8 @@ export function BookingHistory({ events, b, timeZone, currency }: { events: Book
         return !event.actorName && event.changes.some((change) => change.field === 'status' && change.to === 'cancelled') ? h.cancelledByCustomer : h.statusChanged
       case 'payment_requested':
         return fill(h.paymentRequested, payment(event))
+      case 'payment_proof':
+        return fill(h.paymentProof, payment(event))
       case 'payment_received':
         return fill(h.paymentReceived, payment(event))
       case 'payment_cancelled':

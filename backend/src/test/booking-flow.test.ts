@@ -67,12 +67,14 @@ describe('the team takes a booking from received to confirmed', () => {
   it('edits it with a note, asks for an advance, records it, confirms it, and the customer sees every step', async () => {
     const { sent, app } = setUp()
     const admin = await adminAgent(app)
-    const reference = (await bookRide(app)).response.body.booking.reference as string
+    const booked = (await bookRide(app)).response.body.booking
+    const reference = booked.reference as string
+    const quoted = booked.totalCents as number
     const code = await guestCodeOf(reference)
 
     // Every edit needs a note, and must change something.
     expect((await admin.put(`/api/admin/bookings/${reference}`).send({ totalCents: 9500 })).body.error.fields).toMatchObject({ note: 'required' })
-    expect((await admin.put(`/api/admin/bookings/${reference}`).send({ note: 'Nothing new', totalCents: 9000 })).body.error.code).toBe('NOTHING_CHANGED')
+    expect((await admin.put(`/api/admin/bookings/${reference}`).send({ note: 'Nothing new', totalCents: quoted })).body.error.code).toBe('NOTHING_CHANGED')
 
     const edited = await admin.put(`/api/admin/bookings/${reference}`).send({ note: 'Your flight lands later, so we moved the pickup.', pickupTime: '12:30', totalCents: 9500 })
     expect(edited.status).toBe(200)
@@ -83,15 +85,16 @@ describe('the team takes a booking from received to confirmed', () => {
       note: 'Your flight lands later, so we moved the pickup.',
       changes: [
         { field: 'pickupAt', from: expect.any(String), to: expect.any(String) },
-        { field: 'totalCents', from: '9000', to: '9500' },
+        { field: 'totalCents', from: String(quoted), to: '9500' },
       ],
     })
     const updated = await emailWith(sent, `Your booking ${reference} was updated`)
     expect(updated.text).toContain('Note from our team: Your flight lands later, so we moved the pickup.')
-    expect(updated.text).toMatch(/Price: €90 → €95/)
+    // The website quoted just under the round fare (€89.x0); the team set a round price.
+    expect(updated.text).toMatch(/Price: €89\.\d0 → €95/)
     expect(updated.text).toContain('12:30')
 
-    // An advance, through the business's own payment link: by email now, by WhatsApp with one tap.
+    // An advance, through the business's own payment link: the email points to the booking's page, WhatsApp carries the link.
     expect((await admin.post(`/api/admin/bookings/${reference}/payments`).send({ kind: 'advance', amountCents: 3000, link: 'http://pay.example.com/x' })).status).toBe(400)
     expect((await admin.post(`/api/admin/bookings/${reference}/payments`).send({ kind: 'full', amountCents: 20_000, link: 'https://pay.example.com/x' })).body.error.fields).toMatchObject({ amountCents: 'above_total' })
     const asked = await admin.post(`/api/admin/bookings/${reference}/payments`).send({ kind: 'advance', amountCents: 3000, link: 'https://pay.example.com/abc' })
@@ -103,8 +106,15 @@ describe('the team takes a booking from received to confirmed', () => {
     expect(whatsapp).toContain(code)
     const paymentEmail = await emailWith(sent, `Payment to confirm your booking ${reference}`)
     expect(paymentEmail.text).toContain('advance of €30')
-    expect(paymentEmail.text).toContain('https://pay.example.com/abc')
+    // The rest of the €95 is spelled out; the link itself is only on the booking's page.
+    expect(paymentEmail.text).toContain('After this payment, €65 remains to be paid.')
+    expect(paymentEmail.text).toContain('Payment done')
+    expect(paymentEmail.text).not.toContain('https://pay.example.com/abc')
+    expect(paymentEmail.text).toContain(`https://signaturemile.example/en/booking/${reference}`)
     expect(paymentEmail.text).toContain(code)
+    // Every email opens with the logo from the website, linking home.
+    expect(paymentEmail.html).toContain('<a href="https://signaturemile.example" style="display:inline-block;margin:0 0 24px;text-decoration:none"><img src="https://signaturemile.example/images/logo.png"')
+    expect(paymentEmail.html).toContain('alt="SignatureMile · Private chauffeurs"')
 
     // The customer finds the link on the booking's page.
     const page = await request(app).post(`/api/bookings/${reference}/open`).send({ code })
@@ -128,19 +138,27 @@ describe('the team takes a booking from received to confirmed', () => {
   })
 
   it('settles the booking with the rest, and lets the team withdraw a link', async () => {
-    const { app } = setUp()
+    const { sent, app } = setUp()
     const admin = await adminAgent(app)
-    const reference = (await bookRide(app)).response.body.booking.reference as string
+    const booked = (await bookRide(app)).response.body.booking
+    const reference = booked.reference as string
+    const total = booked.totalCents as number
     const ask = (body: Record<string, unknown>) => admin.post(`/api/admin/bookings/${reference}/payments`).send({ link: 'https://pay.example.com/abc', ...body })
 
-    const wrong = (await ask({ kind: 'full', amountCents: 9000 })).body.booking.payments[0].id as string
+    const wrong = (await ask({ kind: 'full', amountCents: total })).body.booking.payments[0].id as string
     const withdrawn = await admin.post(`/api/admin/bookings/${reference}/payments/${wrong}/cancel`)
     expect(withdrawn.body.booking.payments[0]).toMatchObject({ status: 'cancelled' })
     expect(withdrawn.body.booking.paymentStatus).toBe('unpaid')
 
     const advance = (await ask({ kind: 'advance', amountCents: 4000 })).body.booking.payments[1].id as string
     await admin.post(`/api/admin/bookings/${reference}/payments/${advance}/paid`)
-    const balance = (await ask({ kind: 'balance', amountCents: 5000 })).body.booking.payments[2].id as string
+    const balance = (await ask({ kind: 'balance', amountCents: total - 4000 })).body.booking.payments[2].id as string
+    // The balance settles everything asked for: its email (the third payment email) names nothing left to pay.
+    const paymentEmails = () => sent.filter((email) => email.subject === `Payment to confirm your booking ${reference}`)
+    for (let i = 0; i < 100 && paymentEmails().length < 3; i += 1) await new Promise((resolve) => setTimeout(resolve, 20))
+    expect(paymentEmails()).toHaveLength(3)
+    expect(paymentEmails()[2]?.text).toContain(`remaining balance of €${((total - 4000) / 100).toFixed(2)}`)
+    expect(paymentEmails()[2]?.text).not.toContain('remains to be paid')
     expect((await admin.post(`/api/admin/bookings/${reference}/payments/${balance}/paid`)).body.booking.paymentStatus).toBe('paid')
   })
 
@@ -198,6 +216,78 @@ describe('a ride priced on request', () => {
   })
 })
 
+describe('the customer proves a payment with "Payment done"', () => {
+  /** A file that starts like a PNG: the server judges the type by the first bytes. */
+  const PNG = Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), Buffer.alloc(64, 1)])
+  const PDF = Buffer.from('%PDF-1.7\n% payment confirmation\n')
+
+  async function bookingWithRequest() {
+    const { app } = setUp()
+    const admin = await adminAgent(app)
+    const reference = (await bookRide(app)).response.body.booking.reference as string
+    const code = await guestCodeOf(reference)
+    const asked = await admin.post(`/api/admin/bookings/${reference}/payments`).send({ kind: 'advance', amountCents: 3000, link: 'https://pay.example.com/abc' })
+    const paymentId = asked.body.booking.payments[0].id as string
+    const upload = (file: Buffer, type: string, guestCode: string | null = code) => {
+      const call = request(app).post(`/api/bookings/${reference}/payments/${paymentId}/proof`).set('Content-Type', type)
+      return (guestCode ? call.set('X-Guest-Code', guestCode) : call).send(file)
+    }
+    return { app, admin, reference, code, paymentId, upload }
+  }
+
+  it('takes a screenshot with the guest code, keeps the payment open, and shows the proof to the team only', async () => {
+    const { app, admin, reference, paymentId, upload } = await bookingWithRequest()
+
+    expect((await upload(PNG, 'image/png', null)).status).toBe(404)
+    expect((await upload(PNG, 'image/png', 'WRON-GCOD')).status).toBe(404)
+    expect((await upload(Buffer.from('not a picture'), 'image/png')).body.error.code).toBe('UNSUPPORTED_PROOF')
+    expect((await upload(Buffer.from('plain text'), 'text/plain')).body.error.code).toBe('UNSUPPORTED_PROOF')
+    expect((await upload(Buffer.alloc(9 * 1024 * 1024, 1), 'image/png')).status).toBe(413)
+
+    const done = await upload(PNG, 'image/png')
+    expect(done.status).toBe(200)
+    // Still requested: the team checks the proof before marking it received.
+    expect(done.body.booking.payments[0]).toMatchObject({ id: paymentId, status: 'requested', proofUploadedAt: expect.any(String) })
+    expect(done.body.booking.paymentStatus).toBe('unpaid')
+    expect(done.body.booking.events[0]).toMatchObject({ kind: 'payment_proof', actorName: null })
+
+    // The team sees it in the list and on the booking, and can open the file.
+    const list = await admin.get('/api/admin/bookings')
+    expect(list.body.bookings.find((booking: { reference: string }) => booking.reference === reference)).toMatchObject({ proofToCheck: true })
+    const console = (await admin.get(`/api/admin/bookings/${reference}`)).body.booking
+    expect(console.proofToCheck).toBe(true)
+    expect(console.payments[0].proofUrl).toBe(`/api/admin/bookings/${reference}/payments/${paymentId}/proof`)
+    const file = await admin.get(console.payments[0].proofUrl).buffer(true)
+    expect(file.status).toBe(200)
+    expect(file.headers['content-type']).toBe('image/png')
+    expect(Buffer.compare(file.body as Buffer, PNG)).toBe(0)
+    // Nobody else can.
+    expect((await request(app).get(console.payments[0].proofUrl)).status).toBe(401)
+    expect((await (await registerAgent(app, 'someone@example.com')).get(console.payments[0].proofUrl)).status).toBe(403)
+
+    // A PDF replaces the screenshot.
+    expect((await upload(PDF, 'application/pdf')).status).toBe(200)
+    expect((await admin.get(console.payments[0].proofUrl)).headers['content-type']).toBe('application/pdf')
+
+    // Once marked received there is nothing left to prove.
+    const paid = await admin.post(`/api/admin/bookings/${reference}/payments/${paymentId}/paid`)
+    expect(paid.body.booking).toMatchObject({ paymentStatus: 'partly_paid', proofToCheck: false })
+    expect((await upload(PNG, 'image/png')).body.error.code).toBe('PAYMENT_CLOSED')
+  })
+
+  it('lets a customer with an account upload with their session, but not someone else', async () => {
+    const { app } = setUp()
+    const admin = await adminAgent(app)
+    const owner = await registerAgent(app, 'owner@example.com')
+    const reference = (await bookRide(app, { agent: owner, booking: { contact: { ...CONTACT, email: 'owner@example.com' } } })).response.body.booking.reference as string
+    const asked = await admin.post(`/api/admin/bookings/${reference}/payments`).send({ kind: 'full', amountCents: 3000, link: 'https://pay.example.com/abc' })
+    const url = `/api/bookings/${reference}/payments/${asked.body.booking.payments[0].id}/proof`
+
+    expect((await (await registerAgent(app, 'other@example.com')).post(url).set('Content-Type', 'image/png').send(PNG)).status).toBe(404)
+    expect((await owner.post(url).set('Content-Type', 'image/png').send(PNG)).status).toBe(200)
+  })
+})
+
 describe('accounts and guest bookings', () => {
   const codeIn = (email: Email) => email.subject.match(/(\d{6})$/)?.[1] ?? ''
 
@@ -214,6 +304,7 @@ describe('accounts and guest bookings', () => {
     // The code was sent at sign-up.
     const codeEmail = sent.find((email) => email.subject.startsWith('Your SignatureMile code'))!
     expect(codeEmail.to).toBe('client@example.com')
+    expect(codeEmail.html).toContain('<img src="https://signaturemile.example/images/logo.png"')
     const wrong = codeIn(codeEmail) === '000000' ? '111111' : '000000'
     expect((await customer.post('/api/auth/email/verify').send({ code: wrong })).body.error.code).toBe('CODE_INVALID')
     const verified = await customer.post('/api/auth/email/verify').send({ code: codeIn(codeEmail) })

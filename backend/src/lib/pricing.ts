@@ -1,6 +1,6 @@
 /**
- * Fare calculation. All amounts are integer cents; totals are rounded up to a
- * whole euro so customers see clean, all-inclusive prices.
+ * Fare calculation. All amounts are integer cents; fares are rounded up to a whole euro, then
+ * quoted just under it (`justUnderCents`).
  */
 
 export const RIDE_TYPES = ['one_way', 'return', 'local', 'hourly', 'city_to_city', 'airport'] as const
@@ -31,6 +31,22 @@ export interface FareInput {
   beyondZoneM: number
   /** Booked hours. Only used for hourly hire. */
   hours: number
+}
+
+/**
+ * The price shown, and charged, just under the round figure: €89.30 rather than €90. It is 10 to
+ * 90 cents less, in steps of 10 cents, picked from `seed` (the vehicle and the journey), so the
+ * same trip always gets the same price. Amounts of a euro or less are left as they are.
+ */
+export function justUnderCents(cents: number, seed: string): number {
+  if (cents <= 100) return cents
+  // FNV-1a: a quick, stable hash of the seed.
+  let hash = 2166136261
+  for (let index = 0; index < seed.length; index++) {
+    hash ^= seed.charCodeAt(index)
+    hash = Math.imul(hash, 16777619)
+  }
+  return cents - (((hash >>> 0) % 9) + 1) * 10
 }
 
 /**
