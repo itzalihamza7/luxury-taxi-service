@@ -100,6 +100,8 @@ export const vehicles = pgTable(
     zoneFareCents: integer('zone_fare_cents').notNull(),
     /** Added for each road kilometre beyond the M-30. */
     perKmCents: integer('per_km_cents').notNull(),
+    /** Added instead for each road kilometre more than 120 km from the centre of Madrid; null: `perKmCents`. */
+    farPerKmCents: integer('far_per_km_cents'),
     /** Hourly hire; null when it is only offered at a price agreed case by case. */
     hourlyRateCents: integer('hourly_rate_cents'),
     tagline: jsonb('tagline').$type<Localized>().notNull(),
@@ -115,7 +117,7 @@ export const vehicles = pgTable(
     check('vehicles_capacity_check', sql`${table.passengers} > 0 and ${table.luggage} >= 0`),
     check(
       'vehicles_rates_check',
-      sql`${table.zoneFareCents} >= 0 and ${table.perKmCents} >= 0 and (${table.hourlyRateCents} is null or ${table.hourlyRateCents} >= 0)`,
+      sql`${table.zoneFareCents} >= 0 and ${table.perKmCents} >= 0 and (${table.farPerKmCents} is null or ${table.farPerKmCents} >= 0) and (${table.hourlyRateCents} is null or ${table.hourlyRateCents} >= 0)`,
     ),
   ],
 )

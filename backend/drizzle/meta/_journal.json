@@ -120,6 +120,13 @@
       "when": 1793098602370,
       "tag": "0016_payment_faq_proof",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1793106589692,
+      "tag": "0017_far_per_km",
+      "breakpoints": true
     }
   ]
 }

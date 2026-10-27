@@ -11,7 +11,7 @@ import { fareCents, justUnderCents, transferFareCents, type VehicleRates } from 
 import { createRateLimiter } from './rate-limit.js'
 import { generateReference, normalizeReference } from './reference.js'
 import { zonedDateTimeToUtc } from './time.js'
-import { atAirport, inPriceZone, insideM30, metresBeyondZone } from './zone.js'
+import { atAirport, inPriceZone, insideM30, metresBeyondZone, metresFar } from './zone.js'
 
 const MADRID = 'Europe/Madrid'
 const SOL = { lat: 40.4169, lng: -3.7035 }
@@ -94,6 +94,21 @@ describe('pricing', () => {
     expect(fareCents(rates, { rideType, beyondZoneM: 64_321, hours: 0 })).toBe(23_800)
   })
 
+  it('charges the long-distance rate for the kilometres more than 120 km from Madrid', () => {
+    // The V-Class: 3.00 per km beyond the M-30, 2.30 more than 120 km out.
+    const van: VehicleRates = { zoneFareCents: 9000, perKmCents: 300, farPerKmCents: 230, hourlyRateCents: 9500 }
+    // 90.00 + 3.00 x 100 km + 2.30 x 500 km = 1540.00
+    expect(transferFareCents(van, 600_000, 500_000)).toBe(154_000)
+    expect(fareCents(van, { rideType: 'return', beyondZoneM: 600_000, farM: 500_000, hours: 0 })).toBe(308_000)
+    // Nothing that far: the price per km alone.
+    expect(transferFareCents(van, 64_321)).toBe(28_300)
+    // Without a long-distance rate the price per km applies all the way.
+    expect(transferFareCents(rates, 600_000, 500_000)).toBe(transferFareCents(rates, 600_000))
+    expect(transferFareCents({ ...rates, farPerKmCents: null }, 600_000, 500_000)).toBe(transferFareCents(rates, 600_000))
+    // The far stretch is never more than the stretch beyond the zone.
+    expect(transferFareCents(van, 10_000, 50_000)).toBe(transferFareCents(van, 10_000, 10_000))
+  })
+
   it('never returns a negative or fractional amount', () => {
     expect(transferFareCents(rates, -500)).toBe(9000)
     expect(Number.isInteger(transferFareCents(rates, 12_345))).toBe(true)
@@ -159,6 +174,20 @@ describe('price zone (M-30 and the airport)', () => {
     expect(beyond).toBeLessThan(70_000)
     // The airport to Toledo: all of it beyond the zone, bar the last stretch out of the airport.
     expect(metresBeyondZone(T4, TOLEDO, 85_000)).toBeGreaterThan(82_000)
+  })
+
+  it('counts the share of the journey more than 120 km from the centre of Madrid', () => {
+    // Toledo (about 70 km) and Segovia (about 70 km) are inside the radius.
+    expect(metresFar(SOL, TOLEDO, 72_000)).toBe(0)
+    expect(metresFar(TOLEDO, place(40.9429, -4.1088), 160_000)).toBe(0)
+    // Sol to Barcelona (about 505 km in a straight line): all but the first 120 km of it.
+    const BARCELONA = place(41.3874, 2.1686)
+    const far = metresFar(SOL, BARCELONA, 620_000)
+    expect(far).toBeGreaterThan(465_000)
+    expect(far).toBeLessThan(475_000)
+    expect(far).toBeLessThan(metresBeyondZone(SOL, BARCELONA, 620_000))
+    // Either way round.
+    expect(metresFar(BARCELONA, SOL, 620_000)).toBe(far)
   })
 })
 

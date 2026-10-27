@@ -226,6 +226,10 @@ through `/api`, and can pass a visitor on to WhatsApp or a phone call.
   routing server the road is not known, so the share of the straight line outside the M-30 (and
   the airport) is applied to the road distance. The M-30's outline is in
   [`backend/src/lib/zone.ts`](backend/src/lib/zone.ts), traced from OpenStreetMap.
+- **Long distances** (from 27 October 2026): each road kilometre more than 120 km in a straight
+  line from the centre of Madrid (Puerta del Sol) costs the vehicle's price per km beyond 120 km,
+  judged the same way. Left empty, the price per km applies there too; only the V-Class has one
+  (2.30 € instead of 3.00 €).
 - **Hourly hire** is the hours at the hourly rate. A vehicle without one (the Sprinter) can still
   be booked: the price is "on request", and the team sets it afterwards.
 - **Return trips** cost two transfers.

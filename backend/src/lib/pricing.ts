@@ -11,6 +11,8 @@ export interface VehicleRates {
   zoneFareCents: number
   /** Each road kilometre beyond that zone. */
   perKmCents: number
+  /** Each road kilometre more than 120 km from the centre of Madrid; null (or left out) charges `perKmCents` there too. */
+  farPerKmCents?: number | null
   /** Null when hourly hire is agreed case by case. */
   hourlyRateCents: number | null
 }
@@ -19,16 +21,24 @@ function roundUpToWholeUnit(cents: number): number {
   return Math.ceil(cents / 100) * 100
 }
 
-/** Price of a single transfer of which `beyondZoneM` road metres lie beyond the price zone. */
-export function transferFareCents(rates: VehicleRates, beyondZoneM: number): number {
+/**
+ * Price of a single transfer of which `beyondZoneM` road metres lie beyond the price zone, `farM`
+ * of them more than 120 km from the centre of Madrid.
+ */
+export function transferFareCents(rates: VehicleRates, beyondZoneM: number, farM = 0): number {
+  const farMetres = Math.min(Math.max(0, farM), Math.max(0, beyondZoneM))
+  const nearMetres = Math.max(0, beyondZoneM) - farMetres
   // Integer arithmetic (cents x metres) avoids floating-point drift.
-  return roundUpToWholeUnit(rates.zoneFareCents + Math.ceil((rates.perKmCents * Math.max(0, beyondZoneM)) / 1000))
+  const distanceCents = rates.perKmCents * nearMetres + (rates.farPerKmCents ?? rates.perKmCents) * farMetres
+  return roundUpToWholeUnit(rates.zoneFareCents + Math.ceil(distanceCents / 1000))
 }
 
 export interface FareInput {
   rideType: RideType
   /** Road metres of one leg beyond the price zone. Ignored for hourly hire. */
   beyondZoneM: number
+  /** Of those, the metres more than 120 km from the centre of Madrid. */
+  farM?: number
   /** Booked hours. Only used for hourly hire. */
   hours: number
 }
@@ -57,6 +67,6 @@ export function fareCents(rates: VehicleRates, input: FareInput): number | null 
   if (input.rideType === 'hourly') {
     return rates.hourlyRateCents === null ? null : roundUpToWholeUnit(rates.hourlyRateCents * input.hours)
   }
-  const oneWay = transferFareCents(rates, input.beyondZoneM)
+  const oneWay = transferFareCents(rates, input.beyondZoneM, input.farM)
   return input.rideType === 'return' ? oneWay * 2 : oneWay
 }

@@ -1,8 +1,10 @@
+import { HOME_LOCATION } from '../config.js'
 import { haversineM, type LatLng } from './geo.js'
 
 /*
  * The price zone: a transfer inside the M-30 ring road, or between the airport and the M-30, has a
- * fixed price; each road kilometre beyond the zone is added at the vehicle's rate per km.
+ * fixed price; each road kilometre beyond the zone is added at the vehicle's rate per km, and each
+ * one more than 120 km from the centre of Madrid at its rate for long distances.
  */
 
 /**
@@ -55,8 +57,23 @@ export const atAirport = (point: LatLng) => inside(point, AIRPORT)
 /** Inside the M-30 or at the airport: the places a fixed-price transfer runs between. */
 export const inPriceZone = (point: LatLng) => insideM30(point) || atAirport(point)
 
+/** Beyond this straight-line distance from the centre of Madrid (Puerta del Sol) the long-distance rate applies. */
+export const FAR_RADIUS_M = 120_000
+const far = (point: LatLng) => haversineM(HOME_LOCATION, point) > FAR_RADIUS_M
+
 /** One sample of the straight line every this many metres, enough to place a journey to within a few hundred metres. */
 const SAMPLE_M = 250
+
+/** The share of `roadM` that lies where `where` holds, judged along the straight line between the two places. */
+function share(from: LatLng, to: LatLng, roadM: number, where: (point: LatLng) => boolean): number {
+  const samples = Math.max(2, Math.ceil(haversineM(from, to) / SAMPLE_M))
+  let count = 0
+  for (let i = 0; i < samples; i++) {
+    const t = (i + 0.5) / samples
+    if (where({ lat: from.lat + (to.lat - from.lat) * t, lng: from.lng + (to.lng - from.lng) * t })) count++
+  }
+  return Math.round((roadM * count) / samples)
+}
 
 /**
  * How many of a journey's `roadM` metres lie beyond the price zone.
@@ -68,11 +85,11 @@ const SAMPLE_M = 250
  */
 export function metresBeyondZone(from: LatLng, to: LatLng, roadM: number): number {
   if (inPriceZone(from) && inPriceZone(to)) return 0
-  const samples = Math.max(2, Math.ceil(haversineM(from, to) / SAMPLE_M))
-  let outside = 0
-  for (let i = 0; i < samples; i++) {
-    const t = (i + 0.5) / samples
-    if (!inPriceZone({ lat: from.lat + (to.lat - from.lat) * t, lng: from.lng + (to.lng - from.lng) * t })) outside++
-  }
-  return Math.round((roadM * outside) / samples)
+  return share(from, to, roadM, (point) => !inPriceZone(point))
+}
+
+/** How many of a journey's `roadM` metres lie more than 120 km from the centre of Madrid, judged the same way. */
+export function metresFar(from: LatLng, to: LatLng, roadM: number): number {
+  if (!far(from) && !far(to)) return 0
+  return share(from, to, roadM, far)
 }
