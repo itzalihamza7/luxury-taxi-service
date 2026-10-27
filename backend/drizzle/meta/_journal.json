@@ -92,6 +92,13 @@
       "when": 1793059550260,
       "tag": "0012_payment_faq",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1793059949945,
+      "tag": "0013_corolla_rates",
+      "breakpoints": true
     }
   ]
 }
