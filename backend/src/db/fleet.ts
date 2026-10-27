@@ -6,7 +6,8 @@ type NewVehicle = typeof vehicles.$inferInsert
  * Starting fleet, inserted once when the `vehicles` table is empty.
  *
  * Rates in euro cents, from the business's price list of 26 October 2026: the fixed price inside
- * the M-30 (see `lib/zone.ts`), the price per km beyond it, and the hourly rate (null: on request).
+ * the M-30 (see `lib/zone.ts`), the price per km beyond it, the price per km more than 120 km from
+ * the centre of Madrid where it differs (from 27 October 2026), and the hourly rate (null: on request).
  * After the first start the database is the source of truth: vehicles, prices
  * and photos are then edited in the console (`/admin`), not here.
  *
@@ -68,6 +69,7 @@ export const INITIAL_FLEET: NewVehicle[] = [
     luggage: 5,
     zoneFareCents: 9000,
     perKmCents: 300,
+    farPerKmCents: 230,
     hourlyRateCents: 9500,
     tagline: { en: 'First-class van', es: 'Monovolumen de primera clase' },
     description: {

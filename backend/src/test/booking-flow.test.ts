@@ -286,6 +286,14 @@ describe('the customer proves a payment with "Payment done"', () => {
     expect((await (await registerAgent(app, 'other@example.com')).post(url).set('Content-Type', 'image/png').send(PNG)).status).toBe(404)
     expect((await owner.post(url).set('Content-Type', 'image/png').send(PNG)).status).toBe(200)
   })
+
+  it('takes the proof from the team too, who open any booking page while signed in', async () => {
+    const { admin, reference, paymentId } = await bookingWithRequest()
+    const done = await admin.post(`/api/bookings/${reference}/payments/${paymentId}/proof`).set('Content-Type', 'image/png').send(PNG)
+    expect(done.status).toBe(200)
+    expect(done.body.booking.payments[0]).toMatchObject({ id: paymentId, status: 'requested', proofUploadedAt: expect.any(String) })
+    expect(done.body.booking.events[0]).toMatchObject({ kind: 'payment_proof', actorName: expect.any(String) })
+  })
 })
 
 describe('accounts and guest bookings', () => {

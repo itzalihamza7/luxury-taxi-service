@@ -115,14 +115,43 @@ describe('createAddressSearch', () => {
       { id: 'osm:N5', kind: 'address', label: 'Getafe', sublabel: 'Comunidad de Madrid', lat: 40.3083, lng: -3.7326 },
     ])
 
-    // The request is biased to the home city and restricted to the service area.
-    expect(requests[0]?.pathname).toBe('/api')
-    expect(requests[0]?.searchParams.get('q')).toBe('Calle de Serrano')
-    expect(requests[0]?.searchParams.get('bbox')).toBe('-9.6,35.8,4.4,43.9')
+    // Two requests, both restricted to the service area: one biased to the home city, one not.
+    expect(requests).toHaveLength(2)
+    for (const sent of requests) {
+      expect(sent.pathname).toBe('/api')
+      expect(sent.searchParams.get('q')).toBe('Calle de Serrano')
+      expect(sent.searchParams.get('bbox')).toBe('-9.6,35.8,4.4,43.9')
+    }
+    expect(requests.filter((sent) => sent.searchParams.has('lat') && sent.searchParams.has('lon'))).toHaveLength(1)
 
     // A repeated query is served from the cache.
     await search('calle de serrano')
-    expect(requests).toHaveLength(1)
+    expect(requests).toHaveLength(2)
+  })
+
+  it('leads with places near Madrid, then the rest of Spain, each once', async () => {
+    const madrid = (id: number) => feature({ osm_id: id, type: 'house', name: `Madrid ${id}`, city: 'Madrid' }, [-3.7, 40.42])
+    const barcelona = (id: number) => feature({ osm_id: id, type: 'house', name: `Barcelona ${id}`, city: 'Barcelona' }, [2.17, 41.39])
+    const url = await listen((req, res) => {
+      const nearMadrid = new URL(req.url ?? '', 'http://stub').searchParams.has('lat')
+      res.setHeader('Content-Type', 'application/json')
+      res.end(JSON.stringify({ features: nearMadrid ? [1, 2, 3, 4, 5, 6].map(madrid) : [barcelona(10), madrid(1), barcelona(11)] }))
+    })
+    const places = await createAddressSearch(url)('Sagrada Familia')
+    expect(places.map((place) => place.label)).toEqual(['Madrid 1', 'Madrid 2', 'Madrid 3', 'Madrid 4', 'Barcelona 10', 'Barcelona 11', 'Madrid 5', 'Madrid 6'])
+  })
+
+  it('still answers when one of the two searches fails', async () => {
+    const url = await listen((req, res) => {
+      if (new URL(req.url ?? '', 'http://stub').searchParams.has('lat')) {
+        res.statusCode = 503
+        res.end()
+        return
+      }
+      res.setHeader('Content-Type', 'application/json')
+      res.end(JSON.stringify({ features: [feature({ osm_id: 10, type: 'house', name: 'Hotel Arts', city: 'Barcelona' }, [2.197, 41.386])] }))
+    })
+    expect((await createAddressSearch(url)('Hotel Arts')).map((place) => place.label)).toEqual(['Hotel Arts'])
   })
 
   it('does not query the geocoder for very short input', async () => {

@@ -8,7 +8,7 @@ import { badRequest } from '../../lib/errors.js'
 import { haversineM, isInServiceArea, type RouteResult } from '../../lib/geo.js'
 import { fareCents, justUnderCents, RIDE_TYPES } from '../../lib/pricing.js'
 import { zonedDateTimeToUtc } from '../../lib/time.js'
-import { metresBeyondZone } from '../../lib/zone.js'
+import { metresBeyondZone, metresFar } from '../../lib/zone.js'
 import { parse } from '../../lib/validate.js'
 import { listActiveVehicles, serializeVehicle, wantsCompact } from '../vehicles/routes.js'
 
@@ -117,13 +117,14 @@ export async function createQuote({ config, findRoute }: AppContext, body: unkno
 
   // --- Price every vehicle ------------------------------------------------
   const beyondZoneM = route && dropoff ? metresBeyondZone(input.pickup, dropoff, route.distanceM) : 0
+  const farM = route && dropoff ? metresFar(input.pickup, dropoff, route.distanceM) : 0
   const fleet = await listActiveVehicles()
   // The same journey in the same vehicle always lands on the same price just under the round one.
   const at = (place: { lat: number; lng: number }) => `${place.lat.toFixed(4)},${place.lng.toFixed(4)}`
   const journey = `${input.rideType}|${at(input.pickup)}|${dropoff ? at(dropoff) : ''}|${hours ?? ''}`
   const options: QuoteOption[] = fleet.map((vehicle) => {
     const reason = passengers > vehicle.passengers ? 'passengers' : input.luggage > vehicle.luggage ? 'luggage' : undefined
-    const fare = fareCents(vehicle, { rideType: input.rideType, beyondZoneM, hours: hours ?? 0 })
+    const fare = fareCents(vehicle, { rideType: input.rideType, beyondZoneM, farM, hours: hours ?? 0 })
     return {
       vehicleId: vehicle.id,
       totalCents: fare === null ? null : justUnderCents(fare, `${vehicle.id}|${journey}`),

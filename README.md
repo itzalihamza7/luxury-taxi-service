@@ -73,7 +73,9 @@ Browser ──► Next.js (frontend:3000) ──/api/*──► Express API (bac
   distances; other journeys are estimated from the straight-line distance. Setting `ROUTER_URL` to
   an [OSRM](https://project-osrm.org)-compatible server gives exact door-to-door distances.
 - **Addresses.** A built-in catalogue of airports, stations, venues and cities is combined with
-  street addresses from a Photon-compatible geocoder (OpenStreetMap data).
+  street addresses from a Photon-compatible geocoder (OpenStreetMap data), across Spain: one search
+  near Madrid and one across the country run side by side, and the list leads with the nearest
+  results, so a hotel in Barcelona is found as well as a street in Madrid.
 - **Content in the database.** Pages are stored as typed, validated JSON per collection, so the
   admin panel needs no developer for day-to-day changes. Uploaded photos are resized in the
   browser, stored in PostgreSQL and served immutably, so one database backup holds everything.
@@ -143,7 +145,8 @@ the city, drawn with [three.js](https://threejs.org) through React Three Fiber a
 while the visitor scrolls: the camera walks from the front three-quarter view to the side and the
 rear, three short blocks of words take turns (one is always on screen), and the price widget
 follows. A chapter bar at the bottom names the three parts, shows how far along the visitor is,
-jumps to any of them and offers a way straight to the prices.
+jumps to any of them and offers a way straight to the prices. On a phone the three parts are short
+upright bars at the right edge, halfway up the screen, and the way to the prices stays at the bottom.
 
 - **Framing.** The page measures the room each block of words leaves for the car (beside it on a
   landscape screen, below it on a portrait one, clear of the header and the chapter bar), and the
@@ -159,11 +162,12 @@ jumps to any of them and offers a way straight to the prices.
   while the section is off screen, the resolution drops on a struggling GPU, and phones get a
   lighter scene.
 - **Night.** Lighting comes from soft boxes and street lamps reflected in the paint (no image
-  files); one light sweeps along the car on larger screens. From 1024 px the city is a few hundred
-  soft discs of light on a ring behind the car, mirrored in the wet floor; on phones and tablets they
-  read as coloured dots around the words, so there a warm glow that follows the camera sets the
-  night alone. The floor and sky are drawn in exact colours, outside the tone mapping the car gets,
-  so they meet without a line.
+  files); one light sweeps along the car on larger screens. The city is a few hundred soft discs of
+  light on a ring behind the car (fewer on phones and tablets), mirrored in the wet floor, with a
+  warm glow that follows the camera. The glows are worked out pixel by pixel, not drawn as canvas
+  gradients: Safari dithers those, and on iPhones the noise showed as coloured dots above the car.
+  The floor and sky are drawn in exact colours, outside the tone mapping the car gets, so they meet
+  without a line.
 - **The model** is "Mercedes-Benz Maybach 2022" by Mpgs Studios, under
   [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/): the credit is on the site's Credits page,
   linked from every footer, and listed in `frontend/public/images/CREDITS.md`. It was reduced from 2.4 million to 185,000
@@ -224,6 +228,10 @@ through `/api`, and can pass a visitor on to WhatsApp or a phone call.
   routing server the road is not known, so the share of the straight line outside the M-30 (and
   the airport) is applied to the road distance. The M-30's outline is in
   [`backend/src/lib/zone.ts`](backend/src/lib/zone.ts), traced from OpenStreetMap.
+- **Long distances** (from 27 October 2026): each road kilometre more than 120 km in a straight
+  line from the centre of Madrid (Puerta del Sol) costs the vehicle's price per km beyond 120 km,
+  judged the same way. Left empty, the price per km applies there too; only the V-Class has one
+  (2.30 € instead of 3.00 €).
 - **Hourly hire** is the hours at the hourly rate. A vehicle without one (the Sprinter) can still
   be booked: the price is "on request", and the team sets it afterwards.
 - **Return trips** cost two transfers.

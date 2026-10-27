@@ -21,6 +21,8 @@ const vehicleSchema = z.object({
   zoneFareCents: cents,
   /** Per road kilometre beyond the M-30. */
   perKmCents: cents,
+  /** Per road kilometre more than 120 km from the centre of Madrid. Empty: the price per km. */
+  farPerKmCents: cents.nullish().transform((value) => value ?? null),
   /** Empty: hourly hire is agreed case by case, and can be booked without a price. */
   hourlyRateCents: cents.nullable(),
   tagline: localizedText(80),

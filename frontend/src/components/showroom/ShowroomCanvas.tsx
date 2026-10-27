@@ -11,6 +11,8 @@ import {
   CanvasTexture,
   CatmullRomCurve3,
   Color,
+  DataTexture,
+  LinearFilter,
   MathUtils,
   Mesh,
   MeshPhysicalMaterial,
@@ -222,21 +224,30 @@ function gradientTexture(stops: [number, string][]) {
   return texture
 }
 
-/** A soft round highlight, squeezed sideways for `narrow` below 1. */
-function glowTexture(stops: [number, string][], narrow = 1) {
-  const canvas = document.createElement('canvas')
-  canvas.width = canvas.height = 128
-  const context = canvas.getContext('2d')
-  if (context) {
-    context.translate(64, 64)
-    context.scale(narrow, 1)
-    const gradient = context.createRadialGradient(0, 0, 0, 0, 0, 64)
-    for (const [at, color] of stops) gradient.addColorStop(at, color)
-    context.fillStyle = gradient
-    context.fillRect(-64, -64, 128, 128)
+/**
+ * A soft round highlight in white, squeezed sideways for `narrow` below 1; `stops` give its opacity
+ * from the centre (0) to the rim (1). Worked out pixel by pixel rather than drawn as a canvas
+ * gradient: Safari dithers those, and the noise, stretched across a phone's screen, showed as
+ * coloured dots around the glow.
+ */
+function glowTexture(stops: [number, number][], narrow = 1) {
+  const size = 128
+  const half = size / 2
+  const data = new Uint8Array(size * size * 4)
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const r = Math.hypot((x + 0.5 - half) / (half * narrow), (y + 0.5 - half) / half)
+      const next = stops.findIndex(([at]) => at >= r)
+      const [fromAt, from] = stops[Math.max(0, next - 1)] ?? [0, 0]
+      const [toAt, to] = next === -1 ? [1, 0] : (stops[next] ?? [1, 0])
+      const alpha = next === -1 ? 0 : toAt > fromAt ? MathUtils.lerp(from, to, (r - fromAt) / (toAt - fromAt)) : to
+      data.set([255, 255, 255, Math.round(alpha * 255)], (y * size + x) * 4)
+    }
   }
-  const texture = new CanvasTexture(canvas)
+  const texture = new DataTexture(data, size, size)
+  texture.magFilter = texture.minFilter = LinearFilter
   texture.colorSpace = SRGBColorSpace
+  texture.needsUpdate = true
   return texture
 }
 
@@ -261,9 +272,9 @@ function Stage() {
   const pool = useMemo(
     () =>
       glowTexture([
-        [0, 'rgba(255,255,255,0.7)'],
-        [0.4, 'rgba(255,255,255,0.22)'],
-        [1, 'rgba(255,255,255,0)'],
+        [0, 0.7],
+        [0.4, 0.22],
+        [1, 0],
       ]),
     [],
   )
@@ -333,33 +344,34 @@ function lightLayer(random: () => number, count: number, near: number, far: numb
 }
 
 /** Madrid at night behind the car, out of focus as through a fast lens, and mirrored in the wet floor. */
-function City() {
+function City({ compact }: { compact: boolean }) {
   const { layers, disc, streak } = useMemo(() => {
     const random = seeded(11)
+    const scale = compact ? 0.6 : 1
     return {
       layers: [
-        { geometry: lightLayer(random, 220, 42, 60), size: 1.2 },
-        { geometry: lightLayer(random, 120, 28, 42), size: 2 },
-        { geometry: lightLayer(random, 40, 18, 28), size: 3.2 },
+        { geometry: lightLayer(random, Math.round(220 * scale), 42, 60), size: 1.2 },
+        { geometry: lightLayer(random, Math.round(120 * scale), 28, 42), size: 2 },
+        { geometry: lightLayer(random, Math.round(40 * scale), 18, 28), size: 3.2 },
       ],
       // A real lens draws an out-of-focus light as a soft disc with a slightly brighter rim.
       disc: glowTexture([
-        [0, 'rgba(255,255,255,0.4)'],
-        [0.7, 'rgba(255,255,255,0.46)'],
-        [0.88, 'rgba(255,255,255,0.5)'],
-        [0.96, 'rgba(255,255,255,0.22)'],
-        [1, 'rgba(255,255,255,0)'],
+        [0, 0.4],
+        [0.7, 0.46],
+        [0.88, 0.5],
+        [0.96, 0.22],
+        [1, 0],
       ]),
       streak: glowTexture(
         [
-          [0, 'rgba(255,255,255,0.6)'],
-          [0.5, 'rgba(255,255,255,0.2)'],
-          [1, 'rgba(255,255,255,0)'],
+          [0, 0.6],
+          [0.5, 0.2],
+          [1, 0],
         ],
         0.4,
       ),
     }
-  }, [])
+  }, [compact])
   return (
     <group>
       {layers.map((layer) => (
@@ -384,9 +396,9 @@ function Halo() {
   const texture = useMemo(
     () =>
       glowTexture([
-        [0, 'rgba(255,255,255,0.9)'],
-        [0.35, 'rgba(255,255,255,0.35)'],
-        [1, 'rgba(255,255,255,0)'],
+        [0, 0.9],
+        [0.35, 0.35],
+        [1, 0],
       ]),
     [],
   )
@@ -540,8 +552,7 @@ function Scene({ progress, pointer, frame, compact, onReady }: Omit<Props, 'acti
       <fog attach="fog" args={[HORIZON, 12, 36]} />
       <Studio progress={progress} sweep={!compact} />
       <Stage />
-      {/* On a phone the lights read as coloured dots around the words: there the warm glow alone sets the night. */}
-      {compact ? null : <City />}
+      <City compact={compact} />
       <Halo />
       <Car intro={intro} outlineRef={outline} onReady={onReady} />
       <ContactShadows position={[0, 0.004, 0]} scale={12} resolution={compact ? 512 : 1024} far={1.6} blur={2.4} opacity={0.9} frames={1} color="#000000" />

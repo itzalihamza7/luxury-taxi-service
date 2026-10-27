@@ -219,6 +219,8 @@ export function PlaceInput({ id, label, note, value, onChange, t, error, prefer 
           </ul>
           {isSearch && !searching && options.length === 0 ? <p className="px-4 pb-4 pt-1 text-sm text-ink-900/60">{t.noResults}</p> : null}
           {isSearch && searching && options.length === 0 ? <p className="px-4 pb-4 pt-1 text-sm text-ink-900/60">{t.searching}</p> : null}
+          {/* A town is priced from its centre: say how to reach a door instead. */}
+          {isSearch && options.some((place) => place.kind === 'city') ? <p className="border-t border-ink-900/10 px-4 py-2.5 text-xs text-ink-900/70">{t.townHint}</p> : null}
           {isSearch && options.some((place) => place.kind === 'address') ? (
             <p className="border-t border-ink-900/10 px-4 py-2 text-[0.6875rem] text-ink-900/60">{t.attribution}</p>
           ) : null}
