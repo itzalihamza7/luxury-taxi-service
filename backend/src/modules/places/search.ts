@@ -109,17 +109,39 @@ export type AddressSearch = (query: string) => Promise<Place[]>
 
 const CACHE_TTL_MS = 60 * 60 * 1000
 const CACHE_MAX_ENTRIES = 500
+/** How many of the results near Madrid lead the list before those from the rest of Spain. */
+const NEAR_FIRST = 4
 
 /**
- * Address search backed by a Photon-compatible geocoder (OpenStreetMap data).
- * Results are cached to keep traffic to the upstream service low, and any
- * failure simply yields no address results - the catalogue still works.
+ * Address search backed by a Photon-compatible geocoder (OpenStreetMap data), across Spain.
+ * Two searches run side by side: one biased towards Madrid, where most rides start, and one with no
+ * bias, which finds a hotel in Barcelona or a street in Málaga that the first ranks below Madrid's
+ * namesakes. The list leads with the nearest results, then the rest of Spain. Results are cached to
+ * keep traffic to the upstream service low, and any failure simply yields fewer (or no) address
+ * results - the catalogue still works.
  */
 export function createAddressSearch(geocoderUrl: string): AddressSearch {
   const baseUrl = geocoderUrl.replace(/\/+$/, '')
   if (!baseUrl) return async () => []
 
   const cache = new Map<string, { expires: number; places: Place[] }>()
+
+  const search = async (query: string, nearMadrid: boolean): Promise<Place[]> => {
+    const params = new URLSearchParams({
+      q: query.trim(),
+      // Some answers are outside Spain and dropped, so the search across it asks for a few more.
+      limit: nearMadrid ? '8' : '10',
+      ...(nearMadrid ? { lat: String(HOME_LOCATION.lat), lon: String(HOME_LOCATION.lng) } : {}),
+      bbox: [SERVICE_AREA.minLng, SERVICE_AREA.minLat, SERVICE_AREA.maxLng, SERVICE_AREA.maxLat].join(','),
+    })
+    const response = await fetch(`${baseUrl}/api?${params}`, {
+      headers: { 'User-Agent': 'luxury-taxi-service/1.0 (booking address search)' },
+      signal: AbortSignal.timeout(2500),
+    })
+    if (!response.ok) throw new Error(`geocoder responded ${response.status}`)
+    const body = (await response.json()) as { features?: PhotonFeature[] }
+    return (body.features ?? []).map(fromPhoton).filter((place): place is Place => place !== null)
+  }
 
   return async (query) => {
     const key = normalize(query)
@@ -128,38 +150,30 @@ export function createAddressSearch(geocoderUrl: string): AddressSearch {
     const cached = cache.get(key)
     if (cached && cached.expires > Date.now()) return cached.places
 
-    try {
-      const params = new URLSearchParams({
-        q: query.trim(),
-        limit: '8',
-        lat: String(HOME_LOCATION.lat),
-        lon: String(HOME_LOCATION.lng),
-        bbox: [SERVICE_AREA.minLng, SERVICE_AREA.minLat, SERVICE_AREA.maxLng, SERVICE_AREA.maxLat].join(','),
-      })
-      const response = await fetch(`${baseUrl}/api?${params}`, {
-        headers: { 'User-Agent': 'luxury-taxi-service/1.0 (booking address search)' },
-        signal: AbortSignal.timeout(2500),
-      })
-      if (!response.ok) throw new Error(`geocoder responded ${response.status}`)
-
-      const body = (await response.json()) as { features?: PhotonFeature[] }
-      const seen = new Set<string>()
-      const places: Place[] = []
-      for (const feature of body.features ?? []) {
-        const place = fromPhoton(feature)
-        if (!place) continue
-        const signature = `${place.label}|${place.sublabel}`
-        if (seen.has(signature)) continue
-        seen.add(signature)
-        places.push(place)
+    const [near, wide] = await Promise.allSettled([search(query, true), search(query, false)])
+    for (const result of [near, wide]) {
+      if (result.status === 'rejected') {
+        console.warn('[places] address search unavailable:', result.reason instanceof Error ? result.reason.message : result.reason)
       }
+    }
+    const nearby = near.status === 'fulfilled' ? near.value : []
+    const across = wide.status === 'fulfilled' ? wide.value : []
 
+    const seen = new Set<string>()
+    const places: Place[] = []
+    for (const place of [...nearby.slice(0, NEAR_FIRST), ...across, ...nearby.slice(NEAR_FIRST)]) {
+      const signature = `${place.label}|${place.sublabel}`
+      if (seen.has(place.id) || seen.has(signature)) continue
+      seen.add(place.id)
+      seen.add(signature)
+      places.push(place)
+    }
+
+    // A failed search is tried again next time rather than remembered.
+    if (near.status === 'fulfilled' && wide.status === 'fulfilled') {
       if (cache.size >= CACHE_MAX_ENTRIES) cache.clear()
       cache.set(key, { expires: Date.now() + CACHE_TTL_MS, places })
-      return places
-    } catch (error) {
-      console.warn('[places] address search unavailable:', error instanceof Error ? error.message : error)
-      return []
     }
+    return places
   }
 }

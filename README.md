@@ -73,7 +73,9 @@ Browser ──► Next.js (frontend:3000) ──/api/*──► Express API (bac
   distances; other journeys are estimated from the straight-line distance. Setting `ROUTER_URL` to
   an [OSRM](https://project-osrm.org)-compatible server gives exact door-to-door distances.
 - **Addresses.** A built-in catalogue of airports, stations, venues and cities is combined with
-  street addresses from a Photon-compatible geocoder (OpenStreetMap data).
+  street addresses from a Photon-compatible geocoder (OpenStreetMap data), across Spain: one search
+  near Madrid and one across the country run side by side, and the list leads with the nearest
+  results, so a hotel in Barcelona is found as well as a street in Madrid.
 - **Content in the database.** Pages are stored as typed, validated JSON per collection, so the
   admin panel needs no developer for day-to-day changes. Uploaded photos are resized in the
   browser, stored in PostgreSQL and served immutably, so one database backup holds everything.
