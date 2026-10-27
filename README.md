@@ -143,7 +143,8 @@ the city, drawn with [three.js](https://threejs.org) through React Three Fiber a
 while the visitor scrolls: the camera walks from the front three-quarter view to the side and the
 rear, three short blocks of words take turns (one is always on screen), and the price widget
 follows. A chapter bar at the bottom names the three parts, shows how far along the visitor is,
-jumps to any of them and offers a way straight to the prices.
+jumps to any of them and offers a way straight to the prices. On a phone the three parts are short
+upright bars at the right edge, halfway up the screen, and the way to the prices stays at the bottom.
 
 - **Framing.** The page measures the room each block of words leaves for the car (beside it on a
   landscape screen, below it on a portrait one, clear of the header and the chapter bar), and the
@@ -159,11 +160,12 @@ jumps to any of them and offers a way straight to the prices.
   while the section is off screen, the resolution drops on a struggling GPU, and phones get a
   lighter scene.
 - **Night.** Lighting comes from soft boxes and street lamps reflected in the paint (no image
-  files); one light sweeps along the car on larger screens. From 1024 px the city is a few hundred
-  soft discs of light on a ring behind the car, mirrored in the wet floor; on phones and tablets they
-  read as coloured dots around the words, so there a warm glow that follows the camera sets the
-  night alone. The floor and sky are drawn in exact colours, outside the tone mapping the car gets,
-  so they meet without a line.
+  files); one light sweeps along the car on larger screens. The city is a few hundred soft discs of
+  light on a ring behind the car (fewer on phones and tablets), mirrored in the wet floor, with a
+  warm glow that follows the camera. The glows are worked out pixel by pixel, not drawn as canvas
+  gradients: Safari dithers those, and on iPhones the noise showed as coloured dots above the car.
+  The floor and sky are drawn in exact colours, outside the tone mapping the car gets, so they meet
+  without a line.
 - **The model** is "Mercedes-Benz Maybach 2022" by Mpgs Studios, under
   [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/): the credit is on the site's Credits page,
   linked from every footer, and listed in `frontend/public/images/CREDITS.md`. It was reduced from 2.4 million to 185,000

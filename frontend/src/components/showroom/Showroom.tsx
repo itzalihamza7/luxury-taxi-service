@@ -159,7 +159,7 @@ export function Showroom({ label, stages, chapters, still, scroll, skip }: Props
           const end = CHAPTER_START[index + 1] ?? 1
           if (p >= start) current = index
           const fill = fills.current[index]
-          if (fill) fill.style.scale = `${clamp((p - start) / (end - start)).toFixed(3)} 1`
+          fill?.style.setProperty('--fill', clamp((p - start) / (end - start)).toFixed(3))
         }
         frame.current = rooms.current[current] ?? frame.current
         if (current !== shown) {
@@ -246,28 +246,28 @@ export function Showroom({ label, stages, chapters, still, scroll, skip }: Props
         {reduced ? null : (
           <div ref={bar} className="absolute inset-x-0 bottom-[4.5rem] low:hidden lg:bottom-7">
             <div className="container-page">
-              <div className="flex items-end gap-5 sm:gap-10">
-                {/* The chapters: bars on a phone, named from a tablet up. */}
-                <ol className="flex flex-1 gap-1.5 sm:gap-6 lg:max-w-2xl">
+              <div className="flex items-end justify-end gap-5 sm:justify-start sm:gap-10">
+                {/* The chapters: upright bars at the right edge of a phone, halfway up the screen; named from a tablet up. */}
+                <ol className="absolute bottom-[calc(50svh-4.5rem)] right-1 flex translate-y-1/2 flex-col gap-1 sm:static sm:flex-1 sm:translate-y-0 sm:flex-row sm:gap-6 lg:max-w-2xl">
                   {chapters.map((name, index) => (
-                    <li key={index} className="flex-1">
+                    <li key={index} className="sm:flex-1">
                       <button
                         type="button"
                         onClick={() => go(index)}
                         aria-label={`${number(index)} ${name}`}
                         aria-current={index === chapter ? 'step' : undefined}
-                        className="group block w-full py-3 text-left"
+                        className="group block px-2 py-1 text-left sm:w-full sm:px-0 sm:py-3"
                       >
                         <span className={`eyebrow hidden gap-2.5 transition-colors sm:flex ${index === chapter ? 'text-bone-50' : 'text-bone-100/50 group-hover:text-bone-100/85'}`}>
                           <span className="text-gold-300">{number(index)}</span>
                           {name}
                         </span>
-                        <span className="block h-0.5 overflow-hidden rounded-full bg-bone-50/15 sm:mt-3 sm:h-px">
+                        <span className="block h-9 w-0.5 overflow-hidden rounded-full bg-bone-50/15 sm:mt-3 sm:h-px sm:w-auto">
                           <span
                             ref={(element) => {
                               fills.current[index] = element
                             }}
-                            className="block h-full origin-left scale-x-0 bg-gold-300"
+                            className="block size-full origin-top bg-gold-300 [--fill:0] [scale:1_var(--fill)] sm:origin-left sm:[scale:var(--fill)_1]"
                           />
                         </span>
                       </button>
