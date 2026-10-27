@@ -179,6 +179,16 @@
     }
   }
 
+  /* iPhone Safari draws date and time fields as native controls with their own minimum width
+     (spilling out of the form) and their own centred look. As plain fields they take the form's styles. */
+  input[type='date'],
+  input[type='time'] {
+    -webkit-appearance: none;
+    appearance: none;
+    min-width: 0;
+    text-align: start;
+  }
+
   /* Native date and time pickers follow the dark form surfaces. */
   .on-dark input[type='date'],
   .on-dark input[type='time'] {
