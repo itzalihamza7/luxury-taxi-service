@@ -51,6 +51,7 @@ const PICTURES: Record<string, string> = {
   'madrid-to-segovia': '/images/routes/segovia.jpg',
   'madrid-to-avila': '/images/routes/avila.jpg',
   'madrid-to-el-escorial': '/images/routes/el-escorial.jpg',
+  'madrid-airport-taxi-or-chauffeur': '/images/services/airport.jpg',
   'arriving-at-madrid-barajas': '/images/journal/barajas.jpg',
   'sedan-van-or-minibus': '/images/fleet/mercedes-v-class.jpg',
   'hourly-hire-or-transfers': '/images/journal/cabin.jpg',
@@ -71,7 +72,7 @@ export function startingContent(): Record<ContentCollection, StartingEntry[]> {
     event: entries(events, ({ kind, ...event }) => ({ ...event, category: EVENT_LABELS[kind] })).map(withPicture),
     article: entries(articles, (article) => article).map(withPicture),
     faq: entries(
-      faqs.map((faq, index) => ({ ...faq, slug: `faq-${index + 1}` })),
+      faqs.map((faq, index) => ({ ...faq, slug: faq.slug ?? `faq-${index + 1}` })),
       (faq) => ({ ...faq, featured: faq.featured ?? false }),
     ),
     review: entries(

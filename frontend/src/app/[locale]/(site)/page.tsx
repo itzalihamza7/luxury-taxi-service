@@ -36,6 +36,9 @@ export async function generateMetadata(): Promise<Metadata> {
 /** Structured data for search engines, with the current phone number and email. */
 async function BusinessData() {
   const [locale, p, settings] = await Promise.all([getLocale(), getPages(), contactDetails()])
+  // The business's profiles elsewhere (Google, Tripadvisor...), as filled in the console: they tie
+  // reviews and mentions on those sites to this one, for search engines and AI assistants alike.
+  const sameAs = settings ? Object.values(settings.social).filter(Boolean) : []
   return (
     <JsonLd
       data={{
@@ -44,7 +47,10 @@ async function BusinessData() {
         name: site.name,
         description: p.home.metaDescription,
         url: `${siteUrl}${href(locale)}`,
+        logo: `${siteUrl}/images/logo.png`,
+        image: `${siteUrl}/og.jpg`,
         ...(settings ? { telephone: settings.phone, email: settings.email } : {}),
+        ...(sameAs.length > 0 ? { sameAs } : {}),
         areaServed: [
           { '@type': 'City', name: 'Madrid' },
           { '@type': 'Country', name: 'Spain' },
@@ -220,9 +226,13 @@ export default async function HomePage() {
         still={<ShowroomStill />}
         stages={[
           <Fragment key="opening">
-            <Eyebrow onDark>{t.tagline}</Eyebrow>
-            <h1 className="display mt-6 text-[3.25rem] leading-[0.95] text-bone-50 short:mt-4 short:text-[2.875rem] sm:text-7xl short:sm:text-6xl xl:text-[6.5rem] short:xl:text-[5.25rem]">
-              <Accent text={h.heroTitle} />
+            <h1 className="display text-[3.25rem] leading-[0.95] text-bone-50 short:text-[2.875rem] sm:text-7xl short:sm:text-6xl xl:text-[6.5rem] short:xl:text-[5.25rem]">
+              <Eyebrow onDark inHeading>
+                {t.tagline}
+              </Eyebrow>
+              <span className="mt-6 block short:mt-4">
+                <Accent text={h.heroTitle} />
+              </span>
             </h1>
             <p className="mt-6 max-w-lg text-base leading-relaxed text-bone-100/80 short:mt-4 low:hidden sm:text-lg short:sm:text-base">{h.heroLead}</p>
             <div className="mt-8 flex flex-wrap items-center gap-4 short:mt-6">

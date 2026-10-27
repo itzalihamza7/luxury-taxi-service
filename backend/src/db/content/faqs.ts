@@ -1,6 +1,8 @@
 import type { Localized } from './types.js'
 
 export interface Faq {
+  /** Address of the entry; the first ten are numbered (`faq-1`...), later ones are named. */
+  slug?: string
   question: Localized
   answer: Localized
   /** Shown on the home page as well as the FAQ page. */
@@ -80,6 +82,39 @@ export const faqs: Faq[] = [
     answer: {
       en: 'We are based in Madrid and work across the city and region every day, with long-distance transfers to anywhere in mainland Spain. For journeys abroad or several days on the road, contact us for a tailored quote.',
       es: 'Tenemos sede en Madrid y trabajamos a diario en la ciudad y en toda la Comunidad, con traslados de larga distancia a cualquier punto de la España peninsular. Para viajes al extranjero o de varios días, contacte con nosotros y le prepararemos un presupuesto a medida.',
+    },
+  },
+  // The questions travellers ask most about Madrid transfers (added 27 October 2026, migration 0014).
+  {
+    slug: 'airport-taxi-or-chauffeur',
+    question: { en: 'Is a chauffeur worth it compared with a Madrid airport taxi?', es: '¿Compensa un chófer frente al taxi del aeropuerto de Madrid?' },
+    answer: {
+      en: 'It depends on the trip. Madrid taxis charge a flat €33 between the airport and any address inside the M-30 ring, so for one or two people travelling light a taxi is usually the cheaper choice. A chauffeur is booked in advance and waits for you in arrivals with a name board, follows your flight, helps with the luggage and comes in a vehicle sized for your group — up to seven people in a van or sixteen in the minibus. Every vehicle’s price is fixed and shown before you book, including for addresses outside the M-30, where taxis run on the meter.',
+      es: 'Depende del viaje. Los taxis de Madrid cobran una tarifa fija de 33 € entre el aeropuerto y cualquier dirección dentro de la M-30, así que para una o dos personas con poco equipaje el taxi suele ser la opción más barata. Un chófer está reservado de antemano y le espera en la sala de llegadas con un cartel con su nombre, sigue su vuelo, le ayuda con el equipaje y llega en un vehículo adecuado a su grupo: hasta siete personas en un monovolumen o dieciséis en el minibús. El precio de cada vehículo es cerrado y se muestra antes de reservar, también para direcciones fuera de la M-30, donde el taxi funciona con taxímetro.',
+    },
+  },
+  {
+    slug: 'airport-meeting-point',
+    question: { en: 'Where will my chauffeur meet me at Madrid–Barajas?', es: '¿Dónde me espera el chófer en Madrid–Barajas?' },
+    answer: {
+      en: 'In the arrivals hall of your terminal, just past customs, holding a board with your name. We serve every terminal: T1, T2, T3, T4 and the T4S satellite. If you land at T4S, an automatic train takes you to the main T4 building, and that is where you come out. If you cannot find each other, call or WhatsApp us and we will connect you straight away.',
+      es: 'En la sala de llegadas de su terminal, justo después de la aduana, con un cartel con su nombre. Atendemos todas las terminales: T1, T2, T3, T4 y el satélite T4S. Si aterriza en la T4S, un tren automático le lleva al edificio principal de la T4, y es allí donde sale. Si no se encuentran, llámenos o escríbanos por WhatsApp y les pondremos en contacto de inmediato.',
+    },
+  },
+  {
+    slug: 'extra-charges',
+    question: { en: 'Are there any extra charges on top of the price?', es: '¿Hay cargos adicionales sobre el precio?' },
+    answer: {
+      en: 'No hidden ones. The price shown before you book is fixed for the journey you describe and includes VAT. It changes only if you ask for something different — another address, extra stops, extra waiting or more hours — and we tell you the new price before the change is made.',
+      es: 'Ninguno oculto. El precio que ve antes de reservar es cerrado para el trayecto que indica e incluye el IVA. Solo cambia si usted pide algo distinto —otra dirección, paradas adicionales, esperas u horas adicionales— y le comunicamos el nuevo precio antes de hacer el cambio.',
+    },
+  },
+  {
+    slug: 'chauffeur-languages',
+    question: { en: 'Do your chauffeurs speak English?', es: '¿Sus chóferes hablan inglés?' },
+    answer: {
+      en: 'Yes. Our chauffeurs speak English and Spanish, so directions, changes of plan and the pickup itself are easy whichever language you prefer. You can also write to us in either language by email or WhatsApp.',
+      es: 'Sí. Nuestros chóferes hablan inglés y español, así que las indicaciones, los cambios de plan y la propia recogida resultan sencillos en el idioma que prefiera. También puede escribirnos en cualquiera de los dos idiomas por correo o WhatsApp.',
     },
   },
 ]

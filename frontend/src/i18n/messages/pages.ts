@@ -78,7 +78,7 @@ const en = {
   services: {
     metaTitle: 'Chauffeur services in Madrid',
     metaDescription: 'Airport transfers, hourly chauffeur hire, Madrid city rides, city-to-city transfers and day trips — each at a fixed price shown before you book.',
-    eyebrow: 'Services',
+    eyebrow: 'Chauffeur services in Madrid',
     title: 'One standard, *five services*',
     lead: 'However you travel with us, the essentials are the same: a professional chauffeur, a car that suits the occasion and a price fixed before you set off.',
     includesTitle: 'What is included',
@@ -94,7 +94,7 @@ const en = {
   fleet: {
     metaTitle: 'Our fleet — sedans, vans and minibuses with chauffeur',
     metaDescription: 'Seven vehicle classes with chauffeur in Madrid: Mercedes E-Class and S-Class, V-Class vans, Maybach and a 16-seat minibus. Capacity and starting prices for each.',
-    eyebrow: 'The fleet',
+    eyebrow: 'Chauffeur-driven cars in Madrid',
     title: 'Seven vehicles, *one standard*',
     lead: 'From a compact city car to a sixteen-seat minibus. Choose by passengers and luggage; the booking form shows the fixed price for your journey.',
     capacityTitle: 'Capacity',
@@ -113,7 +113,7 @@ const en = {
   routes: {
     metaTitle: 'Private transfers from Madrid — Toledo, Segovia, Ávila, El Escorial',
     metaDescription: 'Day trips from Madrid by private car: real distances and drive times to Toledo, Segovia, Ávila and El Escorial, and honest advice on when to take the train.',
-    eyebrow: 'Routes',
+    eyebrow: 'Private transfers from Madrid',
     title: 'Madrid, and the places *worth leaving it for*',
     lead: 'Four classic journeys out of the city, with real distances and drive times — and an honest word on when the train is the better idea.',
     distance: 'Distance',
@@ -137,7 +137,7 @@ const en = {
   events: {
     metaTitle: 'Madrid events — chauffeur service for fairs, art week and tennis',
     metaDescription: 'Pre-booked chauffeur service for FITUR, ARCOmadrid and the Mutua Madrid Open. Dates, venues and practical advice for getting in and out.',
-    eyebrow: 'Events',
+    eyebrow: 'Event chauffeurs in Madrid',
     title: 'Madrid has a calendar. *We drive it.*',
     lead: 'The weeks when the city fills up and finding a taxi stops being a plan. Book the car before the dates get close.',
     upcoming: 'Coming up',
@@ -154,7 +154,7 @@ const en = {
   journal: {
     metaTitle: 'Journal — practical guides to travelling in Madrid',
     metaDescription: 'Short, practical guides from our chauffeurs: arriving at Barajas, choosing the right vehicle, hourly hire versus transfers, and day trips from Madrid.',
-    eyebrow: 'Journal',
+    eyebrow: 'Madrid travel guides',
     title: 'Notes from *the road*',
     lead: 'Short, practical guides from the people who drive Madrid every day.',
     minutes: '{count} min read',
@@ -164,7 +164,7 @@ const en = {
   faq: {
     metaTitle: 'Frequently asked questions',
     metaDescription: 'How booking works, how prices are fixed, payment, cancellation, flight delays and choosing a vehicle — straight answers before you book.',
-    eyebrow: 'Support',
+    eyebrow: 'Chauffeur service FAQ',
     title: 'Questions, *answered*',
     lead: 'What people ask before their first ride. If yours is not here, call or message us at any hour.',
     stillTitle: 'Still have a question?',
@@ -375,7 +375,7 @@ const es: typeof en = {
   services: {
     metaTitle: 'Servicios de chófer en Madrid',
     metaDescription: 'Traslados al aeropuerto, chófer por horas, trayectos en Madrid, traslados entre ciudades y excursiones, cada uno con un precio cerrado visible antes de reservar.',
-    eyebrow: 'Servicios',
+    eyebrow: 'Servicios de chófer en Madrid',
     title: 'Un mismo estándar, *cinco servicios*',
     lead: 'Viaje como viaje con nosotros, lo esencial no cambia: un chófer profesional, un coche a la altura de la ocasión y un precio cerrado antes de salir.',
     includesTitle: 'Qué incluye',
@@ -391,7 +391,7 @@ const es: typeof en = {
   fleet: {
     metaTitle: 'Nuestra flota: berlinas, monovolúmenes y minibuses con chófer',
     metaDescription: 'Siete categorías de vehículo con chófer en Madrid: Mercedes Clase E y Clase S, monovolúmenes Clase V, Maybach y un minibús de 16 plazas. Capacidad y precio de salida de cada uno.',
-    eyebrow: 'La flota',
+    eyebrow: 'Coches con chófer en Madrid',
     title: 'Siete vehículos, *un mismo estándar*',
     lead: 'Del utilitario urbano al minibús de dieciséis plazas. Elija según pasajeros y equipaje; el formulario de reserva muestra el precio cerrado de su trayecto.',
     capacityTitle: 'Capacidad',
@@ -410,7 +410,7 @@ const es: typeof en = {
   routes: {
     metaTitle: 'Traslados privados desde Madrid: Toledo, Segovia, Ávila y El Escorial',
     metaDescription: 'Excursiones desde Madrid en coche privado: distancias y tiempos reales a Toledo, Segovia, Ávila y El Escorial, y un consejo sincero sobre cuándo conviene el tren.',
-    eyebrow: 'Rutas',
+    eyebrow: 'Traslados privados desde Madrid',
     title: 'Madrid y los lugares *por los que merece la pena salir*',
     lead: 'Cuatro trayectos clásicos fuera de la ciudad, con distancias y tiempos reales, y una opinión sincera sobre cuándo es mejor ir en tren.',
     distance: 'Distancia',
@@ -434,7 +434,7 @@ const es: typeof en = {
   events: {
     metaTitle: 'Eventos en Madrid: chófer para ferias, semana del arte y tenis',
     metaDescription: 'Servicio de chófer con reserva previa para FITUR, ARCOmadrid y el Mutua Madrid Open. Fechas, recintos y consejos prácticos para llegar y salir.',
-    eyebrow: 'Eventos',
+    eyebrow: 'Chófer para eventos en Madrid',
     title: 'Madrid tiene una agenda. *Nosotros la conducimos.*',
     lead: 'Las semanas en que la ciudad se llena y encontrar un taxi deja de ser un plan. Reserve el coche antes de que se acerquen las fechas.',
     upcoming: 'Próximamente',
@@ -451,7 +451,7 @@ const es: typeof en = {
   journal: {
     metaTitle: 'Revista: guías prácticas para moverse por Madrid',
     metaDescription: 'Guías breves y prácticas de nuestros chóferes: llegar a Barajas, elegir el vehículo adecuado, servicio por horas o traslados, y excursiones desde Madrid.',
-    eyebrow: 'Revista',
+    eyebrow: 'Guías para viajar por Madrid',
     title: 'Apuntes *de carretera*',
     lead: 'Guías breves y prácticas de quienes conducen por Madrid todos los días.',
     minutes: '{count} min de lectura',
@@ -461,7 +461,7 @@ const es: typeof en = {
   faq: {
     metaTitle: 'Preguntas frecuentes',
     metaDescription: 'Cómo funciona la reserva, cómo se fijan los precios, pagos, cancelaciones, retrasos de vuelos y elección de vehículo: respuestas claras antes de reservar.',
-    eyebrow: 'Ayuda',
+    eyebrow: 'Preguntas sobre el servicio de chófer',
     title: 'Preguntas, *con respuesta*',
     lead: 'Lo que se suele preguntar antes del primer trayecto. Si la suya no está aquí, llámenos o escríbanos a cualquier hora.',
     stillTitle: '¿Sigue teniendo dudas?',
