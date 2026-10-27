@@ -48,10 +48,19 @@ export function Section({
   )
 }
 
-export function Eyebrow({ children, onDark, className = '' }: { children: ReactNode; onDark?: boolean; className?: string }) {
-  return (
-    <p className={`eyebrow flex items-center gap-3 ${onDark ? 'text-gold-300' : 'text-gold-700'} ${className}`}>
-      <span aria-hidden className={`h-px w-8 ${onDark ? 'bg-gold-300/60' : 'bg-gold-700/50'}`} />
+export function Eyebrow({ children, onDark, className = '', inHeading }: { children: ReactNode; onDark?: boolean; className?: string; inHeading?: boolean }) {
+  const look = `eyebrow flex items-center gap-3 ${onDark ? 'text-gold-300' : 'text-gold-700'} ${className}`
+  const rule = <span aria-hidden className={`h-px w-8 ${onDark ? 'bg-gold-300/60' : 'bg-gold-700/50'}`} />
+  // Inside a page's <h1> the label becomes part of the heading search engines read
+  // (e.g. "Chauffeur services in Madrid"), so it resets the heading's font and spacing.
+  return inHeading ? (
+    <span className={`${look} font-sans leading-normal`}>
+      {rule}
+      {children}
+    </span>
+  ) : (
+    <p className={look}>
+      {rule}
       {children}
     </p>
   )

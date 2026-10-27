@@ -21,6 +21,112 @@ export interface Article {
 
 export const articles: Article[] = [
   {
+    // Added 27 October 2026 (migration 0014). The taxi fare is Madrid's official airport rate (esmadrid.com, fares from 1 Jan 2026).
+    slug: 'madrid-airport-taxi-or-chauffeur',
+    date: '2026-10-27',
+    minutes: 4,
+    category: { en: 'Airport', es: 'Aeropuerto' },
+    title: {
+      en: 'Madrid airport to the city: taxi, ride-hailing app or chauffeur?',
+      es: 'Del aeropuerto de Madrid a la ciudad: ¿taxi, aplicación o chófer?',
+    },
+    excerpt: {
+      en: 'Madrid taxis charge a flat €33 from Barajas to anywhere inside the M-30. When that is the best deal, when an app is, and when a booked chauffeur is worth paying more for.',
+      es: 'Los taxis de Madrid cobran 33 € fijos desde Barajas a cualquier punto dentro de la M-30. Cuándo es la mejor opción, cuándo lo es una aplicación y cuándo compensa pagar más por un chófer reservado.',
+    },
+    body: {
+      en: [
+        {
+          paragraphs: [
+            'Three ways out of Barajas take you to your door: the taxi rank, a ride-hailing app and a car booked in advance. Each wins in different situations, and the deciding factor is rarely the one people expect.',
+          ],
+        },
+        {
+          heading: 'The taxi: €33 inside the M-30',
+          paragraphs: [
+            'Madrid’s taxis have a fixed airport fare: €33 between any terminal and any address inside the M-30 ring road, day or night, with no supplements on top. That covers the centre, Salamanca, Chamberí, Retiro and most of the hotels. Outside the M-30 — the business parks to the north, the area around IFEMA and the towns of the region — the meter runs as normal.',
+            'For one or two people with a suitcase each, arriving at a reasonable hour, the taxi is hard to beat. The only cost is the queue at the rank, which at busy times can take a while.',
+          ],
+        },
+        {
+          heading: 'Ride-hailing apps',
+          paragraphs: [
+            'Uber, Cabify and Bolt all pick up at Barajas. Their prices move with demand, so the same trip can cost less than a taxi on a quiet afternoon and more at a peak, and the car is found once you have landed, not before.',
+          ],
+        },
+        {
+          heading: 'A booked chauffeur',
+          paragraphs: ['A chauffeur costs more than the taxi fare, and is worth it when certainty matters more than the last few euros:'],
+          list: [
+            'Groups and families: a van takes up to seven people and five large suitcases, where the same group would need two taxis.',
+            'Late or very early arrivals, when you want a car already waiting rather than a queue.',
+            'Guests and clients you want met properly, by name, in the arrivals hall.',
+            'Addresses outside the M-30, where the taxi meter runs but our price stays fixed.',
+            'Children: tell us their ages and we confirm the right seats for the ride.',
+            'Delayed flights: we follow the flight, so the pickup moves with it without a phone call.',
+          ],
+        },
+        {
+          heading: 'What our price includes',
+          paragraphs: [
+            'The price for every vehicle is shown before you book, VAT included, and it is the price you pay for that journey. Your chauffeur waits in the arrivals hall just past customs with a name board, helps with the luggage and speaks English and Spanish. Cancellation is free up to 24 hours before pickup.',
+          ],
+        },
+        {
+          heading: 'The short version',
+          paragraphs: [
+            'Travelling light, inside the M-30, at a sensible hour: take a taxi. A group, a lot of luggage, a late flight, an address outside the ring or someone to impress: book the car before you fly.',
+          ],
+        },
+      ],
+      es: [
+        {
+          paragraphs: [
+            'Hay tres maneras de salir de Barajas que le llevan hasta la puerta: la parada de taxis, una aplicación de VTC y un coche reservado con antelación. Cada una gana en situaciones distintas, y el factor decisivo rara vez es el que uno espera.',
+          ],
+        },
+        {
+          heading: 'El taxi: 33 € dentro de la M-30',
+          paragraphs: [
+            'Los taxis de Madrid tienen una tarifa fija de aeropuerto: 33 € entre cualquier terminal y cualquier dirección dentro de la M-30, de día o de noche y sin suplementos. Eso incluye el centro, Salamanca, Chamberí, Retiro y la mayoría de los hoteles. Fuera de la M-30 —los parques empresariales del norte, el entorno de IFEMA y los municipios de la región— funciona el taxímetro como siempre.',
+            'Para una o dos personas con una maleta cada una, que llegan a una hora razonable, el taxi es difícil de superar. El único coste es la cola de la parada, que en horas punta puede alargarse.',
+          ],
+        },
+        {
+          heading: 'Las aplicaciones de VTC',
+          paragraphs: [
+            'Uber, Cabify y Bolt recogen en Barajas. Sus precios varían con la demanda, de modo que el mismo trayecto puede costar menos que un taxi una tarde tranquila y más en un momento de mucha demanda, y el coche se busca cuando ya ha aterrizado, no antes.',
+          ],
+        },
+        {
+          heading: 'Un chófer reservado',
+          paragraphs: ['Un chófer cuesta más que el taxi, y compensa cuando la tranquilidad importa más que los últimos euros:'],
+          list: [
+            'Grupos y familias: un monovolumen lleva hasta siete personas y cinco maletas grandes, cuando el mismo grupo necesitaría dos taxis.',
+            'Llegadas muy tarde o muy temprano, cuando prefiere un coche esperando a una cola.',
+            'Invitados y clientes a los que quiere recibir como merecen, con su nombre, en la sala de llegadas.',
+            'Direcciones fuera de la M-30, donde el taxímetro corre y nuestro precio sigue siendo cerrado.',
+            'Niños: indíquenos sus edades y le confirmamos las sillas adecuadas para el trayecto.',
+            'Vuelos con retraso: seguimos el vuelo, así que la recogida se adapta sin que tenga que llamar.',
+          ],
+        },
+        {
+          heading: 'Qué incluye nuestro precio',
+          paragraphs: [
+            'El precio de cada vehículo se muestra antes de reservar, con IVA incluido, y es el que paga por ese trayecto. Su chófer le espera en la sala de llegadas, justo después de la aduana, con un cartel con su nombre, le ayuda con el equipaje y habla inglés y español. La cancelación es gratuita hasta 24 horas antes de la recogida.',
+          ],
+        },
+        {
+          heading: 'En resumen',
+          paragraphs: [
+            'Con poco equipaje, dentro de la M-30 y a una hora normal: tome un taxi. Un grupo, mucho equipaje, un vuelo tardío, una dirección fuera de la M-30 o alguien a quien recibir bien: reserve el coche antes de volar.',
+          ],
+        },
+      ],
+    },
+    cta: { href: '/services/airport-transfers', label: { en: 'Airport transfers', es: 'Traslados al aeropuerto' } },
+  },
+  {
     slug: 'arriving-at-madrid-barajas',
     date: '2026-09-22',
     minutes: 4,
