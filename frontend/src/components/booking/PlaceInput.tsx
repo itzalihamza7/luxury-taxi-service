@@ -129,6 +129,8 @@ export function PlaceInput({ id, label, note, value, onChange, t, error, prefer 
         choose(option)
       }
     } else if (event.key === 'Escape') {
+      // A search field clears itself on Escape; here Escape only closes the list.
+      event.preventDefault()
       setOpen(false)
     }
   }
@@ -137,10 +139,13 @@ export function PlaceInput({ id, label, note, value, onChange, t, error, prefer 
     <Field id={id} label={label} note={note} error={error}>
       <div className="relative">
         <MapPin aria-hidden className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-gold-600" />
+        {/* A search field named "...search": phones ignore autocomplete="off" for anything that looks
+            like an address and offered the visitor's own saved addresses (UK ones) over our Spanish list. */}
         <input
           ref={input}
           id={id}
-          type="text"
+          type="search"
+          name="placeSearch"
           role="combobox"
           autoComplete="off"
           spellCheck={false}
@@ -162,7 +167,7 @@ export function PlaceInput({ id, label, note, value, onChange, t, error, prefer 
           onFocus={onFocus}
           onBlur={() => setOpen(false)}
           onKeyDown={onKeyDown}
-          className={`${controlClass} h-12 truncate pl-11 pr-11 ${borderClass(Boolean(error))}`}
+          className={`${controlClass} h-12 appearance-none truncate pl-11 pr-11 [&::-webkit-search-cancel-button]:appearance-none ${borderClass(Boolean(error))}`}
         />
         {searching && isSearch ? (
           <LoaderCircle aria-hidden className="absolute right-4 top-1/2 size-4 -translate-y-1/2 animate-spin text-ink-900/60" />
@@ -195,8 +200,10 @@ export function PlaceInput({ id, label, note, value, onChange, t, error, prefer 
                   id={`${listId}-${index}`}
                   role="option"
                   aria-selected={index === active}
-                  // Keep focus in the input so choosing does not blur it first.
-                  onPointerDown={(event) => event.preventDefault()}
+                  // Keep focus in the input so choosing does not blur it first. On mousedown, not
+                  // pointerdown: iPhones still send mousedown after a cancelled pointerdown, and its
+                  // blur closed the list before the tap's click arrived.
+                  onMouseDown={(event) => event.preventDefault()}
                   onClick={() => choose(place)}
                   onMouseEnter={() => setActive(index)}
                   className={`flex cursor-pointer items-start gap-3 px-4 py-2.5 ${index === active ? 'bg-bone-100' : ''}`}
