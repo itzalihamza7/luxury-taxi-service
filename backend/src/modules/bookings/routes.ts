@@ -162,7 +162,8 @@ export function bookingsRouter(context: AppContext): Router {
    * "Payment done": the customer uploads proof of an open payment request, a screenshot or PDF of
    * the confirmation. A guest sends the guest code in the `X-Guest-Code` header, as the body is the
    * file. A new upload replaces the last one. The payment stays requested until the team has
-   * checked the proof and marks it received.
+   * checked the proof and marks it received. The team, who see any booking's page while signed in,
+   * can upload it too: the history then names them.
    */
   router.post(
     '/:reference/payments/:id/proof',
@@ -172,7 +173,8 @@ export function bookingsRouter(context: AppContext): Router {
       const booking = await findBookingByReference(normalizeReference(String(req.params.reference)))
       const isOwner = Boolean(booking && req.user && booking.userId === req.user.id)
       const byGuest = Boolean(booking && booking.userId === null && guestCodeMatches(booking, req.get('x-guest-code')))
-      if (!booking || !(isOwner || byGuest)) throw notFound('BOOKING_NOT_FOUND', 'We could not find a booking with that reference and guest code.')
+      const byTeam = Boolean(booking && isStaff(req.user))
+      if (!booking || !(isOwner || byGuest || byTeam)) throw notFound('BOOKING_NOT_FOUND', 'We could not find a booking with that reference and guest code.')
       if (booking.status !== 'pending' && booking.status !== 'confirmed') throw conflict('BOOKING_CLOSED', `A ${booking.status} booking cannot take a payment.`)
 
       const id = String(req.params.id)
@@ -188,7 +190,8 @@ export function bookingsRouter(context: AppContext): Router {
       const file = { contentType, size: bytes.length, data: bytes, uploadedAt: now }
       await db.insert(paymentProofs).values({ paymentId: payment.id, ...file }).onConflictDoUpdate({ target: paymentProofs.paymentId, set: file })
       await db.update(bookingPayments).set({ proofUploadedAt: now }).where(eq(bookingPayments.id, payment.id))
-      await recordEvent(booking.id, 'payment_proof', null, [
+      const actor = isOwner || byGuest || !req.user ? null : { id: req.user.id, name: req.user.name }
+      await recordEvent(booking.id, 'payment_proof', actor, [
         { field: 'paymentKind', from: null, to: payment.kind },
         { field: 'paymentAmountCents', from: null, to: String(payment.amountCents) },
       ])
