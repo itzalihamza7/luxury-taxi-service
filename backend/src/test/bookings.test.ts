@@ -34,6 +34,15 @@ describe('creating a booking', () => {
     expect(response.body.booking).not.toHaveProperty('id')
   })
 
+  it('books with a phone number of another country, written any way, and finds the booking by it', async () => {
+    const { response } = await bookRide(app, { booking: { contact: { ...CONTACT, phone: '‪+49 (0) 151 / 123 456 78‬' } } })
+
+    expect(response.status).toBe(201)
+    expect(response.body.booking.contact.phone).toBe('+49 151 123 456 78')
+    const found = await request(app).post('/api/bookings/lookup').send({ reference: response.body.booking.reference, phone: '0049 151 12345678' })
+    expect(found.status).toBe(200)
+  })
+
   it('takes the price from the quote, never from the request', async () => {
     const quote = await requestQuote(app)
     const choice = quote.options.find((option) => option.available)!
