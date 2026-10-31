@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { HttpError } from './errors.js'
+import { cleanPhone, isPhone } from './phone.js'
 
 function valueAt(input: unknown, path: PropertyKey[]): unknown {
   let current = input
@@ -45,14 +46,8 @@ export function parse<T extends z.ZodType>(schema: T, input: unknown): z.infer<T
 /** Shared field schemas. */
 export const email = z.string().trim().toLowerCase().pipe(z.email().max(254))
 export const personName = z.string().trim().min(2).max(100)
-/** Digits with optional +, spaces, dashes, dots and brackets; 7-15 digits overall. */
-export const phone = z
-  .string()
-  .trim()
-  .max(30)
-  .refine((value) => /^\+?[\d\s().-]+$/.test(value) && value.replace(/\D/g, '').length >= 7 && value.replace(/\D/g, '').length <= 15, {
-    message: 'invalid_phone',
-  })
+/** A phone number of any country, tidied by `cleanPhone`. */
+export const phone = z.string().transform(cleanPhone).pipe(z.string().max(30)).refine(isPhone, { message: 'invalid_phone' })
 export const locale = z.enum(['en', 'es']).default('en')
 
 /** For a field a form may leave empty: an empty value counts as not given. */

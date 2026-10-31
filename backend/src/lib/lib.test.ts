@@ -7,10 +7,12 @@ import { knownRoutesFromMadrid } from '../modules/places/catalog.js'
 import { errorHandler } from './errors.js'
 import { createRouteFinder, estimateRoute, haversineM, isInServiceArea } from './geo.js'
 import { hashPassword, verifyPassword } from './password.js'
+import { phoneDigits } from './phone.js'
 import { fareCents, justUnderCents, transferFareCents, type VehicleRates } from './pricing.js'
 import { createRateLimiter } from './rate-limit.js'
 import { generateReference, normalizeReference } from './reference.js'
 import { zonedDateTimeToUtc } from './time.js'
+import { phone } from './validate.js'
 import { atAirport, inPriceZone, insideM30, metresBeyondZone, metresFar } from './zone.js'
 
 const MADRID = 'Europe/Madrid'
@@ -299,6 +301,41 @@ describe('geo', () => {
       res.end(JSON.stringify({ code: 'NoRoute', routes: [] }))
     })
     expect((await createRouteFinder(url)(SOL, TOLEDO)).source).toBe('estimate')
+  })
+})
+
+describe('phone numbers', () => {
+  it.each([
+    ['+49 151 12345678', '4915112345678'],
+    ['0049 151 12345678', '4915112345678'],
+    ['0049 1512 34567890', '49151234567890'],
+    ['+49 (0) 151 / 123 456 78', '4915112345678'],
+    ['+49 (0)151-12345678', '4915112345678'],
+    ['+49–151–12345678', '4915112345678'],
+    ['‪+49 151 12345678‬', '4915112345678'],
+    ['＋49 151 12345678', '4915112345678'],
+    ['0151/12345678', '015112345678'],
+    ['+1 (415) 555-2671', '14155552671'],
+    ['+44 7911 123456', '447911123456'],
+    ['+971 50 123 4567', '971501234567'],
+    ['+92 300 1234567', '923001234567'],
+    ['+86 138 0013 8000', '8613800138000'],
+    ['+55 11 91234 5678', '5511912345678'],
+    ['+683 4002', '6834002'],
+    ['+39 06 1234 5678', '390612345678'],
+    ['600 111 222', '600111222'],
+  ])('accepts %s', (written, digits) => {
+    expect(phoneDigits(phone.parse(written))).toBe(digits)
+  })
+
+  it('stores a tidy number as it was written', () => {
+    expect(phone.parse('  +34 600 333 444 ')).toBe('+34 600 333 444')
+    expect(phone.parse('+49 (0) 151 / 123 456 78')).toBe('+49 151 123 456 78')
+    expect(phone.parse('(030) 1234-5678')).toBe('(030) 1234-5678')
+  })
+
+  it.each(['call me', '12', '123456', '+49 151 1234567890123', '+49 151 12345678 (mobile)', '+1 415 555 2671 ext 12', '49+151 12345678'])('refuses %s', (written) => {
+    expect(phone.safeParse(written).success).toBe(false)
   })
 })
 

@@ -13,7 +13,7 @@ import type { BookingMessages } from '@/i18n/messages/booking'
 import type { ManageMessages } from '@/i18n/messages/manage'
 import { api, ApiError, errorMessage, fieldMessage } from '@/lib/api'
 import { clearFieldErrors, emptyDraft, normalizeFields, quoteRequest, RIDE_FIELDS, validateRide, type Draft } from '@/lib/booking-draft'
-import { whatsappHref } from '@/lib/contact'
+import { isPhone, whatsappHref } from '@/lib/contact'
 import { formatBags, formatDateTime, formatFormDateTime, formatPassengers, formatPrice } from '@/lib/format'
 import { useAppConfig } from '@/lib/hooks'
 import type { AdminBooking, Quote, SiteSettings } from '@/lib/types'
@@ -33,11 +33,6 @@ interface Account {
 }
 
 const isEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
-
-function isPhone(value: string): boolean {
-  const digits = value.replace(/\D/g, '').length
-  return /^\+?[\d\s().-]+$/.test(value) && digits >= 7 && digits <= 15
-}
 
 /** A customer needs a name and one way to reach them: a phone number or an email address. */
 function validateCustomer(contact: Draft['contact']): Record<string, string> {

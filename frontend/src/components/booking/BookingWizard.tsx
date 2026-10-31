@@ -11,6 +11,7 @@ import { useI18n } from '@/i18n/client'
 import { fill } from '@/i18n/config'
 import type { BookingMessages } from '@/i18n/messages/booking'
 import { api, ApiError, errorMessage } from '@/lib/api'
+import { isPhone } from '@/lib/contact'
 import { clearDraft, clearFieldErrors, emptyDraft, loadDraft, normalizeFields, quoteRequest, rememberBooking, RIDE_FIELDS, saveDraft, validateRide, type Draft } from '@/lib/booking-draft'
 import { formatBags, formatDistance, formatDuration, formatFormDateTime, formatMoney, formatPassengers, formatPrice } from '@/lib/format'
 import { useAppConfig, useHydrated } from '@/lib/hooks'
@@ -35,12 +36,11 @@ function readPrefill(params: URLSearchParams) {
 
 function validateContact(contact: Draft['contact']): Errors {
   const errors: Errors = {}
-  const digits = contact.phone.replace(/\D/g, '').length
   if (contact.name.trim().length < 2) errors['contact.name'] = contact.name.trim() ? 'too_short' : 'required'
   if (!contact.email.trim()) errors['contact.email'] = 'required'
   else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact.email.trim())) errors['contact.email'] = 'invalid_email'
   if (!contact.phone.trim()) errors['contact.phone'] = 'required'
-  else if (!/^\+?[\d\s().-]+$/.test(contact.phone.trim()) || digits < 7 || digits > 15) errors['contact.phone'] = 'invalid_phone'
+  else if (!isPhone(contact.phone)) errors['contact.phone'] = 'invalid_phone'
   return errors
 }
 
