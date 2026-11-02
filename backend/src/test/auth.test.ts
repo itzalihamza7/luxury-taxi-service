@@ -16,7 +16,7 @@ describe('registration', () => {
     const response = await agent.post('/api/auth/register').send(VALID)
 
     expect(response.status).toBe(201)
-    expect(response.body.user).toMatchObject({ name: 'Carla Ruiz', email: 'carla@example.com', phone: '+34 600 333 444', role: 'customer' })
+    expect(response.body.user).toMatchObject({ name: 'Carla Ruiz', email: 'carla@example.com', phone: '+34 600 33 34 44', role: 'customer' })
     expect(response.body.user).not.toHaveProperty('passwordHash')
 
     const [stored] = await db.select().from(users).where(eq(users.email, 'carla@example.com'))

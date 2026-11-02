@@ -4,7 +4,7 @@ import type { Config } from '../../config.js'
 import { db } from '../../db/client.js'
 import { bookingEvents, bookingPayments, bookings, type Booking, type BookingChange, type BookingEvent, type BookingEventKind, type BookingPayment } from '../../db/schema.js'
 import type { Email, Mailer } from '../../lib/mailer.js'
-import { phoneDigits } from '../../lib/phone.js'
+import { parsePhone } from '../../lib/phone.js'
 import { bookingUrl, formatMoney, formatWhen } from './emails.js'
 
 /*
@@ -99,13 +99,11 @@ export function sendQuietly(mailer: Mailer, email: Email): void {
 
 /**
  * The customer's number for a WhatsApp link: digits with the country code. A Spanish number
- * written without it (9 digits starting with 6, 7, 8 or 9) gets +34.
+ * written without it gets 34; a number whose country can't be known (see `parsePhone`) gets no link.
  */
 export function whatsappNumber(phone: string | null): string | null {
   if (!phone) return null
-  const digits = phoneDigits(phone)
-  if (/^[6789]\d{8}$/.test(digits)) return `34${digits}`
-  return digits.length >= 8 ? digits : null
+  return parsePhone(phone)?.number.slice(1) ?? null
 }
 
 /**

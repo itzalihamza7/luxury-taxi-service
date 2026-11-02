@@ -35,6 +35,16 @@ describe('admin users list', () => {
     expect(response.body.roles).toMatchObject({ admin: 1, customer: 1 })
   })
 
+  it('finds an account by its phone number, however it is spaced', async () => {
+    await registerAgent(app)
+    const { agent } = await staff('admin')
+    for (const q of ['600 333 444', '0034600333444', '33 34 44']) {
+      const response = await agent.get('/api/admin/users').query({ q })
+      expect(response.body.users.map((user: { email: string }) => user.email)).toEqual(['client@example.com'])
+    }
+    expect((await agent.get('/api/admin/users').query({ q: '999 999' })).body.users).toHaveLength(0)
+  })
+
   it('counts each account’s bookings', async () => {
     const customer = await registerAgent(app)
     await bookRide(app, { agent: customer })

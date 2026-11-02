@@ -6,6 +6,7 @@ import { db } from '../../db/client.js'
 import { bookings, sessions, USER_ROLES, users, type User, type UserRole } from '../../db/schema.js'
 import { badRequest, conflict, forbidden, HttpError, notFound } from '../../lib/errors.js'
 import { verifyPassword } from '../../lib/password.js'
+import { phoneContains } from '../../lib/phone.js'
 import { blankAsMissing, email, isUuid, parse, personName, phone } from '../../lib/validate.js'
 
 const listSchema = z.object({
@@ -95,7 +96,7 @@ export function usersAdminRouter({ rateLimit }: AppContext): Router {
     if (role) filters.push(eq(users.role, role))
     if (q) {
       const pattern = `%${escapeLike(q)}%`
-      const match = or(ilike(users.name, pattern), ilike(users.email, pattern), ilike(users.phone, pattern))
+      const match = or(ilike(users.name, pattern), ilike(users.email, pattern), ilike(users.phone, pattern), phoneContains(users.phone, q))
       if (match) filters.push(match)
     }
     const where = filters.length ? and(...filters) : undefined

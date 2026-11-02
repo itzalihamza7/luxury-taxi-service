@@ -5,6 +5,7 @@ import type { AppContext } from '../../context.js'
 import { db } from '../../db/client.js'
 import { bookingPayments, bookings, contactMessages, newsletterSubscribers, type BookingStatus } from '../../db/schema.js'
 import { conflict, notFound } from '../../lib/errors.js'
+import { phoneContains } from '../../lib/phone.js'
 import { normalizeReference } from '../../lib/reference.js'
 import { parse } from '../../lib/validate.js'
 import { requireAdmin } from '../auth/session.js'
@@ -112,6 +113,7 @@ export function adminRouter(context: AppContext): Router {
         ilike(bookings.contactName, pattern),
         ilike(bookings.contactEmail, pattern),
         ilike(bookings.contactPhone, pattern),
+        phoneContains(bookings.contactPhone, q),
       )
       if (search) filters.push(search)
     }
