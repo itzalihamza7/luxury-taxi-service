@@ -1,5 +1,6 @@
 import { sql, type SQL } from 'drizzle-orm'
 import type { AnyPgColumn } from 'drizzle-orm/pg-core'
+import { parsePhoneNumberFromString, type PhoneNumber } from 'libphonenumber-js'
 
 /*
  * Phone numbers are written in many ways: "+34 600 111 222", "0034600111222",
@@ -23,11 +24,30 @@ export function cleanPhone(phone: string): string {
 /** The digits of a number, without an international "00" prefix. */
 export const phoneDigits = (phone: string): string => phone.replace(/\D/g, '').replace(/^00/, '')
 
-/** Whether this looks like a phone number of any country: an E.164 number has at most 15 digits. */
-export function isPhone(phone: string): boolean {
-  const digits = phoneDigits(phone).length
-  return /^\+?[\d\s().-]+$/.test(phone) && digits >= 7 && digits <= 15
+/** The business is in Spain: a number written without a country code is read as a Spanish one. */
+const HOME_COUNTRY = 'ES'
+
+/**
+ * The number and its country, or undefined when nobody could call it from abroad. "+49 0151…"
+ * loses the 0 that is dialled only inside Germany (an Italian "+39 06…" keeps its 0), "49 151…" is
+ * read as a country code written without its "+", and "0151 12345678" (no country code, and not a
+ * Spanish number) is refused: it could be from any country.
+ */
+export function parsePhone(phone: string): PhoneNumber | undefined {
+  const tidy = cleanPhone(phone)
+  if (!/^\+?[\d\s().-]+$/.test(tidy)) return undefined
+  const digits = phoneDigits(tidy)
+  if (/^(\+|00)/.test(tidy)) {
+    const number = parsePhoneNumberFromString(`+${digits}`)
+    return number?.isPossible() ? number : undefined
+  }
+  const home = parsePhoneNumberFromString(tidy, HOME_COUNTRY)
+  if (home?.isValid()) return home
+  const withoutPlus = parsePhoneNumberFromString(`+${digits}`)
+  return withoutPlus?.isValid() ? withoutPlus : undefined
 }
+
+export const isPhone = (phone: string): boolean => parsePhone(phone) !== undefined
 
 /**
  * Whether two numbers are the same: equal digit for digit, or equal in their
@@ -40,6 +60,16 @@ export function samePhone(a: string | null | undefined, b: string | null | undef
   if (first.length < 7 || second.length < 7) return false
   if (first === second) return true
   return first.length >= 9 && second.length >= 9 && first.slice(-9) === second.slice(-9)
+}
+
+/**
+ * A search for part of a number, however it is spaced: "600 111 222" finds "+34 600 11 12 22".
+ * Only for a search that is a number (4 digits or more), so "LX-2026" doesn't look in phones.
+ */
+export function phoneContains(column: AnyPgColumn, search: string): SQL {
+  const digits = phoneDigits(search)
+  if (!/^[\d\s()+./-]+$/.test(search.trim()) || digits.length < 4) return sql`false`
+  return sql`regexp_replace(coalesce(${column}, ''), '\\D', '', 'g') like ${`%${digits}%`}`
 }
 
 /** The same comparison as `samePhone`, as a database condition on a phone column. */

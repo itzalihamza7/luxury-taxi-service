@@ -3,6 +3,7 @@ import request from 'supertest'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { db } from '../db/client.js'
 import { bookings, quotes } from '../db/schema.js'
+import { whatsappNumber } from '../modules/bookings/flow.js'
 import { bookRide, buildApp, CONTACT, registerAgent, requestQuote, resetDatabase } from './helpers.js'
 
 const app = buildApp()
@@ -27,7 +28,7 @@ describe('creating a booking', () => {
       luggage: 2,
       isGuest: true,
       canCancel: true,
-      contact: { name: 'Elena Marín', email: 'elena@example.com', phone: '+34 600 111 222', company: 'Acme SL', notes: 'Two child seats please' },
+      contact: { name: 'Elena Marín', email: 'elena@example.com', phone: '+34 600 11 12 22', company: 'Acme SL', notes: 'Two child seats please' },
     })
     expect(response.body.booking.reference).toMatch(/^LX-[A-HJ-NP-Z2-9]{6}$/)
     expect(response.body.booking.pickup.label).toContain('Barajas')
@@ -38,9 +39,17 @@ describe('creating a booking', () => {
     const { response } = await bookRide(app, { booking: { contact: { ...CONTACT, phone: '‪+49 (0) 151 / 123 456 78‬' } } })
 
     expect(response.status).toBe(201)
-    expect(response.body.booking.contact.phone).toBe('+49 151 123 456 78')
+    expect(response.body.booking.contact.phone).toBe('+49 1511 2345678')
     const found = await request(app).post('/api/bookings/lookup').send({ reference: response.body.booking.reference, phone: '0049 151 12345678' })
     expect(found.status).toBe(200)
+  })
+
+  it('gives a WhatsApp number only when the country is known, also for numbers saved before', () => {
+    expect(whatsappNumber('+49 1511 2345678')).toBe('4915112345678')
+    expect(whatsappNumber('+49 0151 12345678')).toBe('4915112345678')
+    expect(whatsappNumber('600 111 222')).toBe('34600111222')
+    expect(whatsappNumber('0151 12345678')).toBeNull()
+    expect(whatsappNumber(null)).toBeNull()
   })
 
   it('takes the price from the quote, never from the request', async () => {

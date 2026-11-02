@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import type { ContentCollection } from '../../db/schema.js'
-import { email, imageUrl, isoDate, localizedLines, localizedText, phone, slug } from '../../lib/validate.js'
+import { email, imageUrl, isoDate, localizedLines, localizedText, phoneAsWritten, slug } from '../../lib/validate.js'
 
 /*
  * The shape of `data` for each kind of content. The website's types
@@ -126,7 +126,8 @@ const link = z
 
 /** Business details shown across the website. Stored under the `site` settings key. */
 export const siteSettingsSchema = z.object({
-  phone,
+  /** Shown on the website as the business writes it. */
+  phone: phoneAsWritten,
   /**
    * Used for the WhatsApp link, which needs digits only, with the country code. Accepted as people
    * write it ("+34 667 60 46 11", "0034 667…") and stored as digits ("34667604611").

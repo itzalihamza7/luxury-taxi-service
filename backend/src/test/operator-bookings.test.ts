@@ -99,7 +99,7 @@ describe('bookings taken by an operator', () => {
       paymentStatus: 'unpaid',
       totalCents: choice.totalCents,
       flightNumber: 'IB3170',
-      contact: { name: 'Marta Soler', email: null, phone: '+34 600 111 222' },
+      contact: { name: 'Marta Soler', email: null, phone: '+34 600 11 12 22' },
     })
 
     // The customer wrote the number differently; it is still theirs.
