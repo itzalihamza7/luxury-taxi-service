@@ -47,7 +47,10 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
         <SiteMobileBar />
       </Suspense>
       <CookieConsent />
-      <Clarity />
+      {/* Reads the page address, which is only known per request. */}
+      <Suspense fallback={null}>
+        <Clarity />
+      </Suspense>
       <WhatsAppTracker />
       <WebsiteChat />
     </>
