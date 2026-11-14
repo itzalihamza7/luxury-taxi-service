@@ -180,6 +180,7 @@ export const legalDocuments: LegalDocument[] = [
           paragraphs: [
             'The chauffeur assigned to your ride receives the details needed to carry it out. Online payments are handled by PayPal under its own privacy policy; we never receive your card details.',
             'Text you type into the address fields is sent from our servers to an address-search service based on OpenStreetMap data in order to suggest locations. It is not combined with your personal details.',
+            'If you accept analytics cookies, Microsoft Clarity receives data on how you use the site (clicks, scrolling, pages visited and device details), with what you type into forms masked. See the cookie policy.',
             'We use service providers for hosting and email. We do not sell personal data.',
           ],
         },
@@ -225,6 +226,7 @@ export const legalDocuments: LegalDocument[] = [
           paragraphs: [
             'El chófer asignado a su trayecto recibe los datos necesarios para realizarlo. Los pagos online los gestiona PayPal conforme a su propia política de privacidad; nunca recibimos los datos de su tarjeta.',
             'El texto que escribe en los campos de dirección se envía desde nuestros servidores a un servicio de búsqueda de direcciones basado en datos de OpenStreetMap para sugerirle ubicaciones. No se combina con sus datos personales.',
+            'Si acepta las cookies de analítica, Microsoft Clarity recibe datos sobre cómo usa el sitio (clics, desplazamiento, páginas visitadas y datos del dispositivo), con lo que escribe en los formularios enmascarado. Consulte la política de cookies.',
             'Utilizamos proveedores de servicios de alojamiento y correo electrónico. No vendemos datos personales.',
           ],
         },
@@ -282,7 +284,7 @@ export const legalDocuments: LegalDocument[] = [
     slug: 'cookies',
     title: { en: 'Cookie policy', es: 'Política de cookies' },
     summary: { en: 'The cookies and browser storage this website uses, and how to control them.', es: 'Las cookies y el almacenamiento del navegador que utiliza este sitio, y cómo controlarlos.' },
-    updated: '2026-10-12',
+    updated: '2026-11-14',
     sections: {
       en: [
         {
@@ -297,7 +299,10 @@ export const legalDocuments: LegalDocument[] = [
         },
         {
           heading: 'Analytics',
-          paragraphs: ['Analytics cookies are optional and are used only if you accept them. You can change your choice at any time with the "Cookie settings" link at the bottom of every page.'],
+          paragraphs: [
+            'Analytics cookies are optional and are used only if you accept them. You can change your choice at any time with the "Cookie settings" link at the bottom of every page.',
+            'With your consent we use Microsoft Clarity to see how visitors use the site: clicks, scrolling and anonymised recordings of visits, with what you type into forms masked. Clarity sets the cookies _clck (one year) and _clsk (one day). Microsoft processes this data under its own privacy statement.',
+          ],
         },
         {
           heading: 'Payments',
@@ -321,7 +326,10 @@ export const legalDocuments: LegalDocument[] = [
         },
         {
           heading: 'Analítica',
-          paragraphs: ['Las cookies de analítica son opcionales y solo se utilizan si las acepta. Puede cambiar su elección en cualquier momento con el enlace «Configurar cookies» al pie de cada página.'],
+          paragraphs: [
+            'Las cookies de analítica son opcionales y solo se utilizan si las acepta. Puede cambiar su elección en cualquier momento con el enlace «Configurar cookies» al pie de cada página.',
+            'Con su consentimiento usamos Microsoft Clarity para ver cómo se usa el sitio: clics, desplazamiento y grabaciones anonimizadas de las visitas, con lo que escribe en los formularios enmascarado. Clarity crea las cookies _clck (un año) y _clsk (un día). Microsoft trata estos datos conforme a su propia declaración de privacidad.',
+          ],
         },
         {
           heading: 'Pagos',

@@ -1,24 +1,27 @@
 import type { NextConfig } from 'next'
 import { CHAT_ORIGIN } from './src/lib/website-chat'
 
+/** Microsoft Clarity, loaded only for visitors who allow analytics (components/layout/Clarity.tsx). */
+const CLARITY_ORIGINS = 'https://*.clarity.ms https://c.bing.com'
+
 /**
- * What pages may load: only this site's own scripts, styles, images and fonts, and the website
- * chat from Vesper (its script, its settings and its panel). Next.js needs inline scripts to
+ * What pages may load: only this site's own scripts, styles, images and fonts, the website
+ * chat from Vesper (its script, its settings and its panel) and Microsoft Clarity. Next.js needs inline scripts to
  * start the page; development also needs eval and a websocket for hot reload, so the policy is
  * sent by production builds only.
  */
 const contentSecurityPolicy = [
   "default-src 'self'",
   // 'wasm-unsafe-eval' lets WebAssembly compile (and nothing else): the home page's 3D car is decoded with it.
-  `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' ${CHAT_ORIGIN}`,
+  `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' ${CHAT_ORIGIN} ${CLARITY_ORIGINS}`,
   // The decoder runs in a worker that three.js starts from a blob: address.
   "worker-src 'self' blob:",
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob:",
+  `img-src 'self' data: blob: ${CLARITY_ORIGINS}`,
   // The Experience page's film is downloaded, then played from memory (a blob: address).
   "media-src 'self' blob:",
   "font-src 'self'",
-  `connect-src 'self' ${CHAT_ORIGIN}`,
+  `connect-src 'self' ${CHAT_ORIGIN} ${CLARITY_ORIGINS}`,
   `frame-src ${CHAT_ORIGIN}`,
   "frame-ancestors 'self'",
   "object-src 'none'",
