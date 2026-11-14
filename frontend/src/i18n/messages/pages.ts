@@ -292,7 +292,7 @@ const en = {
     eyebrow: 'Legal',
     updated: 'Last updated: {date}',
     template:
-      'Only you can see this, as an admin: the company details are still the placeholders. Fill them in under Business details in the admin panel, and have these texts reviewed by a qualified legal adviser.',
+      'Only you can see this, as an admin: some company details are empty, so their lines are left out of this page. Fill them in under Business details in the admin panel, or tick “Hide company details” there, and have these texts reviewed by a qualified legal adviser.',
   },
 }
 
@@ -589,7 +589,7 @@ const es: typeof en = {
     eyebrow: 'Legal',
     updated: 'Última actualización: {date}',
     template:
-      'Solo usted lo ve, como administrador: los datos de la empresa siguen siendo los de ejemplo. Complételos en Datos del negocio, en el panel de administración, y haga revisar estos textos por un asesor jurídico cualificado.',
+      'Solo usted lo ve, como administrador: faltan datos de la empresa, así que sus líneas no aparecen en esta página. Complételos en Datos de la empresa, en el panel de administración, o marque allí «Ocultar los datos de la empresa», y haga revisar estos textos por un asesor jurídico cualificado.',
   },
 }
 

@@ -254,7 +254,6 @@ describe('business details', () => {
       whatsapp: 'on request',
       email: 'not-an-email',
       social: { ...details.social, instagram: 'http://instagram.com/example', facebook: 'javascript:alert(1)' },
-      legal: { ...details.legal, companyName: '' },
     })
     expect(response.status).toBe(400)
     expect(response.body.error.fields).toMatchObject({
@@ -263,9 +262,34 @@ describe('business details', () => {
       email: 'invalid_email',
       'social.instagram': 'invalid_link',
       'social.facebook': 'invalid_link',
-      'legal.companyName': 'required',
     })
     // Nothing was saved.
     expect((await request(app).get('/api/content/settings')).body.settings.phone).toBe('+34 900 000 000')
+  })
+
+  it('starts with the company details empty and hidden', async () => {
+    const shown = (await request(app).get('/api/content/settings')).body.settings
+    expect(shown.legal).toEqual({ hidden: true, companyName: '', taxId: '', address: '', registry: '', licence: '' })
+  })
+
+  it('lets a company detail stay empty', async () => {
+    const admin = await adminAgent(app)
+    const saved = await admin.put('/api/admin/settings').send({ ...details, legal: { ...details.legal, registry: '', licence: ' ' } })
+    expect(saved.status).toBe(200)
+    expect(saved.body.settings.legal).toEqual({ ...details.legal, hidden: false, registry: '', licence: '' })
+  })
+
+  it('keeps hidden company details from visitors, and keeps them for the team', async () => {
+    const admin = await adminAgent(app)
+    expect((await admin.put('/api/admin/settings').send({ ...details, legal: { ...details.legal, hidden: true } })).status).toBe(200)
+
+    const shown = (await request(app).get('/api/content/settings')).body.settings
+    expect(shown.legal).toEqual({ hidden: true, companyName: '', taxId: '', address: '', registry: '', licence: '' })
+    expect(JSON.stringify(shown)).not.toContain('B12345678')
+    // The console still has them, ready to be shown again.
+    expect((await admin.get('/api/admin/settings')).body.settings.legal).toMatchObject({ hidden: true, taxId: 'B12345678' })
+
+    await admin.put('/api/admin/settings').send({ ...details, legal: { ...details.legal, hidden: false } })
+    expect((await request(app).get('/api/content/settings')).body.settings.legal).toMatchObject({ hidden: false, taxId: 'B12345678' })
   })
 })

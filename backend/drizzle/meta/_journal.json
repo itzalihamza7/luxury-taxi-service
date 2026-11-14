@@ -127,6 +127,13 @@
       "when": 1793106589692,
       "tag": "0017_far_per_km",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1794653218283,
+      "tag": "0018_legal_details_hidden",
+      "breakpoints": true
     }
   ]
 }

@@ -40,12 +40,13 @@ export const legalDocuments: LegalDocument[] = [
     slug: 'terms',
     title: { en: 'Terms of use', es: 'Condiciones de uso' },
     summary: { en: 'The conditions that apply when you book and travel with us.', es: 'Las condiciones aplicables cuando reserva y viaja con nosotros.' },
-    updated: '2026-10-12',
+    updated: '2026-11-14',
     sections: {
       en: [
         {
           heading: '1. Who we are',
-          paragraphs: [`These terms govern the use of this website and the chauffeur services offered by ${companyName} ("${brand}", "we"), tax ID ${taxId}, with registered address at ${address}.`],
+          paragraphs: [`These terms govern the use of this website and the chauffeur services offered by ${brand} ("we").`],
+          list: [`Company name: ${companyName}`, `Tax ID: ${taxId}`, `Registered address: ${address}`],
         },
         {
           heading: '2. Bookings',
@@ -94,7 +95,8 @@ export const legalDocuments: LegalDocument[] = [
       es: [
         {
           heading: '1. Quiénes somos',
-          paragraphs: [`Estas condiciones regulan el uso de este sitio web y los servicios de chófer ofrecidos por ${companyName} («${brand}», «nosotros»), con NIF ${taxId} y domicilio social en ${address}.`],
+          paragraphs: [`Estas condiciones regulan el uso de este sitio web y los servicios de chófer ofrecidos por ${brand} («nosotros»).`],
+          list: [`Denominación social: ${companyName}`, `NIF: ${taxId}`, `Domicilio social: ${address}`],
         },
         {
           heading: '2. Reservas',
@@ -146,12 +148,13 @@ export const legalDocuments: LegalDocument[] = [
     slug: 'privacy',
     title: { en: 'Privacy policy', es: 'Política de privacidad' },
     summary: { en: 'What personal data we collect, why, and the rights you have over it.', es: 'Qué datos personales recogemos, para qué y qué derechos tiene sobre ellos.' },
-    updated: '2026-10-12',
+    updated: '2026-11-14',
     sections: {
       en: [
         {
           heading: '1. Data controller',
-          paragraphs: [`${companyName}, tax ID ${taxId}, ${address}. Contact for privacy matters: ${site.email}.`],
+          paragraphs: [`${brand} is responsible for the personal data collected on this website. Contact for privacy matters: ${site.email}.`],
+          list: [`Company name: ${companyName}`, `Tax ID: ${taxId}`, `Registered address: ${address}`],
         },
         {
           heading: '2. Data we collect',
@@ -195,7 +198,8 @@ export const legalDocuments: LegalDocument[] = [
       es: [
         {
           heading: '1. Responsable del tratamiento',
-          paragraphs: [`${companyName}, NIF ${taxId}, ${address}. Contacto en materia de privacidad: ${site.email}.`],
+          paragraphs: [`${brand} es responsable de los datos personales recogidos en este sitio web. Contacto en materia de privacidad: ${site.email}.`],
+          list: [`Denominación social: ${companyName}`, `NIF: ${taxId}`, `Domicilio social: ${address}`],
         },
         {
           heading: '2. Datos que recogemos',

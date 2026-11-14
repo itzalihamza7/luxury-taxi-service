@@ -140,13 +140,14 @@ export const siteSettingsSchema = z.object({
   email,
   /** Leave a link empty to hide it. */
   social: z.object({ instagram: link, facebook: link, tripadvisor: link, google: link }),
-  /** Used in the legal pages. */
+  /** Used in the legal pages. An empty detail is left out; while `hidden`, all of them are. */
   legal: z.object({
-    companyName: z.string().trim().min(1).max(200),
-    taxId: z.string().trim().min(1).max(60),
-    address: z.string().trim().min(1).max(300),
-    registry: z.string().trim().min(1).max(300),
-    licence: z.string().trim().min(1).max(120),
+    hidden: z.boolean().default(false),
+    companyName: z.string().trim().max(200),
+    taxId: z.string().trim().max(60),
+    address: z.string().trim().max(300),
+    registry: z.string().trim().max(300),
+    licence: z.string().trim().max(120),
   }),
   /** While true, the reviews section is labelled as showing sample reviews. */
   reviewsAreSamples: z.boolean(),

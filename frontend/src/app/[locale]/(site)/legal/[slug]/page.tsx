@@ -14,6 +14,8 @@ import { formatDate } from '@/lib/format'
 import { pageMetadata } from '@/lib/seo'
 import { loadCollection, quietly } from '@/lib/server-api'
 
+const COMPANY_DETAILS = ['companyName', 'taxId', 'address', 'registry', 'licence'] as const
+
 export async function generateMetadata({ params }: PageProps<'/[locale]/legal/[slug]'>): Promise<Metadata> {
   const [{ slug }, locale] = await Promise.all([params, getLocale()])
   const document = (await quietly('the legal pages', () => loadCollection('legal'), [])).find((candidate) => candidate.slug === slug)
@@ -40,11 +42,14 @@ async function LegalContent({ params }: Pick<PageProps<'/[locale]/legal/[slug]'>
 
   // The texts say `{companyName}`, `{email}` and so on; the business details saved in the console go in their place.
   const details: Record<string, string> = settings
-    ? { ...settings.legal, email: settings.email, phone: settings.phone, brand: site.name }
+    ? { ...Object.fromEntries(COMPANY_DETAILS.map((key) => [key, settings.legal[key]])), email: settings.email, phone: settings.phone, brand: site.name }
     : { brand: site.name }
   const text = (value: string) => fill(value, details)
-  // Until the company details are filled in, the team (and only the team) is reminded.
-  const incomplete = !settings || Object.values(settings.legal).some((value) => /^\s*\[.*\]\s*$/.test(value))
+  // A line naming a company detail that is hidden or empty is left out, so no blank or placeholder is shown.
+  const missing = COMPANY_DETAILS.filter((key) => !settings || settings.legal.hidden || !settings.legal[key]?.trim())
+  const shown = (value: string) => !missing.some((key) => value.includes(`{${key}}`))
+  // While details are missing but not deliberately hidden, the team (and only the team) is reminded.
+  const incomplete = settings !== null && !settings.legal.hidden && missing.length > 0
 
   return (
     <>
@@ -73,23 +78,28 @@ async function LegalContent({ params }: Pick<PageProps<'/[locale]/legal/[slug]'>
             {incomplete ? <OperatorNotice text={p.legal.template} /> : null}
             <p className="text-sm text-ink-900/60">{fill(p.legal.updated, { date: formatDate(document.updated, locale) })}</p>
 
-            {document.sections[locale].map((section) => (
-              <section key={section.heading ?? section.paragraphs[0]} className="mt-10">
-                {section.heading ? <h2 className="font-display text-3xl">{text(section.heading)}</h2> : null}
-                {section.paragraphs.map((paragraph) => (
-                  <p key={paragraph} className="mt-4 leading-relaxed text-ink-900/75">
-                    {text(paragraph)}
-                  </p>
-                ))}
-                {section.list ? (
-                  <ul className="mt-4 list-disc space-y-2.5 pl-5 leading-relaxed text-ink-900/75 marker:text-gold-600">
-                    {section.list.map((item) => (
-                      <li key={item}>{text(item)}</li>
-                    ))}
-                  </ul>
-                ) : null}
-              </section>
-            ))}
+            {document.sections[locale].map((section) => {
+              const paragraphs = section.paragraphs.filter(shown)
+              const list = section.list?.filter(shown) ?? []
+              if (paragraphs.length === 0 && list.length === 0) return null
+              return (
+                <section key={section.heading ?? section.paragraphs[0]} className="mt-10">
+                  {section.heading ? <h2 className="font-display text-3xl">{text(section.heading)}</h2> : null}
+                  {paragraphs.map((paragraph) => (
+                    <p key={paragraph} className="mt-4 leading-relaxed text-ink-900/75">
+                      {text(paragraph)}
+                    </p>
+                  ))}
+                  {list.length > 0 ? (
+                    <ul className="mt-4 list-disc space-y-2.5 pl-5 leading-relaxed text-ink-900/75 marker:text-gold-600">
+                      {list.map((item) => (
+                        <li key={item}>{text(item)}</li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </section>
+              )
+            })}
           </article>
         </div>
       </Section>

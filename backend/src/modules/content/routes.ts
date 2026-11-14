@@ -35,12 +35,18 @@ export async function getSiteSettings(): Promise<SiteSettings> {
   return { ...DEFAULT_SITE_SETTINGS, ...(row?.value as Partial<SiteSettings> | undefined) }
 }
 
+/** Company details the business chose to hide are not sent to visitors at all. */
+function publicSettings(site: SiteSettings): SiteSettings {
+  if (!site.legal.hidden) return site
+  return { ...site, legal: { hidden: true, companyName: '', taxId: '', address: '', registry: '', licence: '' } }
+}
+
 /** Public: the published content and the business details. */
 export function contentRouter(): Router {
   const router = Router()
 
   router.get('/settings', async (_req, res) => {
-    res.json({ settings: await getSiteSettings() })
+    res.json({ settings: publicSettings(await getSiteSettings()) })
   })
 
   router.get('/:collection', async (req, res) => {

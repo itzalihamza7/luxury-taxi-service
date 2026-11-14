@@ -42,7 +42,8 @@ type FieldKind =
   /** Several of `options`, kept in the order they are listed. */
   | { kind: 'choices'; options: Option[] }
 
-export type FieldDef = { path: string; label: string; hint?: string } & FieldKind
+/** `hideWhen`: the path of a yes/no field; while it is on, this field is not shown. */
+export type FieldDef = { path: string; label: string; hint?: string; hideWhen?: string } & FieldKind
 
 export const heading = (label: string, hint?: string): FieldDef => ({ kind: 'heading', path: '', label, hint })
 
@@ -460,9 +461,9 @@ export function EntryForm({ title, fields, initial, m, onSave, onCancel, onDelet
       <h3 className="text-xl font-semibold tracking-tight">{title}</h3>
 
       <div className="mt-7 grid gap-x-5 gap-y-6 sm:grid-cols-2 lg:grid-cols-4">
-        {fields.map((def, index) => (
+        {fields.map((def, index) => (def.hideWhen && getAt(draft, def.hideWhen) === true ? null : (
           <FieldControl key={def.path || `heading-${index}`} def={def} draft={draft} errors={errors} m={m} formId={formId} change={(path, value) => setDraft((current) => setAt(current, path, value))} />
-        ))}
+        )))}
       </div>
 
       {message ? (
