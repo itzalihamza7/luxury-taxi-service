@@ -43,6 +43,10 @@ const nextConfig: NextConfig = {
   // Self-contained server bundle for the Docker image.
   output: 'standalone',
   poweredByHeader: false,
+  // Title, description, canonical and hreflang go in <head> for every visitor. By default Next.js
+  // streams them into <body> for browsers and Googlebot, and Google ignores a canonical in <body>
+  // (Search Console listed the pages as "Duplicate without user-selected canonical").
+  htmlLimitedBots: /.*/,
   // The DDEV hostname must be allowed to load dev-only assets (hot reload).
   allowedDevOrigins: ['*.ddev.site'],
   images: {

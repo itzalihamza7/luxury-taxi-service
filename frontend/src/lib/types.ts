@@ -315,7 +315,8 @@ export interface SiteSettings {
   email: string
   /** An empty link hides its icon. */
   social: { instagram: string; facebook: string; tripadvisor: string; google: string }
-  legal: { companyName: string; taxId: string; address: string; registry: string; licence: string }
+  /** Shown in the legal pages; an empty detail is left out, and while `hidden` all of them are. */
+  legal: { hidden: boolean; companyName: string; taxId: string; address: string; registry: string; licence: string }
   /** While true, the reviews section says that the reviews are samples. */
   reviewsAreSamples: boolean
   /** Whether bookings taken by phone join the account of a customer who signs up later with the same email or number. */
