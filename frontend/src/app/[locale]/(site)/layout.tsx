@@ -1,4 +1,5 @@
 import { Suspense, type ReactNode } from 'react'
+import { Clarity } from '@/components/layout/Clarity'
 import { CookieConsent } from '@/components/layout/CookieConsent'
 import { contactDetails } from '@/components/layout/ContactButtons'
 import { Footer } from '@/components/layout/Footer'
@@ -46,6 +47,7 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
         <SiteMobileBar />
       </Suspense>
       <CookieConsent />
+      <Clarity />
       <WhatsAppTracker />
       <WebsiteChat />
     </>

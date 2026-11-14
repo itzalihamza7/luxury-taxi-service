@@ -57,6 +57,11 @@ function subscribe(onChange: () => void) {
   }
 }
 
+/** Whether the visitor allowed analytics, kept up to date when they change their choice. False until they do. */
+export function useAnalyticsConsent(): boolean {
+  return useSyncExternalStore(subscribe, () => readConsent()?.analytics === true, () => false)
+}
+
 /** Footer link that reopens the settings dialog. */
 export function CookieSettingsButton() {
   const { t } = useI18n()
