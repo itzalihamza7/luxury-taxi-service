@@ -32,6 +32,7 @@ export async function GET() {
     '',
     '- Chauffeurs speak English and Spanish; meet & greet with a name board and flight tracking on airport pickups.',
     '- Works across Madrid and its region every day, with long-distance transfers to anywhere in mainland Spain.',
+    '- Also described as: car with driver, private driver or luxury chauffeur service in Madrid; in Spanish, chófer privado, coche con conductor and transporte privado en Madrid.',
     '- Free cancellation up to 24 hours before pickup. Booking as a guest needs no account.',
     ...(settings ? [`- Contact: phone ${settings.phone}, WhatsApp +${settings.whatsapp}, email ${settings.email}.`] : []),
     `- Book: ${url('/booking')}`,

@@ -1,9 +1,9 @@
 /** Copy for the marketing pages. `*word*` in a title marks the italic accent. */
 const en = {
   home: {
-    metaTitle: 'Private chauffeur service in Madrid — fixed prices, booked online',
+    metaTitle: 'Private chauffeur & car with driver in Madrid',
     metaDescription:
-      'Chauffeur-driven cars in Madrid and across Spain: airport transfers, hourly hire, city rides and day trips. See a fixed price for every vehicle before you book.',
+      'Private driver service in Madrid and across Spain: airport transfers, hourly hire, city rides and day trips. See a fixed price for every vehicle before you book.',
     heroTitle: 'Arrive *unhurried*.',
     heroLead: 'Chauffeur-driven cars across Madrid and Spain. One fixed price, shown before you book — no meter, no surprises.',
     widgetTitle: 'Where to?',
@@ -29,7 +29,7 @@ const en = {
     standardsImageAlt: 'A chauffeur in a dark coat beside a black saloon',
     introTitle: 'A private driver, *a price you already know*',
     introText:
-      'We are a chauffeur service based in Madrid. You book a car and a professional driver for a set time; they collect you at the door and take you where you need to go. Business travellers use us for airports and meetings, families for luggage-heavy arrivals and days out, and companies for guests they want looked after.',
+      'We are a private chauffeur service based in Madrid. You book a car with driver for a set time: a professional chauffeur who collects you at the door and takes you where you need to go. Business travellers use us for airports and meetings, families for luggage-heavy arrivals and days out, and companies for guests they want looked after.',
     facts: [
       { value: '7', label: 'vehicle classes, from city car to 16-seat minibus' },
       { value: '2 h', label: 'minimum notice for online bookings' },
@@ -39,7 +39,7 @@ const en = {
     servicesTitle: 'Five ways to *travel well*',
     fleetEyebrow: 'The fleet',
     fleetTitle: 'Choose the car, *see the price*',
-    fleetLead: 'Every vehicle comes with a professional chauffeur. Prices shown are the starting fare for a transfer, VAT included.',
+    fleetLead: 'Car with driver prices in Madrid: every vehicle comes with a professional chauffeur, and the price shown is the starting fare for a transfer, VAT included.',
     includedEyebrow: 'With every ride',
     includedTitle: 'Everything that should be *standard*',
     included: [
@@ -76,8 +76,16 @@ const en = {
     journalTitle: 'Notes from *the road*',
   },
   services: {
-    metaTitle: 'Chauffeur services in Madrid',
-    metaDescription: 'Airport transfers, hourly chauffeur hire, Madrid city rides, city-to-city transfers and day trips — each at a fixed price shown before you book.',
+    metaTitle: 'Madrid chauffeur services: airport, hourly and day trips',
+    metaDescription: 'Chauffeur service and private driver in Madrid: airport transfers, hourly chauffeur hire, city rides, city-to-city transfers and day trips, each at a fixed price shown before you book.',
+    /** Search-result titles of the service pages, by address; a service not listed uses its name. */
+    pageTitles: {
+      'airport-transfers': 'Madrid airport transfers to and from Barajas',
+      'hourly-chauffeur': 'Hourly chauffeur hire in Madrid',
+      'madrid-city-rides': 'Car with driver for rides across Madrid',
+      'city-to-city': 'Private transfers from Madrid to any city in Spain',
+      'day-trips': 'Day trips from Madrid with a private driver',
+    } as Record<string, string>,
     eyebrow: 'Chauffeur services in Madrid',
     title: 'One standard, *five services*',
     lead: 'However you travel with us, the essentials are the same: a professional chauffeur, a car that suits the occasion and a price fixed before you set off.',
@@ -94,6 +102,8 @@ const en = {
   fleet: {
     metaTitle: 'Our fleet — sedans, vans and minibuses with chauffeur',
     metaDescription: 'Seven vehicle classes with chauffeur in Madrid: Mercedes E-Class and S-Class, V-Class vans, Maybach and a 16-seat minibus. Capacity and starting prices for each.',
+    /** Search-result title of a vehicle's page. */
+    pageTitle: '{vehicle} with chauffeur in Madrid — {tagline}',
     eyebrow: 'Chauffeur-driven cars in Madrid',
     title: 'Seven vehicles, *one standard*',
     lead: 'From a compact city car to a sixteen-seat minibus. Choose by passengers and luggage; the booking form shows the fixed price for your journey.',
@@ -113,6 +123,8 @@ const en = {
   routes: {
     metaTitle: 'Private transfers from Madrid — Toledo, Segovia, Ávila, El Escorial',
     metaDescription: 'Day trips from Madrid by private car: real distances and drive times to Toledo, Segovia, Ávila and El Escorial, and honest advice on when to take the train.',
+    /** Search-result title of a route's page. */
+    pageTitle: 'Madrid to {city} by private car with chauffeur',
     eyebrow: 'Private transfers from Madrid',
     title: 'Madrid, and the places *worth leaving it for*',
     lead: 'Four classic journeys out of the city, with real distances and drive times — and an honest word on when the train is the better idea.',
@@ -137,6 +149,8 @@ const en = {
   events: {
     metaTitle: 'Madrid events — chauffeur service for fairs, art week and tennis',
     metaDescription: 'Pre-booked chauffeur service for FITUR, ARCOmadrid and the Mutua Madrid Open. Dates, venues and practical advice for getting in and out.',
+    /** Search-result title of an event's page. */
+    pageTitle: '{event}: chauffeur and transfers to {venue}',
     eyebrow: 'Event chauffeurs in Madrid',
     title: 'Madrid has a calendar. *We drive it.*',
     lead: 'The weeks when the city fills up and finding a taxi stops being a plan. Book the car before the dates get close.',
@@ -298,9 +312,9 @@ const en = {
 
 const es: typeof en = {
   home: {
-    metaTitle: 'Servicio de chófer privado en Madrid: precios cerrados y reserva online',
+    metaTitle: 'Chófer privado y coche con conductor en Madrid',
     metaDescription:
-      'Coches con chófer en Madrid y toda España: traslados al aeropuerto, servicio por horas, trayectos urbanos y excursiones. Vea el precio cerrado de cada vehículo antes de reservar.',
+      'Transporte privado con chófer en Madrid y toda España: traslados al aeropuerto, servicio por horas, trayectos urbanos y excursiones. Vea el precio cerrado de cada vehículo antes de reservar.',
     heroTitle: 'Llegue *sin prisas*.',
     heroLead: 'Coches con chófer en Madrid y toda España. Un precio cerrado, visible antes de reservar: sin taxímetro y sin sorpresas.',
     widgetTitle: '¿Adónde vamos?',
@@ -326,7 +340,7 @@ const es: typeof en = {
     standardsImageAlt: 'Un chófer con abrigo oscuro junto a una berlina negra',
     introTitle: 'Un conductor privado, *un precio que ya conoce*',
     introText:
-      'Somos un servicio de chófer con sede en Madrid. Usted reserva un coche y un conductor profesional para una hora concreta; le recoge en la puerta y le lleva adonde necesite. Los viajeros de negocios nos eligen para aeropuertos y reuniones; las familias, para llegadas con mucho equipaje y excursiones; y las empresas, para los invitados a los que quieren cuidar.',
+      'Somos un servicio de chófer privado con sede en Madrid: transporte privado de puerta a puerta. Usted reserva un coche con conductor para una hora concreta; un chófer profesional le recoge en la puerta y le lleva adonde necesite. Los viajeros de negocios nos eligen para aeropuertos y reuniones; las familias, para llegadas con mucho equipaje y excursiones; y las empresas, para los invitados a los que quieren cuidar.',
     facts: [
       { value: '7', label: 'categorías de vehículo, del utilitario al minibús de 16 plazas' },
       { value: '2 h', label: 'de antelación mínima para reservar online' },
@@ -336,7 +350,7 @@ const es: typeof en = {
     servicesTitle: 'Cinco maneras de *viajar bien*',
     fleetEyebrow: 'La flota',
     fleetTitle: 'Elija el coche, *vea el precio*',
-    fleetLead: 'Todos los vehículos incluyen chófer profesional. Los precios indicados son la tarifa de salida de un traslado, con IVA incluido.',
+    fleetLead: 'Precios de coche con conductor en Madrid: todos los vehículos incluyen chófer profesional, y el precio indicado es la tarifa de salida de un traslado, con IVA incluido.',
     includedEyebrow: 'En cada trayecto',
     includedTitle: 'Todo lo que debería ser *de serie*',
     included: [
@@ -373,11 +387,18 @@ const es: typeof en = {
     journalTitle: 'Apuntes *de carretera*',
   },
   services: {
-    metaTitle: 'Servicios de chófer en Madrid',
-    metaDescription: 'Traslados al aeropuerto, chófer por horas, trayectos en Madrid, traslados entre ciudades y excursiones, cada uno con un precio cerrado visible antes de reservar.',
-    eyebrow: 'Servicios de chófer en Madrid',
+    metaTitle: 'Transporte privado con chófer en Madrid',
+    metaDescription: 'Transporte privado en Madrid con chófer profesional: traslados al aeropuerto, chófer por horas, trayectos por la ciudad, viajes entre ciudades y excursiones, con precio cerrado antes de reservar.',
+    pageTitles: {
+      'airport-transfers': 'Traslados privados al aeropuerto de Madrid-Barajas',
+      'hourly-chauffeur': 'Chófer privado por horas en Madrid',
+      'madrid-city-rides': 'Coche con conductor para moverse por Madrid',
+      'city-to-city': 'Transporte privado de Madrid a cualquier ciudad de España',
+      'day-trips': 'Excursiones de un día desde Madrid con chófer',
+    },
+    eyebrow: 'Transporte privado en Madrid',
     title: 'Un mismo estándar, *cinco servicios*',
-    lead: 'Viaje como viaje con nosotros, lo esencial no cambia: un chófer profesional, un coche a la altura de la ocasión y un precio cerrado antes de salir.',
+    lead: 'Viaje como viaje con nosotros, lo esencial del transporte privado no cambia: un chófer profesional, un coche a la altura de la ocasión y un precio cerrado antes de salir.',
     includesTitle: 'Qué incluye',
     idealTitle: 'Ideal para',
     vehiclesEyebrow: 'Vehículos recomendados',
@@ -391,6 +412,7 @@ const es: typeof en = {
   fleet: {
     metaTitle: 'Nuestra flota: berlinas, monovolúmenes y minibuses con chófer',
     metaDescription: 'Siete categorías de vehículo con chófer en Madrid: Mercedes Clase E y Clase S, monovolúmenes Clase V, Maybach y un minibús de 16 plazas. Capacidad y precio de salida de cada uno.',
+    pageTitle: '{vehicle} con conductor en Madrid: {tagline}',
     eyebrow: 'Coches con chófer en Madrid',
     title: 'Siete vehículos, *un mismo estándar*',
     lead: 'Del utilitario urbano al minibús de dieciséis plazas. Elija según pasajeros y equipaje; el formulario de reserva muestra el precio cerrado de su trayecto.',
@@ -410,6 +432,7 @@ const es: typeof en = {
   routes: {
     metaTitle: 'Traslados privados desde Madrid: Toledo, Segovia, Ávila y El Escorial',
     metaDescription: 'Excursiones desde Madrid en coche privado: distancias y tiempos reales a Toledo, Segovia, Ávila y El Escorial, y un consejo sincero sobre cuándo conviene el tren.',
+    pageTitle: 'De Madrid a {city} en coche privado con chófer',
     eyebrow: 'Traslados privados desde Madrid',
     title: 'Madrid y los lugares *por los que merece la pena salir*',
     lead: 'Cuatro trayectos clásicos fuera de la ciudad, con distancias y tiempos reales, y una opinión sincera sobre cuándo es mejor ir en tren.',
@@ -434,6 +457,7 @@ const es: typeof en = {
   events: {
     metaTitle: 'Eventos en Madrid: chófer para ferias, semana del arte y tenis',
     metaDescription: 'Servicio de chófer con reserva previa para FITUR, ARCOmadrid y el Mutua Madrid Open. Fechas, recintos y consejos prácticos para llegar y salir.',
+    pageTitle: '{event}: chófer y traslados a {venue}',
     eyebrow: 'Chófer para eventos en Madrid',
     title: 'Madrid tiene una agenda. *Nosotros la conducimos.*',
     lead: 'Las semanas en que la ciudad se llena y encontrar un taxi deja de ser un plan. Reserve el coche antes de que se acerquen las fechas.',
