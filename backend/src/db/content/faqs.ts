@@ -117,4 +117,13 @@ export const faqs: Faq[] = [
       es: 'Sí. Nuestros chóferes hablan inglés y español, así que las indicaciones, los cambios de plan y la propia recogida resultan sencillos en el idioma que prefiera. También puede escribirnos en cualquiera de los dos idiomas por correo o WhatsApp.',
     },
   },
+  {
+    slug: 'car-with-driver-cost',
+    featured: true,
+    question: { en: 'How much does a car with driver cost in Madrid?', es: '¿Cuánto cuesta un coche con conductor en Madrid?' },
+    answer: {
+      en: 'It depends on the vehicle and the journey. A transfer within the M-30 ring, or between Madrid–Barajas airport and the M-30, has a fixed starting price for each vehicle, shown on the fleet page; further out, a rate per kilometre is added for the distance beyond the M-30. Hourly hire is priced per hour, from two hours; for some vehicles the hourly price is agreed with you. The booking form shows the exact price, VAT included, before you confirm.',
+      es: 'Depende del vehículo y del trayecto. Un traslado dentro de la M-30, o entre el aeropuerto de Madrid–Barajas y la M-30, tiene un precio de salida fijo para cada vehículo, que puede ver en la página de la flota; más allá, se añade una tarifa por kilómetro por la distancia fuera de la M-30. El servicio por horas se factura por hora, desde dos horas; en algunos vehículos el precio por hora se acuerda con usted. El formulario de reserva muestra el precio exacto, con IVA incluido, antes de confirmar.',
+    },
+  },
 ]

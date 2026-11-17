@@ -141,6 +141,13 @@
       "when": 1794656594723,
       "tag": "0019_clarity_policies",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1794954064683,
+      "tag": "0020_car_with_driver_price_faq",
+      "breakpoints": true
     }
   ]
 }

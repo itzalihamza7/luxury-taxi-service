@@ -9,6 +9,7 @@ import { PageHero } from '@/components/layout/PageHero'
 import { PageSkeleton } from '@/components/layout/PageSkeleton'
 import { ButtonLink } from '@/components/ui/Button'
 import { Eyebrow, Section, SectionHeading } from '@/components/ui/Section'
+import { fill } from '@/i18n/config'
 import { getCommon, getLocale, getPages } from '@/i18n/server'
 import { todayInMadrid } from '@/lib/clock'
 import { formatDateRange } from '@/lib/format'
@@ -16,10 +17,11 @@ import { pageMetadata } from '@/lib/seo'
 import { loadCollection, quietly } from '@/lib/server-api'
 
 export async function generateMetadata({ params }: PageProps<'/[locale]/events/[slug]'>): Promise<Metadata> {
-  const [{ slug }, locale] = await Promise.all([params, getLocale()])
+  const [{ slug }, locale, p] = await Promise.all([params, getLocale(), getPages()])
   const event = (await quietly('the events', () => loadCollection('event'), [])).find((candidate) => candidate.slug === slug)
   if (!event) return {}
-  return pageMetadata({ locale, path: `/events/${event.slug}`, title: `${event.title[locale]} · ${event.venue}`, description: event.summary[locale] })
+  const title = fill(p.events.pageTitle, { event: event.title[locale], venue: event.venue })
+  return pageMetadata({ locale, path: `/events/${event.slug}`, title, description: event.summary[locale] })
 }
 
 /**

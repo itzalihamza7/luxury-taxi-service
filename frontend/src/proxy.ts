@@ -25,6 +25,8 @@ function preferredLocale(request: NextRequest): Locale {
 /**
  * Every page lives under a language prefix (`/en/...`, `/es/...`).
  * Requests without one are redirected to the visitor's language.
+ * The redirect is permanent (308): with a temporary one, Google keeps the address
+ * without a language in its results and splits each page's ranking between the two.
  */
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -32,7 +34,7 @@ export function proxy(request: NextRequest) {
 
   const url = request.nextUrl.clone()
   url.pathname = `/${preferredLocale(request)}${pathname === '/' ? '' : pathname}`
-  return NextResponse.redirect(url)
+  return NextResponse.redirect(url, 308)
 }
 
 export const config = {

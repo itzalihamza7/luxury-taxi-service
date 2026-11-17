@@ -17,10 +17,11 @@ import { pageMetadata } from '@/lib/seo'
 import { loadCollection, quietly } from '@/lib/server-api'
 
 export async function generateMetadata({ params }: PageProps<'/[locale]/services/[slug]'>): Promise<Metadata> {
-  const [{ slug }, locale] = await Promise.all([params, getLocale()])
+  const [{ slug }, locale, p] = await Promise.all([params, getLocale(), getPages()])
   const service = (await quietly('the services', () => loadCollection('service'), [])).find((candidate) => candidate.slug === slug)
   if (!service) return {}
-  return pageMetadata({ locale, path: `/services/${service.slug}`, title: service.title[locale], description: service.summary[locale] })
+  const title = p.services.pageTitles[service.slug] ?? service.title[locale]
+  return pageMetadata({ locale, path: `/services/${service.slug}`, title, description: service.summary[locale] })
 }
 
 /**

@@ -25,13 +25,13 @@ type Props = PageProps<'/[locale]/fleet/[slug]'>
  */
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
-  const [vehicles, locale] = await Promise.all([quietly('the fleet', () => loadVehicles(), []), getLocale()])
+  const [vehicles, locale, p] = await Promise.all([quietly('the fleet', () => loadVehicles(), []), getLocale(), getPages()])
   const vehicle = vehicles.find((candidate) => candidate.slug === slug)
   if (!vehicle) return {}
   return pageMetadata({
     locale,
     path: `/fleet/${vehicle.slug}`,
-    title: `${vehicle.name} — ${vehicle.tagline[locale]}`,
+    title: fill(p.fleet.pageTitle, { vehicle: vehicle.name, tagline: vehicle.tagline[locale] }),
     description: vehicle.description[locale],
   })
 }
